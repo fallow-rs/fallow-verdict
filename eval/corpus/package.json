@@ -1,0 +1,12 @@
+{
+  "name": "verdict-evaluation-app",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./lookup": "./src/lookup.ts",
+    "./proxy": "./src/proxy.ts",
+    "./redirect": "./src/redirect.ts",
+    "./profile": "./src/profile.ts",
+    "./query": "./src/query.ts"
+  }
+}

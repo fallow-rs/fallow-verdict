@@ -75,7 +75,12 @@ export const collectWindows = async (
       unreadable.push(file);
       continue;
     }
-    const spans = fileLocations.map((location) => ({
+    const validLocations = fileLocations.filter(
+      (location) =>
+        Number.isInteger(location.line) && location.line >= 1 && location.line <= lines.length,
+    );
+    if (validLocations.length !== fileLocations.length) unreadable.push(file);
+    const spans = validLocations.map((location) => ({
       start: Math.max(1, location.line - radius),
       end: Math.min(lines.length, location.line + radius),
       roles: new Set<WindowRole>([location.role]),

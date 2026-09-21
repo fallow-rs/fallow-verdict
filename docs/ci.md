@@ -33,3 +33,12 @@ to a commit SHA in your own workflow.
 Persist `.fallow-verdict/findings/` between runs (a cache keyed on the branch works) so unchanged
 candidates are not judged again. Secrets are not available to pull requests from forks; the
 `judge` step then fails with `engine_auth_failed`, exit code 2.
+
+Incomplete judgment (including a budget stop) exits 2 even with `--fail-on off`. Exit 1 means
+judgment completed and retained findings crossed the chosen threshold. `eval` also exits 2 when
+labels lack current judgments. Reports and evaluation are scoped to the latest candidate set.
+
+The repository workflow runs the built CLI against a real Fallow binary and a local HTTP engine;
+no API secret is required for CI. Live model evaluation is an explicit maintainer operation with
+`npm run eval:live`. Before scanning untrusted code, inspect configuration and install scripts:
+JavaScript and TypeScript config files execute locally.

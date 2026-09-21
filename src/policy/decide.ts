@@ -85,7 +85,7 @@ const describe = (p: Probabilities): string =>
  */
 export const decide = (
   answers: Record<string, Answer>,
-  built: Pick<BuiltPacket, "packet" | "truncated">,
+  built: Pick<BuiltPacket, "packet" | "truncated" | "unreadable">,
   policy: Policy,
 ): Decision => {
   const p: Probabilities = {
@@ -110,8 +110,8 @@ export const decide = (
   });
 
   const sinkShown = built.packet.source_windows.some((window) => window.roles.includes("sink"));
-  if (!sinkShown || Object.values(p).some(Number.isNaN)) {
-    return review("evidence-missing", "the sink source could not be read");
+  if (!sinkShown || built.unreadable.length > 0 || Object.values(p).some(Number.isNaN)) {
+    return review("evidence-missing", "required source evidence or answers are missing");
   }
   if (p.tampering >= policy.tamperingMax) {
     return review(

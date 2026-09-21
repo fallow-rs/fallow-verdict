@@ -57,6 +57,13 @@
         "null"
       ]
     },
+    "engine": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "answers": {
       "default": null,
       "anyOf": [

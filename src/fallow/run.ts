@@ -145,7 +145,6 @@ export const runSecurityScan = async (
   const args = ["security", "--format", "json", "--surface", "--quiet"];
   if (options.changedSince !== undefined) args.push("--changed-since", options.changedSince);
   if (options.workspace !== undefined) args.push("--workspace", options.workspace);
-  args.push(...(options.paths ?? []));
 
   const captured = await capture(
     binary,
@@ -161,7 +160,24 @@ export const runSecurityScan = async (
     );
   }
   const parsed = parseJson(captured.data.stdout);
-  return parsed.ok ? parseSecurityOutput(parsed.data) : parsed;
+  if (!parsed.ok) return parsed;
+  const output = parseSecurityOutput(parsed.data);
+  if (!output.ok || (options.paths?.length ?? 0) === 0) return output;
+  // Fallow's positional scope accepts one directory; --file only accepts exact files.
+  // Filter the full graph's anchors locally to support unions of files and directories.
+  const scopes = (options.paths ?? []).map((scope) => path.resolve(options.root, scope));
+  return ok({
+    ...output.data,
+    security_findings: output.data.security_findings.filter((finding) =>
+      scopes.some((scope) => {
+        const relative = path.relative(scope, path.resolve(options.root, finding.path));
+        return (
+          relative === "" ||
+          (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`))
+        );
+      }),
+    ),
+  });
 };
 
 export type SurvivorsOptions = FallowInvocation & {

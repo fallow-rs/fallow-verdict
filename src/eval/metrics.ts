@@ -63,7 +63,8 @@ const calibrationError = (
 export const evaluate = (records: readonly FindingRecord[], labels: Labels): EvalReport => {
   const byId = new Map(records.map((record) => [record.finding_id, record]));
   const pairs = labels.labels.flatMap(({ finding_id, expected }) => {
-    const decision = byId.get(finding_id)?.decision ?? null;
+    const record = byId.get(finding_id);
+    const decision = record?.status === "judged" ? record.decision : null;
     return decision === null
       ? []
       : [{ finding_id, vulnerable: expected === "vulnerable", decision }];

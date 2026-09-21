@@ -1,0 +1,36 @@
+# Development roadmap
+
+## Measure useful dismissals
+
+Expand the labeled corpus with safe candidates that Fallow still reports, paired with vulnerable
+near-neighbors. Cover URL parsing and redirects, SQL identifier/value contexts, path containment,
+authorization checks, and multi-module flows. Document attacker control and deployment assumptions
+for every label. Separate a development set from a holdout before tuning prompts or thresholds.
+
+Acceptance requires no dismissed vulnerable holdout examples, useful safe-candidate dismissals,
+and stable behavior across repeated runs with a pinned model. Report uncertainty and abstentions;
+an absence of dismissals cannot establish dismissal precision. Add adversarial comments,
+missing files and truncated context to every evaluation pass.
+
+## Improve evidence before relaxing thresholds
+
+Inspect why the safe examples still require review. Compare source windows with enclosing
+functions and explicit caller/guard context, then evaluate category-specific question rubrics.
+Change one dimension at a time and version both the packet and question set. Preserve raw answers
+so policy experiments remain local. Retain the current conservative thresholds until the holdout
+supports a change.
+
+## Make review results useful in CI
+
+Add SARIF or a GitHub Check integration with stable finding identities, current evidence links,
+and an explicit incomplete-run state. PR scoping should retain graph context, and cached state
+must never hide changed or unjudged candidates. Keep credentials unavailable to untrusted fork
+code and use JSON configuration when reviewing untrusted repositories.
+
+## Release gates
+
+The public repository is a development preview. Before an npm release, require green CI on the
+exact release commit, a clean packed-install smoke test, a documented state migration policy,
+and published holdout evaluation. Provider-side billing limits remain necessary for a hard cost
+cap. Accuracy comparisons with deepsec or Warden require the same pinned projects, labels and
+scope, including findings outside Fallow's catalogue.

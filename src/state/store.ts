@@ -68,6 +68,7 @@ export const openStore = (dataDir: string): Store => {
   const runsDir = path.join(dataDir, "runs");
   const lockDir = path.join(dataDir, ".lock");
   const ownerFile = path.join(lockDir, "owner.json");
+  const recoveryDir = path.join(dataDir, ".lock-recovery");
 
   const writeJson = (file: string, value: unknown): Promise<void> =>
     writeAtomic(file, `${JSON.stringify(value, null, 2)}\n`);
@@ -75,10 +76,13 @@ export const openStore = (dataDir: string): Store => {
   const lockIsStale = async (): Promise<boolean> => {
     try {
       const owner = JSON.parse(await readFile(ownerFile, "utf8")) as { pid?: number };
-      if (typeof owner.pid === "number" && !isProcessAlive(owner.pid)) return true;
+      if (typeof owner.pid === "number" && Number.isInteger(owner.pid) && owner.pid > 0)
+        return !isProcessAlive(owner.pid);
       return Date.now() - (await stat(lockDir)).mtimeMs > LOCK_STALE_MS;
     } catch {
-      return true;
+      // A second process may observe the directory before its owner file exists.
+      const info = await stat(lockDir).catch(() => null);
+      return info !== null && Date.now() - info.mtimeMs > LOCK_STALE_MS;
     }
   };
 
@@ -95,7 +99,18 @@ export const openStore = (dataDir: string): Store => {
       } catch (cause) {
         if ((cause as NodeJS.ErrnoException).code !== "EEXIST") throw cause;
         if (!(await lockIsStale())) break;
-        await rm(lockDir, { recursive: true, force: true });
+        // Serialize recovery so a second reaper cannot remove a newly acquired lock.
+        try {
+          await mkdir(recoveryDir);
+        } catch (recoveryError) {
+          if ((recoveryError as NodeJS.ErrnoException).code === "EEXIST") break;
+          throw recoveryError;
+        }
+        try {
+          if (await lockIsStale()) await rm(lockDir, { recursive: true, force: true });
+        } finally {
+          await rm(recoveryDir, { recursive: true, force: true });
+        }
       }
     }
     return err(

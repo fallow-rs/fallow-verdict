@@ -28,11 +28,11 @@ export default defineConfig({
 });
 ```
 
-Pin `engine.model` to a concrete version for reproducible verdicts. The version that answered is
+Pin `engine.model` to a concrete version to avoid alias drift. Fresh calls may still vary. The version that answered is
 stored on every decision.
 
 Policy thresholds only change how answers are mapped. Raw answers are stored, so after a
-threshold change the next `judge` or `run` maps them again locally, without engine calls, and
+threshold change the next `judge`, `run`, `report`, or `eval` maps them again locally, without engine calls, and
 records the change in the finding's history.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.

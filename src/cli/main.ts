@@ -8,7 +8,12 @@ import { createJevEngine } from "../engine/jev.ts";
 import type { DecisionEngine } from "../engine/types.ts";
 import { evaluate, labelsSchema } from "../eval/metrics.ts";
 import { parseSecurityOutput, runSurvivors } from "../fallow/run.ts";
-import { judge, type JudgeProgress, type JudgeSummary } from "../pipeline/judge.ts";
+import {
+  judge,
+  refreshVerdicts,
+  type JudgeProgress,
+  type JudgeSummary,
+} from "../pipeline/judge.ts";
 import { scan } from "../pipeline/scan.ts";
 import { buildReport, renderHuman, renderMarkdown, type Report } from "../report/render.ts";
 import { openStore, type Store } from "../state/store.ts";
@@ -95,6 +100,7 @@ const runJudge = async (context: Context): Promise<Result<JudgeSummary, VerdictE
 };
 
 const exitCodeFor = (report: Report, failOn: LoadedConfig["config"]["failOn"]): number => {
+  if (report.summary.errors > 0 || report.summary.pending > 0) return EXIT.error;
   if (failOn === "off") return EXIT.ok;
   const failing =
     report.summary.survivors +
@@ -104,6 +110,8 @@ const exitCodeFor = (report: Report, failOn: LoadedConfig["config"]["failOn"]): 
 
 const runReport = async (context: Context): Promise<Outcome> => {
   const { options, loaded, store } = context;
+  const refreshed = await refreshVerdicts(loaded, store);
+  if (!refreshed.ok) return refreshed;
   const { records, corrupt } = await store.readRecords();
   for (const name of corrupt) progress(options, `warning: skipped unreadable record ${name}`);
 
@@ -124,7 +132,7 @@ const runReport = async (context: Context): Promise<Outcome> => {
     if (!validated.ok) return validated;
   }
 
-  const report = buildReport(records);
+  const report = buildReport(records.filter((record) => ids.has(record.finding_id)));
   await writeFile(store.reportPath, renderMarkdown(report));
   return ok({
     exitCode: exitCodeFor(report, options.failOn ?? loaded.config.failOn),
@@ -160,7 +168,15 @@ const runEval = async (context: Context): Promise<Outcome> => {
     return err(verdictError("config_invalid", `Invalid labels file: ${labels.error.message}`));
   }
   const { records } = await store.readRecords();
-  const result = evaluate(records, labels.data);
+  const rawCandidates = await store.readJson(store.candidatesPath);
+  if (!rawCandidates.ok) return rawCandidates;
+  const candidates = parseSecurityOutput(rawCandidates.data);
+  if (!candidates.ok) return candidates;
+  const ids = new Set(candidates.data.security_findings.map((finding) => finding.finding_id));
+  const result = evaluate(
+    records.filter((record) => ids.has(record.finding_id)),
+    labels.data,
+  );
   const human = [
     `${result.judged} of ${result.labeled} labeled candidates have a verdict.`,
     `dismiss precision    ${percent(result.dismissPrecision)}`,
@@ -173,7 +189,12 @@ const runEval = async (context: Context): Promise<Outcome> => {
   ].join("\n");
   // A dismissed vulnerability is the one failure this tool must not have.
   return ok({
-    exitCode: result.missedVulnerabilities.length > 0 ? EXIT.findings : EXIT.ok,
+    exitCode:
+      result.unjudged > 0
+        ? EXIT.error
+        : result.missedVulnerabilities.length > 0
+          ? EXIT.findings
+          : EXIT.ok,
     json: result,
     human,
   });
@@ -192,11 +213,14 @@ const dispatch = async (context: Context): Promise<Outcome> => {
       human: renderHuman(report, options.showDismissed),
     });
   }
-  if (options.command === "eval") return runEval(context);
-
   const release = await store.lock();
   if (!release.ok) return release;
   try {
+    if (options.command === "eval") {
+      const refreshed = await refreshVerdicts(loaded, store);
+      if (!refreshed.ok) return refreshed;
+      return runEval(context);
+    }
     if (options.command === "scan" || options.command === "run") {
       const scanned = await scan(loaded, store, scanOptions);
       if (!scanned.ok) return scanned;
@@ -224,7 +248,11 @@ const dispatch = async (context: Context): Promise<Outcome> => {
         );
       }
       if (options.command === "judge" || options.dryRun) {
-        return ok({ exitCode: EXIT.ok, json: judged.data });
+        const incomplete = judged.data.pending > 0;
+        return ok({
+          exitCode: !options.dryRun && incomplete ? EXIT.error : EXIT.ok,
+          json: judged.data,
+        });
       }
     }
     return await runReport(context);

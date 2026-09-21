@@ -7,9 +7,10 @@ import { decide } from "../policy/decide.ts";
 import { QUESTION_SET_VERSION, QUESTIONS } from "../questions/catalog.ts";
 import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
 import { newRunId, type Store } from "../state/store.ts";
-import { ok, type Result } from "../util/result.ts";
-import type { VerdictError } from "../util/errors.ts";
+import { err, ok, type Result } from "../util/result.ts";
+import { verdictError, type VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
+import { engineIdentity, invalidate, isCurrent } from "./freshness.ts";
 
 export type JudgeOptions = {
   /** Judge again even when the evidence and question set are unchanged. */
@@ -40,10 +41,11 @@ export type JudgeSummary = {
   judged: number;
   upToDate: number;
   errors: number;
+  pending: number;
   inputTokens: number;
   costUsd: number;
   estimatedUsd: number;
-  /** Set when the run stopped on an error that will not fix itself, such as a rejected key. */
+  /** First engine error to report when a batch cannot complete successfully. */
   fatal: VerdictError | null;
 };
 
@@ -53,11 +55,6 @@ type Job = { record: FindingRecord; built: BuiltPacket };
 const POLICY_RUN_ID = "policy";
 
 const QUESTION_TOKENS = estimateTokens(QUESTIONS);
-
-const isCurrent = (record: FindingRecord, built: BuiltPacket): boolean =>
-  record.status === "judged" &&
-  record.fingerprint === built.fingerprint &&
-  record.questionSet === QUESTION_SET_VERSION;
 
 const planJobs = async (
   loaded: LoadedConfig,
@@ -77,7 +74,8 @@ const planJobs = async (
       root: loaded.root,
       ...loaded.config.packet,
     });
-    if (!rejudge && isCurrent(record, built)) current.push({ record, built });
+    if (!rejudge && isCurrent(record, built, engineIdentity(loaded.config.engine)))
+      current.push({ record, built });
     else jobs.push({ record, built });
   }
   // Highest severity first, so a budget cap spends on what matters most.
@@ -93,6 +91,14 @@ const judgeOne = async (
   runId: string,
   signal: AbortSignal | undefined,
 ): Promise<Result<FindingRecord, VerdictError>> => {
+  if (job.built.stateTokens > loaded.config.packet.maxStateTokens) {
+    return err(
+      verdictError(
+        "engine_rejected",
+        "Evidence exceeds the configured token budget even after trimming.",
+      ),
+    );
+  }
   const response = await engine.evaluate({ state: job.built.packet, questions: QUESTIONS, signal });
   if (!response.ok) return response;
 
@@ -103,6 +109,7 @@ const judgeOne = async (
     status: "judged",
     fingerprint: job.built.fingerprint,
     questionSet: QUESTION_SET_VERSION,
+    engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
     decision,
     evidence: {
@@ -166,6 +173,43 @@ const applyPolicy = async (
   }
 };
 
+const invalidateJobs = async (jobs: Job[], loaded: LoadedConfig, store: Store): Promise<void> => {
+  for (const job of jobs) {
+    if (isCurrent(job.record, job.built, engineIdentity(loaded.config.engine))) continue;
+    job.record = invalidate(job.record);
+    await store.writeRecord(job.record);
+  }
+};
+
+/** Revalidate stored decisions before reporting or evaluating, without any engine calls. */
+export const refreshVerdicts = async (
+  loaded: LoadedConfig,
+  store: Store,
+): Promise<Result<void, VerdictError>> => {
+  const raw = await store.readJson(store.candidatesPath);
+  if (!raw.ok) return raw;
+  const output = parseSecurityOutput(raw.data);
+  if (!output.ok) return output;
+  const { records, corrupt } = await store.readRecords();
+  const recorded = new Set(
+    records.filter((record) => record.status !== "resolved").map((record) => record.finding_id),
+  );
+  if (
+    corrupt.length > 0 ||
+    output.data.security_findings.some((finding) => !recorded.has(finding.finding_id))
+  )
+    return err(
+      verdictError(
+        "state_corrupt",
+        "Missing or unreadable finding records. Run scan to reconstruct current candidates.",
+      ),
+    );
+  const plan = await planJobs(loaded, output.data, records, false);
+  await invalidateJobs(plan.jobs, loaded, store);
+  await applyPolicy(plan.current, loaded, store);
+  return ok(undefined);
+};
+
 export const judge = async (
   loaded: LoadedConfig,
   store: Store,
@@ -177,7 +221,20 @@ export const judge = async (
   const output = parseSecurityOutput(raw.data);
   if (!output.ok) return output;
 
-  const { records } = await store.readRecords();
+  const { records, corrupt } = await store.readRecords();
+  const recorded = new Set(
+    records.filter((record) => record.status !== "resolved").map((record) => record.finding_id),
+  );
+  if (
+    corrupt.length > 0 ||
+    output.data.security_findings.some((finding) => !recorded.has(finding.finding_id))
+  )
+    return err(
+      verdictError(
+        "state_corrupt",
+        "Missing or unreadable finding records. Run scan to reconstruct current candidates.",
+      ),
+    );
   const plan = await planJobs(loaded, output.data, records, options.rejudge);
   const jobs = options.limit === undefined ? plan.jobs : plan.jobs.slice(0, options.limit);
   const estimatedTokens = jobs.reduce(
@@ -200,12 +257,14 @@ export const judge = async (
     judged: 0,
     upToDate: plan.current.length,
     errors: 0,
+    pending: plan.jobs.length,
     inputTokens: 0,
     costUsd: 0,
     estimatedUsd,
     fatal: null,
   };
   if (options.dryRun) return ok(summary);
+  await invalidateJobs(plan.jobs, loaded, store);
   await applyPolicy(plan.current, loaded, store);
   if (jobs.length === 0) return ok(summary);
 
@@ -222,6 +281,16 @@ export const judge = async (
   await store.writeRun(run);
 
   const deadline = options.maxDurationMs === undefined ? null : Date.now() + options.maxDurationMs;
+  const timeout =
+    options.maxDurationMs === undefined
+      ? null
+      : AbortSignal.timeout(Math.ceil(options.maxDurationMs));
+  const signal =
+    timeout === null
+      ? options.signal
+      : options.signal === undefined
+        ? timeout
+        : AbortSignal.any([options.signal, timeout]);
   let next = 0;
   let done = 0;
   /** Estimated spend of requests in flight, so concurrent workers cannot jointly pass the cap. */
@@ -247,13 +316,14 @@ export const judge = async (
         return;
       }
       reservedUsd += estimateUsd(job);
-      const result = await judgeOne(job, engine, loaded, runId, options.signal);
+      const result = await judgeOne(job, engine, loaded, runId, signal);
       reservedUsd -= estimateUsd(job);
       if (result.ok) {
-        await store.writeRecord(result.data);
         summary.judged += 1;
+        summary.pending -= 1;
         summary.inputTokens += result.data.usage?.inputTokens ?? 0;
         summary.costUsd += result.data.usage?.costUsd ?? 0;
+        await store.writeRecord(result.data);
         // Counted at emit time, with no await in between, so positions stay in order.
         done += 1;
         options.onProgress?.({
@@ -265,12 +335,13 @@ export const judge = async (
         continue;
       }
       if (result.error.code === "interrupted") {
-        summary.outcome = "interrupted";
+        summary.outcome = options.signal?.aborted ? "interrupted" : "budget-exhausted";
         return;
       }
       summary.errors += 1;
+      summary.fatal ??= result.error;
       // A failed re-judge must not cost a verdict that is still valid for this evidence.
-      if (!isCurrent(job.record, job.built)) {
+      if (!isCurrent(job.record, job.built, engineIdentity(loaded.config.engine))) {
         await store.writeRecord({
           ...job.record,
           status: "error",
@@ -297,6 +368,7 @@ export const judge = async (
   };
 
   await Promise.all(Array.from({ length: loaded.config.engine.concurrency }, worker));
+  if (summary.errors > 0 && summary.outcome === "done") summary.outcome = "error";
 
   await store.writeRun({
     ...run,

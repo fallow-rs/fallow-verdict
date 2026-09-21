@@ -1,7 +1,7 @@
 /**
  * Jev bills per input token and does not document its tokenizer. Source code
- * tokenizes denser than prose, so the estimate is deliberately pessimistic:
- * a packet that fits this estimate fits the real budget.
+ * tokenizes denser than prose, so this estimate includes extra headroom.
+ * It remains a heuristic, not an exact tokenizer or provider billing guarantee.
  */
 const CHARS_PER_TOKEN = 3;
 

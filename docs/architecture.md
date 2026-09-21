@@ -20,8 +20,8 @@ are merged so a line is sent once. If the packet exceeds the token budget, the w
 shrinks stepwise; if that is not enough, trace, control, and source windows are dropped in that
 order. The sink window is never dropped. A packet that was cut is marked `truncated`.
 
-**engine** sends the packet as `state` with the question set in a single request. All questions
-are evaluated independently and in parallel by the engine. The response is validated: every
+**engine** sends the packet as `state` with the question set in a single request. Questions
+are evaluated in parallel by the engine; their errors can be correlated. The response is validated: every
 question must be answered in the type that was asked, and a choice must be one of the offered
 options. Anything else is `engine_response_invalid`, never a partial success.
 
@@ -46,15 +46,16 @@ rejects unknown or duplicate ids and malformed verdicts.
 
 A finding record holds the current decision, the evidence fingerprint it was made on, the
 question set version, usage, and an append-only `history`. Records are written with a temp file
-and rename, so a crash leaves the previous record intact. A record that fails validation is
-skipped with a warning instead of failing the run.
+and rename, so a crash leaves the previous record intact. Unreadable records fail judgment, reporting, and evaluation closed. A fresh scan can reconstruct
+current candidates.
 
 ## Staleness
 
-A stored verdict is current when three things match: status `judged`, the evidence fingerprint,
-and the question set version. Editing any line inside a source window changes the fingerprint.
+A stored verdict is current when its status is `judged` and its evidence fingerprint, question
+set version, requested model, and endpoint match. Editing any line inside a source window changes the fingerprint.
 Changing a question's wording bumps `QUESTION_SET_VERSION`. Either makes the candidate pending
-again.
+again. Pending decisions are invalidated before any budget, limit, or interruption can skip them.
+Reports recheck the current source windows, and a changed policy remaps stored answers locally.
 
 ## Failure handling
 
@@ -71,7 +72,7 @@ again.
   and config where they can be reviewed, tested, and changed without touching a prompt.
 - **No tools for the engine.** It cannot read files, run commands, or reach the network, so
   hostile repository content can at most shift a probability. The policy is built so that shift
-  cannot produce a silent dismissal.
+  still requires human validation; it does not prove immunity to prompt injection.
 - **One dependency.** `zod` validates config, state, and engine responses. The engine client uses
   `fetch`.
 - **fallow owns the contracts.** Types come from `fallow/types`. The supported

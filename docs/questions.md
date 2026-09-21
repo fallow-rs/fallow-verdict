@@ -23,7 +23,7 @@ Rules are checked in this order. The first match wins and its id is stored on th
 
 | Rule                  | Condition                                                                           | Verdict              |
 | --------------------- | ----------------------------------------------------------------------------------- | -------------------- |
-| `evidence-missing`    | the sink source could not be read                                                   | `needs-human-review` |
+| `evidence-missing`    | a requested source location is unreadable or invalid                                | `needs-human-review` |
 | `tampering-suspected` | P(tampering) at or above `tamperingMax`                                             | `needs-human-review` |
 | `survivor`            | P(exploitable) at or above `survivorMinExploitable`, and the evidence answers agree | `survivor`           |
 | `evidence-conflict`   | P(exploitable) is high but the evidence answers disagree                            | `needs-human-review` |

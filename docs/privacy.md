@@ -17,8 +17,9 @@ symlinks. With `packet.blind`, category, CWE, and the evidence label are withhel
 ## What is stored
 
 `.fallow-verdict/` holds fallow's output, per-finding records, run records, and derived reports.
-It contains no source text beyond what fallow's own output includes, and no credentials. Files are
-written with mode `0600`. `init` adds the directory to `.gitignore`. Treat it as private review
+The packet source windows are not persisted, but scanner evidence can contain source literals,
+including credentials already present in source. The configured Jev API key is not included in
+state. JSON state files are written with mode `0600`. `init` adds the directory to `.gitignore`. Treat it as private review
 material.
 
 ## Credentials
@@ -36,5 +37,9 @@ sending proprietary code, and confirm what you need contractually.
 
 Source windows are untrusted input to the engine. The engine has no tools and can only return
 probabilities inside the question schema, so the worst case is a shifted probability. The policy
-limits what a shift can do: dismissal needs several independent answers to agree, a canary
+limits what a shift can do: dismissal needs several answers to agree, a canary
 question routes self-arguing code to a human, and the `finding_id` is never taken from a response.
+
+These answers can share the same model error. The canary does not guarantee detection of hostile
+comments. TypeScript and JavaScript configuration files execute code locally; use JSON config
+when inspecting an untrusted project.

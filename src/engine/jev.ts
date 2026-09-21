@@ -128,15 +128,14 @@ const backoffMs = (attempt: number, retryAfter: string | null): number => {
 
 const sleep = (ms: number, signal: AbortSignal | undefined): Promise<void> =>
   new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
+    if (signal?.aborted) return resolve();
+    const finish = (): void => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    signal?.addEventListener("abort", finish, { once: true });
   });
 
 export const createJevEngine = (options: JevOptions): DecisionEngine => {
@@ -160,7 +159,8 @@ export const createJevEngine = (options: JevOptions): DecisionEngine => {
       });
       const retryAfter = response.headers.get("retry-after");
       if (!response.ok) {
-        return { result: err(classifyStatus(response.status, await response.text())), retryAfter };
+        const body = (await response.text()).replaceAll(options.apiKey, "[REDACTED]");
+        return { result: err(classifyStatus(response.status, body)), retryAfter };
       }
       const parsed = responseSchema.safeParse(await response.json());
       if (!parsed.success) {
@@ -203,6 +203,7 @@ export const createJevEngine = (options: JevOptions): DecisionEngine => {
     id: `jev:${model}`,
     evaluate: async (request) => {
       for (let attempt = 1; ; attempt += 1) {
+        if (request.signal?.aborted) return err(verdictError("interrupted", "Interrupted."));
         const { result, retryAfter } = await attemptOnce(request);
         if (result.ok || !RETRYABLE.has(result.error.code) || attempt === MAX_ATTEMPTS) {
           return result;

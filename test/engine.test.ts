@@ -53,6 +53,22 @@ const engineWith = (responses: Response[]) => {
 const request = { state: { code: "x" }, questions: QUESTIONS };
 
 describe("createJevEngine", () => {
+  it("redacts credentials echoed in provider errors", async () => {
+    const { engine } = engineWith([json(422, { error: "request contained test-key" })]);
+    const result = await engine.evaluate(request);
+    expect(result).toMatchObject({ ok: false, error: { code: "engine_rejected" } });
+    expect(JSON.stringify(result)).not.toContain("test-key");
+  });
+
+  it("does not send a request after cancellation", async () => {
+    const { engine, requests } = engineWith([json(200, okBody())]);
+    expect(await engine.evaluate({ ...request, signal: AbortSignal.abort() })).toMatchObject({
+      ok: false,
+      error: { code: "interrupted" },
+    });
+    expect(requests).toHaveLength(0);
+  });
+
   it("posts state and questions with bearer auth and maps the answers", async () => {
     const { engine, requests } = engineWith([json(200, okBody())]);
     const result = await engine.evaluate(request);

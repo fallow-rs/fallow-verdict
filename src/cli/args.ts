@@ -48,7 +48,7 @@ Options
   --rejudge                Judge again even when the evidence is unchanged
   --dry-run                Build packets and estimate cost, call nothing
   --limit <n>              Judge at most n candidates
-  --max-cost-usd <usd>     Stop before engine spend would pass this amount
+  --max-cost-usd <usd>     Stop before estimated request spend passes this amount
   --max-duration <seconds> Stop after this long
   --fail-on <level>        off | survivor | needs-human-review (default: survivor)
   --show-dismissed         List dismissed candidates in human output
@@ -59,7 +59,7 @@ Options
 
 Exit codes
   0 no verdict at or above --fail-on   1 verdicts at or above --fail-on
-  2 invalid input or execution error   130 interrupted
+  2 invalid input, execution error, or incomplete judgment   130 interrupted
 `;
 
 const positiveNumber = (

@@ -1,0 +1,22 @@
+{
+  "src/lookup.ts": {
+    "expected": "safe",
+    "note": "The origin is fixed, the untrusted identifier is percent-encoded in a path segment, and redirects are rejected. No attacker-controlled destination is requested."
+  },
+  "src/profile.ts": {
+    "expected": "safe",
+    "note": "The redirect always starts with /profiles/ on the current origin. Encoding the account identifier prevents it from becoming a scheme or authority."
+  },
+  "src/proxy.ts": {
+    "expected": "vulnerable",
+    "note": "An HTTP query parameter controls the fetch destination without a destination restriction. An attacker can request internal services."
+  },
+  "src/redirect.ts": {
+    "expected": "vulnerable",
+    "note": "An HTTP query parameter controls the redirect destination, including external origins."
+  },
+  "src/query.ts": {
+    "expected": "vulnerable",
+    "note": "The caller supplies an untrusted SQL fragment in a numeric value position. For example, 0 OR 1=1 changes query semantics."
+  }
+}

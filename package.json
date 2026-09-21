@@ -1,7 +1,7 @@
 {
   "name": "fallow-verdict",
   "version": "0.1.0",
-  "description": "Verdicts for fallow security candidates: deterministic discovery by fallow, calibrated decisions by Jev.",
+  "description": "Verdicts for fallow security candidates: deterministic discovery by fallow, structured triage by Jev.",
   "keywords": [
     "fallow",
     "jev",
@@ -43,6 +43,9 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "pretest": "npm run build",
+    "prepack": "npm run build && npm run schemas",
+    "eval:live": "npm run build && node scripts/evaluate-corpus.ts",
     "lint": "oxlint",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
@@ -69,6 +72,6 @@
     }
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18.0"
   }
 }

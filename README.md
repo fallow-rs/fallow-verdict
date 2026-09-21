@@ -6,7 +6,7 @@ Verdicts for [`fallow security`](https://github.com/fallow-rs/fallow) candidates
 reachability over the module graph. It deliberately stops there. It does not decide whether a
 candidate is exploitable. `fallow-verdict` adds that step. It builds a self-contained evidence
 packet for every candidate, asks [Jev](https://docs.typesafe.ai) a fixed set of typed questions,
-and maps the calibrated probabilities to one of fallow's three verdicts with a fixed, auditable
+and maps the returned probabilities to one of fallow's three verdicts with a fixed, auditable
 policy:
 
 - `survivor`: the evidence supports a real exploit path
@@ -16,28 +16,34 @@ policy:
 The verdicts are written in the `fallow-security-verdict/v1` contract and post-validated by
 `fallow security survivors`, so they plug into everything that already reads fallow output.
 
+Development preview, requires Node 22.18 or newer. Install from this repository until an npm
+release is available:
+
 ```bash
-npm i -D fallow fallow-verdict
-export TYPESAFE_API_KEY=...
-npx fallow-verdict run
+git clone https://github.com/fallow-rs/fallow-verdict.git
+cd fallow-verdict
+npm ci
+npm run build
+# Set TYPESAFE_API_KEY in your shell, then:
+node bin/fallow-verdict.js run --cwd /path/to/project
 ```
 
-## How it differs from agent-based scanners
+The project being scanned needs `fallow` installed (`npm i -D fallow`), or available on `PATH`.
+See [validation.md](docs/validation.md) for measured behavior and [roadmap.md](docs/roadmap.md)
+for the next development gates. The pilot retains vulnerable examples but has not yet
+shown useful noise reduction on the labeled safe examples.
 
-Agent scanners hand a coding agent a file list and let it investigate. That finds issues no
-matcher anticipated, and it costs accordingly. `fallow-verdict` makes a different trade:
+## Scope
 
-|                     | Agent scanner                         | fallow-verdict                                   |
-| ------------------- | ------------------------------------- | ------------------------------------------------ |
-| Candidates          | Regex matchers, then the agent's eyes | fallow's AST and module-graph analysis           |
-| Judgment            | Free-form agent investigation         | Typed questions, calibrated probabilities        |
-| Output of the model | Prose that has to be parsed           | Probabilities inside a schema, nothing to parse  |
-| Policy              | Inside the prompt                     | Code you can read, configure, and test           |
-| Model capabilities  | Shell, file reads, network            | None. It answers questions about a packet.       |
-| Repeatability       | Varies run to run                     | Same evidence and policy give the same verdict   |
-| Cost                | Agent turns per file                  | One small request per candidate, printed upfront |
+This package triages candidates that fallow already found. It does not discover vulnerabilities
+outside fallow's catalogue or investigate with a shell. The decision engine sees a bounded
+packet; code applies a deterministic policy to its answers. Reusing stored answers is
+repeatable, while a fresh model call can return different probabilities.
 
-It does not find vulnerabilities fallow did not flag. It triages what fallow found.
+[Vercel deepsec](https://github.com/vercel-labs/deepsec) performs broader agent-based vulnerability
+investigation. [Sentry Warden](https://github.com/getsentry/warden) runs skill-based reviews locally
+and on pull requests, with GitHub Checks and inline findings. Neither comparison establishes
+accuracy parity. A shared, independently labeled evaluation is needed for that claim.
 
 ## What leaves your machine
 
@@ -71,7 +77,7 @@ Every command takes `--format json`. Useful flags on `judge` and `run`: `--dry-r
 `--max-cost-usd`, `--max-duration`, `--rejudge`, `--changed-since <ref>`.
 
 Exit codes: `0` nothing at or above `--fail-on`, `1` verdicts at or above `--fail-on`
-(default `survivor`), `2` invalid input or execution error, `130` interrupted.
+(default `survivor`), `2` invalid input, execution error, or incomplete judgment, `130` interrupted.
 
 ## Why you can trust a dismissal
 
@@ -81,7 +87,7 @@ policy is asymmetric for that reason. A candidate is dismissed only when all of 
 1. P(exploitable) is below the bar for its severity (stricter for `high`).
 2. There is a named reason that is itself strong: not attacker-controlled, does not reach the
    sink, mitigated, or non-production code.
-3. The evidence was complete. Packets that had to be cut to fit the budget are never dismissed.
+3. All requested source locations were readable and in range. Packets cut to fit the budget are never dismissed. Source windows still omit surrounding code.
 4. The code does not argue for its own assessment. A canary question looks for comments or
    strings addressed at reviewers or tools; when it fires, the candidate goes to a human.
 
@@ -95,8 +101,8 @@ Verdicts are triage results, not proof. Measure before you rely on them:
 ## Resumable and incremental
 
 Each candidate has a record keyed by fallow's stable `finding_id`. A verdict is tied to a
-fingerprint of the evidence it was made on. Run again and only new candidates, changed code, and
-earlier errors are judged. Candidates fallow stops reporting become `resolved`. Budget caps stop
+fingerprint of the evidence it was made on and the requested model and endpoint. Run again and
+only new candidates, changed evidence, changed engine configuration, and earlier errors are judged. Candidates fallow stops reporting become `resolved`. Budget caps stop
 at a safe point; the next run continues.
 
 ## Documentation
@@ -111,3 +117,15 @@ at a safe point; the next run continues.
 ## License
 
 MIT
+
+## Cost and completeness
+
+`--max-cost-usd` limits estimated request spend, including reservations for concurrent requests.
+It is not a provider billing cap: token estimates, retries, timeouts after provider processing,
+and future pricing changes can differ from the recorded successful-response usage. Configure
+provider-side limits when a hard billing cap is required.
+
+`report` and `eval` recheck source fingerprints and apply the current policy without engine calls.
+Incomplete reports exit 2 even with `--fail-on off`. Changes outside collected source windows
+may require `--rejudge` and a larger `packet.radius`. Correlated model errors and prompt injection
+can still produce incorrect decisions; the canary is a routing heuristic, not a security boundary.

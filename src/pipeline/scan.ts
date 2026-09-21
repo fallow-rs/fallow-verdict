@@ -1,6 +1,8 @@
 import type { LoadedConfig } from "../config/load.ts";
 import { runSecurityScan } from "../fallow/run.ts";
 import type { SecurityFinding, SecurityOutput } from "../fallow/types.ts";
+import { buildPacket } from "../packet/build.ts";
+import { engineIdentity, invalidate, isCurrent } from "./freshness.ts";
 import { RECORD_SCHEMA, type FindingRecord } from "../state/schema.ts";
 import type { Store } from "../state/store.ts";
 import { ok, type Result } from "../util/result.ts";
@@ -30,6 +32,7 @@ const newRecord = (finding: SecurityFinding, now: string): FindingRecord => ({
   lastSeenAt: now,
   fingerprint: null,
   questionSet: null,
+  engine: null,
   answers: null,
   decision: null,
   evidence: null,
@@ -47,6 +50,7 @@ export const syncRecords = async (
   store: Store,
   output: SecurityOutput,
   scoped: boolean,
+  loaded?: LoadedConfig,
 ): Promise<ScanSummary> => {
   const now = new Date().toISOString();
   const { records } = await store.readRecords();
@@ -68,13 +72,19 @@ export const syncRecords = async (
     }
     const reopened = existing.status === "resolved";
     if (reopened) summary.reopened += 1;
+    const built = loaded
+      ? await buildPacket(finding, output, { root: loaded.root, ...loaded.config.packet })
+      : null;
+    const current =
+      built !== null &&
+      loaded !== undefined &&
+      isCurrent(existing, built, engineIdentity(loaded.config.engine));
     await store.writeRecord({
-      ...existing,
+      ...(current ? existing : invalidate(existing)),
       path: finding.path,
       line: finding.line,
       severity: finding.severity,
       lastSeenAt: now,
-      status: reopened ? "pending" : existing.status,
     });
   }
 
@@ -104,5 +114,5 @@ export const scan = async (
 
   const scoped = options.changedSince !== undefined || (options.paths?.length ?? 0) > 0;
   await store.writeJson(store.candidatesPath, output.data);
-  return ok(await syncRecords(store, output.data, scoped));
+  return ok(await syncRecords(store, output.data, scoped, loaded));
 };

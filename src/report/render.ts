@@ -103,7 +103,7 @@ export const renderHuman = (report: Report, showDismissed: boolean): string => {
       styleText("dim", "Dismissed candidates are hidden. Pass --show-dismissed to list them."),
     );
   }
-  lines.push(styleText("dim", `Engine cost to date: ${formatUsd(report.summary.costUsd)}`));
+  lines.push(styleText("dim", `Cost of recorded judgments: ${formatUsd(report.summary.costUsd)}`));
   return lines.join("\n");
 };
 
@@ -115,7 +115,7 @@ export const renderMarkdown = (report: Report): string => {
     "",
     summaryLine(report),
     "",
-    "Candidates come from `fallow security`. Verdicts are calibrated probabilities from a decision engine, mapped by a fixed policy. A verdict is a triage result, not proof.",
+    "Candidates come from `fallow security`. A fixed policy maps model probabilities to verdicts. A verdict is a triage result, not proof.",
     "",
   ];
   for (const verdict of VERDICT_ORDER) {
