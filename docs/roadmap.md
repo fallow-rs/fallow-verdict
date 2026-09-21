@@ -29,9 +29,9 @@ supports a change.
 
 ## Validate remediation guidance
 
-The live report recommends `avoid-shell` for a SQL interpolation candidate. The verdict is useful,
-but that fix hint does not match the operation. Validate fix directions against category semantics
-and fallow contracts, then test the guidance on real examples before relying on it for remediation.
+Reports now explain broad fix-direction labels such as `avoid-shell` in plain language, including
+their query-related meaning. Validate the suggested changes against category semantics and fallow
+contracts, then test them on real examples before relying on them for remediation.
 
 ## Make review results useful in CI
 

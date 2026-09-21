@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Rewrite terminal messages and reports with plain-language verdicts, labeled model estimates, and expandable assessment details.
+
 - Initial pipeline: `scan`, `judge`, `report`, `run`, `status`, `eval`, `init`.
 
 - Invalidate outdated decisions before budget stops and before reporting or evaluation.

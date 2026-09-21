@@ -50,15 +50,18 @@ for holdout. These figures are recorded usage estimates, not a provider billing 
 
 ## Actual CLI output
 
-The [generated development report](examples/category-report.md) comes from a separate real-Jev
-CLI run with `--question-profile category`. It retains direct URL forwarding, an unchecked
+The [generated development report](examples/category-report.md) renders saved answers from a
+separate real-Jev CLI run with `--question-profile category`. It retains direct URL forwarding, an unchecked
 redirect, and SQL interpolation. It dismisses a fixed-origin request with an encoded path and
-disabled redirects, and a local redirect with an encoded path segment. Each row includes the
-policy reason and governing probabilities. Model probabilities are not calibrated guarantees.
+disabled redirects, and a local redirect with an encoded path segment. Each finding includes a
+readable explanation; the stored policy reason and probabilities remain in its assessment details.
+Model probabilities are not calibrated guarantees.
 
-The SQL row also exposes a remaining issue: Jev suggests `avoid-shell` for a database query.
-That hint is not appropriate remediation for the operation. Keep fix guidance under review;
-the current evaluation measures verdicts and does not validate remediation suggestions.
+The SQL finding exposed a misleading output label: `avoid-shell`. The question defines that
+choice to include APIs that interpret strings as queries, so the label was narrower than its
+meaning. Reports now spell out the suggestion: use an API that keeps input separate from commands
+or queries. The saved choice remains unchanged. The evaluation measures verdicts and does not
+validate whether a suggested change fixes the vulnerability.
 
 A real CLI run on public OWASP NodeGoat commit
 `c5cb68a7084e4ae7dcc60e6a98768720a81841e8`, scoped to `app/routes config`, retained injection,

@@ -82,6 +82,11 @@ Every command takes `--format json`. Useful flags on `judge` and `run`: `--dry-r
 Exit codes: `0` nothing at or above `--fail-on`, `1` verdicts at or above `--fail-on`
 (default `survivor`), `2` invalid input, execution error, or incomplete judgment, `130` interrupted.
 
+The terminal and Markdown reports group findings into likely vulnerabilities, candidates needing
+review, and dismissed candidates. Each finding gives its location and the reason for the verdict.
+Markdown reports keep the stored policy details in expandable sections. Percentages are Jev's
+exploitability estimates. See the [example report](docs/examples/category-report.md).
+
 ## Why you can trust a dismissal
 
 A wrong `survivor` costs a reviewer a few minutes. A wrong `dismissed` hides a vulnerability. The

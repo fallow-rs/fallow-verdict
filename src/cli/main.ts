@@ -45,8 +45,8 @@ const createEngine = (loaded: LoadedConfig): Result<DecisionEngine, VerdictError
     return err(
       verdictError(
         "engine_auth_failed",
-        `No API key in ${apiKeyEnv}.`,
-        `Set ${apiKeyEnv}, or point \`engine.apiKeyEnv\` at another variable. Use --dry-run to estimate cost without a key.`,
+        `The ${apiKeyEnv} environment variable is empty or unset.`,
+        `Set ${apiKeyEnv} to your Jev API key, or set engine.apiKeyEnv to the variable you use. Use --dry-run to estimate cost without a key.`,
       ),
     );
   }
@@ -59,18 +59,26 @@ const onJudgeProgress =
     if (event.type === "plan") {
       progress(
         options,
-        `${event.toJudge} to judge, ${event.upToDate} up to date. Estimated engine cost: ${formatUsd(event.estimatedUsd)} (~${event.estimatedTokens} input tokens).`,
+        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
       );
     } else if (event.type === "judged") {
       const decision = event.record.decision;
+      const label =
+        decision?.verdict === "survivor"
+          ? "Likely vulnerability"
+          : decision?.verdict === "dismissed"
+            ? "Dismissed"
+            : decision?.verdict === "needs-human-review"
+              ? "Needs review"
+              : "Assessment unavailable";
       progress(
         options,
-        `[${event.done}/${event.total}] ${decision?.verdict ?? "?"} ${decision?.confidence.toFixed(2) ?? ""}  ${event.record.path}:${event.record.line}`,
+        `[${event.done}/${event.total}] ${label}: ${event.record.path}:${event.record.line}`,
       );
     } else {
       progress(
         options,
-        `[${event.done}/${event.total}] error ${event.error.code}: ${event.error.message}`,
+        `[${event.done}/${event.total}] Assessment failed (${event.error.code}): ${event.error.message}`,
       );
     }
   };
@@ -113,7 +121,7 @@ const runReport = async (context: Context): Promise<Outcome> => {
   const refreshed = await refreshVerdicts(loaded, store);
   if (!refreshed.ok) return refreshed;
   const { records, corrupt } = await store.readRecords();
-  for (const name of corrupt) progress(options, `warning: skipped unreadable record ${name}`);
+  for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
 
   const raw = await store.readJson(store.candidatesPath);
   if (!raw.ok) return raw;
@@ -150,7 +158,10 @@ const runInit = async (options: CliOptions): Promise<Outcome> => {
   const ignorePath = path.join(options.cwd, ".gitignore");
   const ignored = existsSync(ignorePath) ? await readFile(ignorePath, "utf8") : "";
   if (!ignored.includes(".fallow-verdict")) await appendFile(ignorePath, "\n.fallow-verdict/\n");
-  return ok({ exitCode: EXIT.ok, human: `Wrote ${configPath} and ignored .fallow-verdict/.` });
+  return ok({
+    exitCode: EXIT.ok,
+    human: `Created ${configPath}.\nThe .fallow-verdict/ state directory is excluded from Git.`,
+  });
 };
 
 const percent = (value: number | null): string =>
@@ -178,14 +189,19 @@ const runEval = async (context: Context): Promise<Outcome> => {
     labels.data,
   );
   const human = [
-    `${result.judged} of ${result.labeled} labeled candidates have a verdict.`,
-    `dismiss precision    ${percent(result.dismissPrecision)}`,
-    `missed vulnerable    ${result.missedVulnerabilities.length}`,
-    `survivor recall      ${percent(result.survivorRecall)}`,
-    `noise removed        ${percent(result.noiseRemoved)}`,
-    `review rate          ${percent(result.reviewRate)}`,
-    `calibration error    ${result.calibrationError?.toFixed(3) ?? "n/a"}`,
-    ...result.missedVulnerabilities.map((id) => `  dismissed but vulnerable: ${id}`),
+    `Evaluation: ${result.judged} of ${result.labeled} labeled candidates assessed.`,
+    "",
+    `Dismissed findings that were safe    ${percent(result.dismissPrecision)}`,
+    `Vulnerabilities wrongly dismissed   ${result.missedVulnerabilities.length}`,
+    `Vulnerabilities marked likely       ${percent(result.survivorRecall)}`,
+    `Safe findings dismissed             ${percent(result.noiseRemoved)}`,
+    `Findings needing review             ${percent(result.reviewRate)}`,
+    `Calibration error (lower is better) ${result.calibrationError?.toFixed(3) ?? "n/a"}`,
+    "",
+    result.unjudged > 0
+      ? `Assessment is incomplete: ${result.unjudged} labeled candidates have no current verdict. Rates and calibration are unavailable until all are assessed.`
+      : "n/a means there are no relevant examples or probabilities for that metric.",
+    ...result.missedVulnerabilities.map((id) => `Wrongly dismissed vulnerability: ${id}`),
   ].join("\n");
   // A dismissed vulnerability is the one failure this tool must not have.
   return ok({
@@ -227,7 +243,7 @@ const dispatch = async (context: Context): Promise<Outcome> => {
       const { candidates, added, resolved, reopened } = scanned.data;
       progress(
         options,
-        `${candidates} candidates (${added} new, ${reopened} reopened, ${resolved} resolved).`,
+        `Scan complete: ${candidates} candidates. ${added} new, ${reopened} reopened, ${resolved} no longer reported.`,
       );
       if (options.command === "scan") return ok({ exitCode: EXIT.ok, json: scanned.data });
     }
@@ -238,13 +254,13 @@ const dispatch = async (context: Context): Promise<Outcome> => {
       if (judged.data.outcome === "error") {
         return err(
           judged.data.fatal ??
-            verdictError("engine_circuit_open", "The engine kept failing; the run was stopped."),
+            verdictError("engine_circuit_open", "Assessment stopped after repeated Jev failures."),
         );
       }
       if (judged.data.outcome === "budget-exhausted") {
         progress(
           options,
-          "Budget reached. Remaining candidates stay pending; run again to continue.",
+          "Assessment limit reached. Remaining candidates are pending; run judge again to continue.",
         );
       }
       if (options.command === "judge" || options.dryRun) {
@@ -266,8 +282,8 @@ const printError = (error: VerdictError, format: CliOptions["format"]): void => 
     process.stdout.write(`${JSON.stringify({ error: true, ...error, exit_code: EXIT.error })}\n`);
     return;
   }
-  process.stderr.write(`error[${error.code}]: ${error.message}\n`);
-  if (error.hint !== undefined) process.stderr.write(`  hint: ${error.hint}\n`);
+  process.stderr.write(`Error: ${error.message}\nCode: ${error.code}\n`);
+  if (error.hint !== undefined) process.stderr.write(`${error.hint}\n`);
 };
 
 export const main = async (argv: readonly string[]): Promise<number> => {

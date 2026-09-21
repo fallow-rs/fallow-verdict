@@ -26,42 +26,46 @@ export type CliOptions = {
   questionProfile?: "generic" | "category" | undefined;
 };
 
-export const HELP = `fallow-verdict: verdicts for fallow security candidates
+export const HELP = `fallow-verdict: assess security findings with Jev
 
 Usage
   fallow-verdict <command> [options] [paths...]
 
 Commands
-  init      Write a starter config and ignore the state directory
-  scan      Run \`fallow security\` and record the candidates (free, no engine calls)
-  judge     Ask the decision engine about pending candidates
-  report    Render verdicts and write the fallow verdicts file
-  run       scan, judge, and report in one go
-  status    Show what is recorded, without running anything
-  eval      Score stored verdicts against a labels file
+  init      Create a config file and add the state directory to .gitignore
+  scan      Find security candidates with fallow (no Jev requests)
+  judge     Assess pending candidates with Jev
+  report    Show saved verdicts and write Markdown and JSON reports
+  run       Scan the project, assess candidates, and write reports
+  status    Show saved results
+  eval      Compare saved verdicts with labeled examples
 
 Options
-  --config <path>          Config file (default: nearest fallow-verdict.config.*)
-  --question-profile <p>   generic | category (experimental destination-specific questions)
-  --cwd <path>             Directory to start from
-  --format <human|json>    Output format (default: human)
-  --quiet                  Suppress progress output
-  --changed-since <ref>    Limit the scan to files changed since a git ref
-  --rejudge                Judge again even when the evidence is unchanged
-  --dry-run                Build packets and estimate cost, call nothing
-  --limit <n>              Judge at most n candidates
-  --max-cost-usd <usd>     Stop before estimated request spend passes this amount
-  --max-duration <seconds> Stop after this long
-  --fail-on <level>        off | survivor | needs-human-review (default: survivor)
-  --show-dismissed         List dismissed candidates in human output
-  --no-validate            Skip post-validation by \`fallow security survivors\`
-  --labels <path>          Labels file for \`eval\`
-  -h, --help               Show this help
-  --version                Show the version
+  --config <path>            Config file (default: nearest fallow-verdict.config.*)
+  --question-profile <name>  generic | category (default: generic)
+                             category uses experimental SSRF and open-redirect questions
+  --cwd <path>               Directory to start from
+  --format <human|json>      Output format (default: human)
+  --quiet                    Hide progress messages
+  --changed-since <ref>      Scan files changed since a Git ref
+  --rejudge                  Assess candidates again, even with unchanged evidence
+  --dry-run                  Prepare evidence and estimate cost without calling Jev
+  --limit <n>                Assess at most n candidates
+  --max-cost-usd <usd>       Limit estimated request cost
+  --max-duration <seconds>   Limit assessment time
+  --fail-on <level>          off | survivor | needs-human-review (default: survivor)
+                             survivor means likely vulnerability in the report
+  --show-dismissed           Include dismissed candidates in the terminal report
+  --no-validate              Skip validation by fallow security survivors
+  --labels <path>            Labeled examples for eval
+  -h, --help                 Show this help
+  --version                  Show the version
 
 Exit codes
-  0 no verdict at or above --fail-on   1 verdicts at or above --fail-on
-  2 invalid input, execution error, or incomplete judgment   130 interrupted
+  0    Command completed without a failing verdict
+  1    Findings meet --fail-on, or eval found a dismissed vulnerability
+  2    Invalid input, execution failed, or assessments are incomplete
+  130  Interrupted
 `;
 
 const positiveNumber = (

@@ -86,10 +86,35 @@ it("shows reasons for decisions and incomplete findings in human and Markdown re
   ]);
   const human = renderHuman(report, true);
   const markdown = renderMarkdown(report);
-  expect(human).toContain(record.decision.reason);
+  expect(human).toContain("Jev considers the protection in the supplied code effective");
+  expect(human).toContain("Model estimate of exploitability:");
   expect(markdown).toContain(record.decision.reason);
   expect(human).toContain("src/pending.ts");
   expect(human).toContain("engine_timeout");
   expect(markdown).toContain("provider \\| timed out");
-  expect(markdown).toContain("No current judgment");
+  expect(markdown).toContain("No current assessment");
+  expect(markdown).toContain("<summary>Assessment details</summary>");
+
+  const saved = structuredClone(report);
+  const before = structuredClone(saved);
+  renderHuman(saved, false);
+  renderMarkdown(saved);
+  expect(saved).toEqual(before);
+
+  const unusual = buildReport([
+    {
+      ...record,
+      path: "src/[sample]<script>.ts",
+      decision: {
+        ...record.decision,
+        probabilities: {},
+        rule: "future-rule",
+        reason: "Review <script>\n# injected heading",
+      },
+    },
+  ]);
+  expect(renderHuman(unusual, true)).toContain("exploitability: unavailable");
+  expect(renderMarkdown(unusual)).toContain("src/\\[sample\\]\\<script\\>.ts");
+  expect(renderMarkdown(unusual)).not.toContain("\n# injected heading");
+  expect(renderHuman(buildReport([]), false)).toContain("No active candidates");
 });
