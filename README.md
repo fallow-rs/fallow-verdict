@@ -30,8 +30,10 @@ node bin/fallow-verdict.js run --cwd /path/to/project
 
 The project being scanned needs `fallow` installed (`npm i -D fallow`), or available on `PATH`.
 See [validation.md](docs/validation.md) for measured behavior and [roadmap.md](docs/roadmap.md)
-for the next development gates. The pilot retains vulnerable examples but has not yet
-shown useful noise reduction on the labeled safe examples.
+for the next development gates. The optional category question profile removes safe examples
+in the development corpus, but shows limited and variable improvement on a separately authored
+pilot holdout. See the [paired evaluation](docs/evaluation-v2.md) and
+[actual report output](docs/examples/category-report.md). The default remains `generic`.
 
 ## Scope
 
@@ -74,7 +76,8 @@ See [docs/privacy.md](docs/privacy.md) for the exact packet shape and the engine
 | `eval`   | Score stored verdicts against a labels file                          | no           |
 
 Every command takes `--format json`. Useful flags on `judge` and `run`: `--dry-run`, `--limit`,
-`--max-cost-usd`, `--max-duration`, `--rejudge`, `--changed-since <ref>`.
+`--max-cost-usd`, `--max-duration`, `--rejudge`, `--changed-since <ref>`,
+`--question-profile generic|category`. The category profile is experimental.
 
 Exit codes: `0` nothing at or above `--fail-on`, `1` verdicts at or above `--fail-on`
 (default `survivor`), `2` invalid input, execution error, or incomplete judgment, `130` interrupted.
@@ -102,7 +105,7 @@ Verdicts are triage results, not proof. Measure before you rely on them:
 
 Each candidate has a record keyed by fallow's stable `finding_id`. A verdict is tied to a
 fingerprint of the evidence it was made on and the requested model and endpoint. Run again and
-only new candidates, changed evidence, changed engine configuration, and earlier errors are judged. Candidates fallow stops reporting become `resolved`. Budget caps stop
+only new candidates, changed evidence, changed questions, changed engine configuration, and earlier errors are judged. Candidates fallow stops reporting become `resolved`. Budget caps stop
 at a safe point; the next run continues.
 
 ## Documentation

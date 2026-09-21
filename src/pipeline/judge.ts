@@ -4,7 +4,8 @@ import { parseSecurityOutput } from "../fallow/run.ts";
 import type { SecurityFinding, SecurityOutput } from "../fallow/types.ts";
 import { buildPacket, type BuiltPacket } from "../packet/build.ts";
 import { decide } from "../policy/decide.ts";
-import { QUESTION_SET_VERSION, QUESTIONS } from "../questions/catalog.ts";
+import { QUESTION_SET_VERSION } from "../questions/catalog.ts";
+import { questionHash, questionsForProfile } from "../questions/category.ts";
 import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
 import { newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
@@ -54,7 +55,8 @@ type Job = { record: FindingRecord; built: BuiltPacket };
 /** Id recorded in history when a verdict changed because the policy did, not the evidence. */
 const POLICY_RUN_ID = "policy";
 
-const QUESTION_TOKENS = estimateTokens(QUESTIONS);
+const questionTokens = (job: Job, loaded: LoadedConfig): number =>
+  estimateTokens(questionsForProfile(job.built.packet, loaded.config.questionProfile));
 
 const planJobs = async (
   loaded: LoadedConfig,
@@ -74,7 +76,10 @@ const planJobs = async (
       root: loaded.root,
       ...loaded.config.packet,
     });
-    if (!rejudge && isCurrent(record, built, engineIdentity(loaded.config.engine)))
+    if (
+      !rejudge &&
+      isCurrent(record, built, engineIdentity(loaded.config.engine), loaded.config.questionProfile)
+    )
       current.push({ record, built });
     else jobs.push({ record, built });
   }
@@ -99,7 +104,11 @@ const judgeOne = async (
       ),
     );
   }
-  const response = await engine.evaluate({ state: job.built.packet, questions: QUESTIONS, signal });
+  const response = await engine.evaluate({
+    state: job.built.packet,
+    questions: questionsForProfile(job.built.packet, loaded.config.questionProfile),
+    signal,
+  });
   if (!response.ok) return response;
 
   const decision = decide(response.data.answers, job.built, loaded.config.policy);
@@ -109,6 +118,7 @@ const judgeOne = async (
     status: "judged",
     fingerprint: job.built.fingerprint,
     questionSet: QUESTION_SET_VERSION,
+    questionHash: questionHash(job.built.packet, loaded.config.questionProfile),
     engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
     decision,
@@ -175,7 +185,15 @@ const applyPolicy = async (
 
 const invalidateJobs = async (jobs: Job[], loaded: LoadedConfig, store: Store): Promise<void> => {
   for (const job of jobs) {
-    if (isCurrent(job.record, job.built, engineIdentity(loaded.config.engine))) continue;
+    if (
+      isCurrent(
+        job.record,
+        job.built,
+        engineIdentity(loaded.config.engine),
+        loaded.config.questionProfile,
+      )
+    )
+      continue;
     job.record = invalidate(job.record);
     await store.writeRecord(job.record);
   }
@@ -238,7 +256,7 @@ export const judge = async (
   const plan = await planJobs(loaded, output.data, records, options.rejudge);
   const jobs = options.limit === undefined ? plan.jobs : plan.jobs.slice(0, options.limit);
   const estimatedTokens = jobs.reduce(
-    (sum, job) => sum + job.built.stateTokens + QUESTION_TOKENS,
+    (sum, job) => sum + job.built.stateTokens + questionTokens(job, loaded),
     0,
   );
   const estimatedUsd = tokensToUsd(estimatedTokens);
@@ -295,7 +313,8 @@ export const judge = async (
   let done = 0;
   /** Estimated spend of requests in flight, so concurrent workers cannot jointly pass the cap. */
   let reservedUsd = 0;
-  const estimateUsd = (job: Job): number => tokensToUsd(job.built.stateTokens + QUESTION_TOKENS);
+  const estimateUsd = (job: Job): number =>
+    tokensToUsd(job.built.stateTokens + questionTokens(job, loaded));
   const stopReason = (job: Job): RunRecord["outcome"] | null => {
     if (options.signal?.aborted) return "interrupted";
     if (deadline !== null && Date.now() >= deadline) return "budget-exhausted";
@@ -341,7 +360,14 @@ export const judge = async (
       summary.errors += 1;
       summary.fatal ??= result.error;
       // A failed re-judge must not cost a verdict that is still valid for this evidence.
-      if (!isCurrent(job.record, job.built, engineIdentity(loaded.config.engine))) {
+      if (
+        !isCurrent(
+          job.record,
+          job.built,
+          engineIdentity(loaded.config.engine),
+          loaded.config.questionProfile,
+        )
+      ) {
         await store.writeRecord({
           ...job.record,
           status: "error",

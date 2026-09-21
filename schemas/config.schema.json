@@ -10,6 +10,14 @@
       "default": ".fallow-verdict",
       "type": "string"
     },
+    "questionProfile": {
+      "default": "generic",
+      "type": "string",
+      "enum": [
+        "generic",
+        "category"
+      ]
+    },
     "fallow": {
       "default": {},
       "type": "object",

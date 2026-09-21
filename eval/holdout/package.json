@@ -1,0 +1,15 @@
+{
+  "name": "verdict-secondary-app",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./a": "./src/a.ts",
+    "./b": "./src/b.ts",
+    "./c": "./src/c.ts",
+    "./d": "./src/d.ts",
+    "./e": "./src/e.ts",
+    "./f": "./src/f.ts",
+    "./g": "./src/g.ts",
+    "./h": "./src/h.ts"
+  }
+}

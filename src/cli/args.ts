@@ -23,6 +23,7 @@ export type CliOptions = {
   showDismissed: boolean;
   validate: boolean;
   labels?: string | undefined;
+  questionProfile?: "generic" | "category" | undefined;
 };
 
 export const HELP = `fallow-verdict: verdicts for fallow security candidates
@@ -41,6 +42,7 @@ Commands
 
 Options
   --config <path>          Config file (default: nearest fallow-verdict.config.*)
+  --question-profile <p>   generic | category (experimental destination-specific questions)
   --cwd <path>             Directory to start from
   --format <human|json>    Output format (default: human)
   --quiet                  Suppress progress output
@@ -86,6 +88,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
       allowPositionals: true,
       options: {
         config: { type: "string" },
+        "question-profile": { type: "string" },
         cwd: { type: "string" },
         format: { type: "string" },
         quiet: { type: "boolean" },
@@ -146,6 +149,14 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
   const maxDuration = positiveNumber("max-duration", values["max-duration"]);
   if (!maxDuration.ok) return maxDuration;
 
+  const questionProfile = values["question-profile"];
+  if (
+    questionProfile !== undefined &&
+    questionProfile !== "generic" &&
+    questionProfile !== "category"
+  )
+    return err(verdictError("config_invalid", "--question-profile must be generic or category."));
+
   return ok({
     kind: "command",
     options: {
@@ -165,6 +176,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
       showDismissed: values["show-dismissed"] ?? false,
       validate: !(values["no-validate"] ?? false),
       labels: values.labels,
+      questionProfile,
     },
   });
 };

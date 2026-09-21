@@ -9,6 +9,7 @@ import { defineConfig } from "fallow-verdict/config";
 export default defineConfig({
   root: ".",
   dataDir: ".fallow-verdict",
+  questionProfile: "generic", // "generic" | "category" (experimental)
   failOn: "survivor", // "off" | "survivor" | "needs-human-review"
   fallow: { binary: undefined, timeoutMs: undefined },
   engine: {
@@ -36,3 +37,14 @@ threshold change the next `judge`, `run`, `report`, or `eval` maps them again lo
 records the change in the finding's history.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.
+
+## Question profiles
+
+`generic` is the default. `category` adds specific exploitation and mitigation criteria for SSRF
+and open redirects. Other categories and blind packets use generic questions. Dismissal thresholds
+are identical across profiles. The [paired pilot](evaluation-v2.md) explains why this remains opt-in.
+
+Use `--question-profile category` for an individual command, or persist `questionProfile` in the
+config. When using the flag, also pass it to subsequent `report`, `judge`, and `eval` commands.
+Otherwise those commands use the configured profile and can invalidate answers from the other
+profile. Changing the actual questions invalidates cached answers and requires fresh calls.

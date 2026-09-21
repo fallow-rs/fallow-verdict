@@ -45,17 +45,22 @@ rejects unknown or duplicate ids and malformed verdicts.
 ```
 
 A finding record holds the current decision, the evidence fingerprint it was made on, the
-question set version, usage, and an append-only `history`. Records are written with a temp file
+question set version and content hash, usage, and an append-only `history`. Records are written with a temp file
 and rename, so a crash leaves the previous record intact. Unreadable records fail judgment, reporting, and evaluation closed. A fresh scan can reconstruct
 current candidates.
 
 ## Staleness
 
 A stored verdict is current when its status is `judged` and its evidence fingerprint, question
-set version, requested model, and endpoint match. Editing any line inside a source window changes the fingerprint.
+set version, actual question content hash, requested model, and endpoint match. Editing any line inside a source window changes the fingerprint.
 Changing a question's wording bumps `QUESTION_SET_VERSION`. Either makes the candidate pending
 again. Pending decisions are invalidated before any budget, limit, or interruption can skip them.
 Reports recheck the current source windows, and a changed policy remaps stored answers locally.
+
+Older records without a question content hash load with `questionHash: null`. They require a
+fresh judgment before their verdict can be reported. Their history remains available. Switching
+profiles also requires fresh calls when it changes the questions; it never silently reuses answers
+from another rubric.
 
 ## Failure handling
 

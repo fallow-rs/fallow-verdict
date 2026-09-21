@@ -9,3 +9,8 @@
 - Account for concurrent request costs before persisting results, and preserve active state locks.
 - Return execution errors for incomplete runs and model failures.
 - Add a labeled development corpus, live evaluation runner, and CLI contract tests with real fallow.
+
+- Add an opt-in category question profile for SSRF and open redirects, with content-based cache invalidation.
+- Publish fresh paired Jev comparisons, frozen questions, and a separately authored pilot holdout.
+- Reject empty, duplicate, and drifted evaluation labels; withhold rates for incomplete evaluations.
+- Include decision reasons and incomplete judgments in human and Markdown reports.

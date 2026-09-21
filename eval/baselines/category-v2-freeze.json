@@ -1,0 +1,11 @@
+{
+  "frozenAt": "2026-09-21T15:40:37.020421+00:00",
+  "note": "Question content frozen after development comparison and before any holdout model call. Thresholds unchanged. Semantic question hashes remain valid across formatting and integration-only changes.",
+  "questionHashes": {
+    "ssrf": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+    "open-redirect": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+    "sql-injection": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+    "fallback": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec"
+  },
+  "developmentReportHash": "b51142441abee3712505b72d3461b33aec3018eb94194509e83f48535f1ce844"
+}

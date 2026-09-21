@@ -1,0 +1,3932 @@
+{
+  "schema_version": "fallow-verdict-comparison/v1",
+  "startedAt": "2026-09-21T15:40:58.210Z",
+  "requestedModel": "jev-1.13.0",
+  "repeats": 3,
+  "policy": {
+    "survivorMinExploitable": 0.7,
+    "dismissMaxExploitable": {
+      "high": 0.05,
+      "medium": 0.1,
+      "low": 0.15
+    },
+    "dismissMinReasonStrength": 0.8,
+    "tamperingMax": 0.5
+  },
+  "complete": true,
+  "stopError": null,
+  "estimatedUsd": 0.005432364000000001,
+  "costUsd": 0.004849739999999999,
+  "observations": [
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.74
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.23
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.23,
+          "probabilities": [0.28, 0.24, 0.46, 0.02],
+          "confidence": 0.18
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "validate-input": 0.08,
+            "none": 0.5,
+            "restrict-url": 0.42,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "needs-design-review": 0
+          },
+          "confidence": 0.43
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.23,
+        "probabilities": {
+          "attacker_controlled": 0.74,
+          "reaches_sink": 0.76,
+          "mitigated": 0.84,
+          "exploitable": 0.23,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.23,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.23, attacker-controlled 0.74, reaches sink 0.76, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2342,
+      "latencyMs": 608
+    },
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.16
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.23,
+          "probabilities": [0.27, 0.25, 0.46, 0.02],
+          "confidence": 0.19
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "harden-config": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "none": 0.51,
+            "validate-input": 0.09,
+            "delete-dead-code": 0,
+            "restrict-url": 0.4,
+            "avoid-shell": 0,
+            "add-authz-check": 0
+          },
+          "confidence": 0.44
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.16,
+        "probabilities": {
+          "attacker_controlled": 0.78,
+          "reaches_sink": 0.76,
+          "mitigated": 0.85,
+          "exploitable": 0.16,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.23,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.16, attacker-controlled 0.78, reaches sink 0.76, mitigated 0.85."
+      },
+      "error": null,
+      "inputTokens": 2499,
+      "latencyMs": 602
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.66
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.27
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.52,
+          "probabilities": [0.15, 0.2, 0.62, 0.03],
+          "confidence": 0.47
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "none": 0.18,
+            "add-authz-check": 0,
+            "validate-input": 0.11,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "restrict-url": 0.71,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.67
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.27,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.82,
+          "mitigated": 0.66,
+          "exploitable": 0.27,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.52,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.27, attacker-controlled 0.85, reaches sink 0.82, mitigated 0.66."
+      },
+      "error": null,
+      "inputTokens": 2474,
+      "latencyMs": 275
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.68
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.42
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.48,
+          "probabilities": [0.17, 0.19, 0.62, 0.02],
+          "confidence": 0.44
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "escape-output": 0,
+            "restrict-url": 0.71,
+            "validate-input": 0.12,
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "add-authz-check": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "none": 0.17
+          },
+          "confidence": 0.67
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.42,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.8,
+          "mitigated": 0.68,
+          "exploitable": 0.42,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.48,
+          "label": "limited"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.42, attacker-controlled 0.85, reaches sink 0.80, mitigated 0.68."
+      },
+      "error": null,
+      "inputTokens": 2317,
+      "latencyMs": 257
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.16
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 0.98,
+          "probabilities": [0.25, 0.54, 0.19, 0.02],
+          "confidence": 0.52
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "none": 0.72,
+            "add-authz-check": 0,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "validate-input": 0.04,
+            "restrict-url": 0.24,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.68
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.16,
+        "probabilities": {
+          "attacker_controlled": 0.79,
+          "reaches_sink": 0.76,
+          "mitigated": 0.86,
+          "exploitable": 0.16,
+          "non_production": 0.03,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 0.98,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.16, attacker-controlled 0.79, reaches sink 0.76, mitigated 0.86."
+      },
+      "error": null,
+      "inputTokens": 2336,
+      "latencyMs": 278
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.1
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 0.98,
+          "probabilities": [0.26, 0.53, 0.19, 0.02],
+          "confidence": 0.5
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "add-authz-check": 0,
+            "needs-design-review": 0,
+            "validate-input": 0.04,
+            "none": 0.73,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "restrict-url": 0.23,
+            "harden-config": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.69
+        }
+      },
+      "decision": {
+        "verdict": "dismissed",
+        "rule": "dismissed",
+        "confidence": 0.89,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.73,
+          "mitigated": 0.89,
+          "exploitable": 0.1,
+          "non_production": 0.03,
+          "tampering": 0.07
+        },
+        "impact": null,
+        "fixDirection": null,
+        "dismissalReason": "mitigated",
+        "reason": "Dismissed (mitigated 0.89): exploitable 0.10, attacker-controlled 0.76, reaches sink 0.73, mitigated 0.89."
+      },
+      "error": null,
+      "inputTokens": 2445,
+      "latencyMs": 228
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.38
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.24,
+          "probabilities": [0.13, 0.53, 0.32, 0.02],
+          "confidence": 0.5
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "restrict-url": 0.51,
+            "none": 0.26,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "validate-input": 0.23,
+            "delete-dead-code": 0,
+            "add-authz-check": 0
+          },
+          "confidence": 0.44
+        }
+      },
+      "decision": {
+        "verdict": "survivor",
+        "rule": "survivor",
+        "confidence": 0.75,
+        "probabilities": {
+          "attacker_controlled": 0.94,
+          "reaches_sink": 0.88,
+          "mitigated": 0.38,
+          "exploitable": 0.75,
+          "non_production": 0.05,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.24,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Survivor: exploitable 0.75, attacker-controlled 0.94, reaches sink 0.88, mitigated 0.38."
+      },
+      "error": null,
+      "inputTokens": 2421,
+      "latencyMs": 232
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.93
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.62
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.32
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.29,
+          "probabilities": [0.11, 0.52, 0.34, 0.03],
+          "confidence": 0.49
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "harden-config": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "validate-input": 0.25,
+            "none": 0.24,
+            "delete-dead-code": 0,
+            "restrict-url": 0.51,
+            "avoid-shell": 0,
+            "add-authz-check": 0
+          },
+          "confidence": 0.45
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.32,
+        "probabilities": {
+          "attacker_controlled": 0.93,
+          "reaches_sink": 0.87,
+          "mitigated": 0.62,
+          "exploitable": 0.32,
+          "non_production": 0.04,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.29,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.32, attacker-controlled 0.93, reaches sink 0.87, mitigated 0.62."
+      },
+      "error": null,
+      "inputTokens": 2312,
+      "latencyMs": 226
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.21
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.22,
+          "probabilities": [0.31, 0.2, 0.47, 0.02],
+          "confidence": 0.17
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.43,
+            "validate-input": 0.07,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.5,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.42
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.21,
+        "probabilities": {
+          "attacker_controlled": 0.75,
+          "reaches_sink": 0.76,
+          "mitigated": 0.86,
+          "exploitable": 0.21,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.22,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.21, attacker-controlled 0.75, reaches sink 0.76, mitigated 0.86."
+      },
+      "error": null,
+      "inputTokens": 2363,
+      "latencyMs": 267
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.28,
+          "probabilities": [0.25, 0.24, 0.48, 0.03],
+          "confidence": 0.23
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "validate-input": 0.08,
+            "add-authz-check": 0,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "restrict-url": 0.45,
+            "escape-output": 0,
+            "none": 0.47000000000000003
+          },
+          "confidence": 0.39
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.79,
+          "mitigated": 0.84,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.28,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.14, attacker-controlled 0.76, reaches sink 0.79, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2520,
+      "latencyMs": 281
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.01,
+          "probabilities": [0, 0.01, 0.97, 0.02],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "validate-input": 0.01,
+            "restrict-url": 0.99,
+            "escape-output": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "none": 0
+          },
+          "confidence": 0.98
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.95,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.95,
+          "mitigated": 0.04,
+          "exploitable": 0.95,
+          "non_production": 0.02,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 2.01,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.95, attacker-controlled 0.97, reaches sink 0.95, mitigated 0.04."
+      },
+      "error": null,
+      "inputTokens": 2486,
+      "latencyMs": 239
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.12
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.93
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.99
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.01,
+          "probabilities": [0, 0.01, 0.97, 0.02],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "none": 0,
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "restrict-url": 0.99,
+            "escape-output": 0,
+            "validate-input": 0.01,
+            "add-authz-check": 0
+          },
+          "confidence": 0.98
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.93,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.95,
+          "mitigated": 0.12,
+          "exploitable": 0.93,
+          "non_production": 0.03,
+          "tampering": 0.99
+        },
+        "impact": {
+          "score": 2.01,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.99): exploitable 0.93, attacker-controlled 0.97, reaches sink 0.95, mitigated 0.12."
+      },
+      "error": null,
+      "inputTokens": 2329,
+      "latencyMs": 272
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.74
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.13
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.01,
+          "probabilities": [0.28, 0.46, 0.23, 0.03],
+          "confidence": 0.43
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "validate-input": 0.04,
+            "none": 0.71,
+            "restrict-url": 0.25
+          },
+          "confidence": 0.67
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.13,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.74,
+          "mitigated": 0.88,
+          "exploitable": 0.13,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.01,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.13, attacker-controlled 0.76, reaches sink 0.74, mitigated 0.88."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 238
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.1
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.1,
+          "probabilities": [0.26, 0.43, 0.27, 0.04],
+          "confidence": 0.38
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "restrict-url": 0.28,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "validate-input": 0.05,
+            "delete-dead-code": 0,
+            "none": 0.66
+          },
+          "confidence": 0.62
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.1,
+        "probabilities": {
+          "attacker_controlled": 0.78,
+          "reaches_sink": 0.76,
+          "mitigated": 0.9,
+          "exploitable": 0.1,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.1,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.10, attacker-controlled 0.78, reaches sink 0.76, mitigated 0.90."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 322
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "category-v2",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.29,
+          "probabilities": [0.17, 0.44, 0.33, 0.06],
+          "confidence": 0.38
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "harden-config": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "none": 0.4,
+            "validate-input": 0.13,
+            "delete-dead-code": 0,
+            "restrict-url": 0.47,
+            "avoid-shell": 0,
+            "add-authz-check": 0
+          },
+          "confidence": 0.4
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.84,
+          "reaches_sink": 0.82,
+          "mitigated": 0.8,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.29,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.14, attacker-controlled 0.84, reaches sink 0.82, mitigated 0.80."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 288
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 0,
+      "variant": "generic-v1",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.24
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.25,
+          "probabilities": [0.17, 0.47, 0.31, 0.05],
+          "confidence": 0.41
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.43,
+            "validate-input": 0.11,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.46,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.39
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.24,
+        "probabilities": {
+          "attacker_controlled": 0.84,
+          "reaches_sink": 0.81,
+          "mitigated": 0.81,
+          "exploitable": 0.24,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.25,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.24, attacker-controlled 0.84, reaches sink 0.81, mitigated 0.81."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 256
+    },
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.16
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.16,
+          "probabilities": [0.3, 0.26, 0.42, 0.02],
+          "confidence": 0.13
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "validate-input": 0.07,
+            "harden-config": 0,
+            "restrict-url": 0.45,
+            "needs-design-review": 0.01,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "none": 0.47,
+            "add-authz-check": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.4
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.16,
+        "probabilities": {
+          "attacker_controlled": 0.77,
+          "reaches_sink": 0.77,
+          "mitigated": 0.84,
+          "exploitable": 0.16,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.16,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.16, attacker-controlled 0.77, reaches sink 0.77, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2499,
+      "latencyMs": 261
+    },
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.24
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.26,
+          "probabilities": [0.27, 0.23, 0.48, 0.02],
+          "confidence": 0.21
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "delete-dead-code": 0,
+            "none": 0.53,
+            "restrict-url": 0.39,
+            "validate-input": 0.08,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "harden-config": 0
+          },
+          "confidence": 0.46
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.24,
+        "probabilities": {
+          "attacker_controlled": 0.77,
+          "reaches_sink": 0.73,
+          "mitigated": 0.85,
+          "exploitable": 0.24,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.26,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.24, attacker-controlled 0.77, reaches sink 0.73, mitigated 0.85."
+      },
+      "error": null,
+      "inputTokens": 2342,
+      "latencyMs": 319
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.68
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.41
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.49,
+          "probabilities": [0.16, 0.21, 0.61, 0.02],
+          "confidence": 0.44
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "none": 0.16,
+            "escape-output": 0,
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "restrict-url": 0.73,
+            "validate-input": 0.11
+          },
+          "confidence": 0.7
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.41,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.82,
+          "mitigated": 0.68,
+          "exploitable": 0.41,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.49,
+          "label": "limited"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.41, attacker-controlled 0.85, reaches sink 0.82, mitigated 0.68."
+      },
+      "error": null,
+      "inputTokens": 2317,
+      "latencyMs": 257
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.61
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.28
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.51,
+          "probabilities": [0.16, 0.2, 0.62, 0.02],
+          "confidence": 0.46
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "harden-config": 0,
+            "none": 0.14,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.75,
+            "validate-input": 0.11,
+            "add-authz-check": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.71
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.28,
+        "probabilities": {
+          "attacker_controlled": 0.86,
+          "reaches_sink": 0.82,
+          "mitigated": 0.61,
+          "exploitable": 0.28,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.51,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.28, attacker-controlled 0.86, reaches sink 0.82, mitigated 0.61."
+      },
+      "error": null,
+      "inputTokens": 2474,
+      "latencyMs": 251
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.74
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.11
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 0.95,
+          "probabilities": [0.27, 0.53, 0.18, 0.02],
+          "confidence": 0.51
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "none": 0.73,
+            "validate-input": 0.03,
+            "harden-config": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.24,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.69
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.11,
+        "probabilities": {
+          "attacker_controlled": 0.81,
+          "reaches_sink": 0.74,
+          "mitigated": 0.89,
+          "exploitable": 0.11,
+          "non_production": 0.03,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 0.95,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.11, attacker-controlled 0.81, reaches sink 0.74, mitigated 0.89."
+      },
+      "error": null,
+      "inputTokens": 2445,
+      "latencyMs": 330
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.15
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.01,
+          "probabilities": [0.24, 0.53, 0.21, 0.02],
+          "confidence": 0.51
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.73,
+            "validate-input": 0.03,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.24,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.68
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.15,
+        "probabilities": {
+          "attacker_controlled": 0.8,
+          "reaches_sink": 0.77,
+          "mitigated": 0.86,
+          "exploitable": 0.15,
+          "non_production": 0.03,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.01,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.15, attacker-controlled 0.80, reaches sink 0.77, mitigated 0.86."
+      },
+      "error": null,
+      "inputTokens": 2336,
+      "latencyMs": 268
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.66
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.28
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.23,
+          "probabilities": [0.12, 0.54, 0.32, 0.02],
+          "confidence": 0.53
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "none": 0.28,
+            "add-authz-check": 0,
+            "needs-design-review": 0,
+            "escape-output": 0,
+            "validate-input": 0.2,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "restrict-url": 0.52
+          },
+          "confidence": 0.46
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.28,
+        "probabilities": {
+          "attacker_controlled": 0.94,
+          "reaches_sink": 0.9,
+          "mitigated": 0.66,
+          "exploitable": 0.28,
+          "non_production": 0.04,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.23,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.28, attacker-controlled 0.94, reaches sink 0.90, mitigated 0.66."
+      },
+      "error": null,
+      "inputTokens": 2312,
+      "latencyMs": 325
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.93
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.37
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.26,
+          "probabilities": [0.13, 0.51, 0.33, 0.03],
+          "confidence": 0.48
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "escape-output": 0,
+            "delete-dead-code": 0,
+            "restrict-url": 0.54,
+            "add-authz-check": 0,
+            "validate-input": 0.24,
+            "avoid-shell": 0,
+            "none": 0.22,
+            "needs-design-review": 0,
+            "harden-config": 0
+          },
+          "confidence": 0.48
+        }
+      },
+      "decision": {
+        "verdict": "survivor",
+        "rule": "survivor",
+        "confidence": 0.73,
+        "probabilities": {
+          "attacker_controlled": 0.93,
+          "reaches_sink": 0.88,
+          "mitigated": 0.37,
+          "exploitable": 0.73,
+          "non_production": 0.04,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.26,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Survivor: exploitable 0.73, attacker-controlled 0.93, reaches sink 0.88, mitigated 0.37."
+      },
+      "error": null,
+      "inputTokens": 2421,
+      "latencyMs": 309
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.13
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.26,
+          "probabilities": [0.28, 0.21, 0.48, 0.03],
+          "confidence": 0.2
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "add-authz-check": 0,
+            "validate-input": 0.08,
+            "harden-config": 0,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.41,
+            "avoid-shell": 0,
+            "none": 0.51,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.44
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.13,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.77,
+          "mitigated": 0.85,
+          "exploitable": 0.13,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.26,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.13, attacker-controlled 0.76, reaches sink 0.77, mitigated 0.85."
+      },
+      "error": null,
+      "inputTokens": 2520,
+      "latencyMs": 305
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.21
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.25,
+          "probabilities": [0.28, 0.2, 0.49, 0.03],
+          "confidence": 0.2
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "restrict-url": 0.44,
+            "delete-dead-code": 0,
+            "validate-input": 0.1,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "harden-config": 0,
+            "add-authz-check": 0,
+            "none": 0.45,
+            "needs-design-review": 0.01
+          },
+          "confidence": 0.38
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.21,
+        "probabilities": {
+          "attacker_controlled": 0.79,
+          "reaches_sink": 0.78,
+          "mitigated": 0.86,
+          "exploitable": 0.21,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.25,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.21, attacker-controlled 0.79, reaches sink 0.78, mitigated 0.86."
+      },
+      "error": null,
+      "inputTokens": 2363,
+      "latencyMs": 299
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.13
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.93
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.01,
+          "probabilities": [0, 0.01, 0.97, 0.02],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "restrict-url": 0.99,
+            "avoid-shell": 0,
+            "none": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "add-authz-check": 0,
+            "validate-input": 0.01,
+            "escape-output": 0,
+            "needs-design-review": 0
+          },
+          "confidence": 0.99
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.93,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.95,
+          "mitigated": 0.13,
+          "exploitable": 0.93,
+          "non_production": 0.02,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 2.01,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.93, attacker-controlled 0.97, reaches sink 0.95, mitigated 0.13."
+      },
+      "error": null,
+      "inputTokens": 2329,
+      "latencyMs": 231
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.99
+        },
+        "impact": {
+          "type": "score",
+          "score": 2,
+          "probabilities": [0, 0.01, 0.97, 0.02],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "escape-output": 0,
+            "validate-input": 0.01,
+            "restrict-url": 0.99,
+            "none": 0,
+            "add-authz-check": 0,
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "avoid-shell": 0,
+            "needs-design-review": 0
+          },
+          "confidence": 0.98
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.95,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.95,
+          "mitigated": 0.04,
+          "exploitable": 0.95,
+          "non_production": 0.02,
+          "tampering": 0.99
+        },
+        "impact": {
+          "score": 2,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.99): exploitable 0.95, attacker-controlled 0.97, reaches sink 0.95, mitigated 0.04."
+      },
+      "error": null,
+      "inputTokens": 2486,
+      "latencyMs": 238
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.1
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.02,
+          "probabilities": [0.28, 0.45, 0.24, 0.03],
+          "confidence": 0.43
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.73,
+            "validate-input": 0.04,
+            "harden-config": 0,
+            "needs-design-review": 0,
+            "restrict-url": 0.23,
+            "avoid-shell": 0,
+            "escape-output": 0,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.68
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.1,
+        "probabilities": {
+          "attacker_controlled": 0.79,
+          "reaches_sink": 0.77,
+          "mitigated": 0.89,
+          "exploitable": 0.1,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.02,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.10, attacker-controlled 0.79, reaches sink 0.77, mitigated 0.89."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 239
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.13
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 0.98,
+          "probabilities": [0.29, 0.47, 0.21, 0.03],
+          "confidence": 0.45
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "none": 0.69,
+            "delete-dead-code": 0,
+            "restrict-url": 0.26,
+            "needs-design-review": 0,
+            "add-authz-check": 0,
+            "validate-input": 0.05,
+            "harden-config": 0,
+            "escape-output": 0,
+            "avoid-shell": 0
+          },
+          "confidence": 0.65
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.13,
+        "probabilities": {
+          "attacker_controlled": 0.75,
+          "reaches_sink": 0.75,
+          "mitigated": 0.88,
+          "exploitable": 0.13,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 0.98,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.13, attacker-controlled 0.75, reaches sink 0.75, mitigated 0.88."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 247
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "generic-v1",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.24
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.29,
+          "probabilities": [0.15, 0.46, 0.33, 0.06],
+          "confidence": 0.41
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.41,
+            "avoid-shell": 0,
+            "validate-input": 0.14,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "escape-output": 0,
+            "restrict-url": 0.45,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.37
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.24,
+        "probabilities": {
+          "attacker_controlled": 0.86,
+          "reaches_sink": 0.82,
+          "mitigated": 0.8,
+          "exploitable": 0.24,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.29,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.24, attacker-controlled 0.86, reaches sink 0.82, mitigated 0.80."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 252
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 1,
+      "variant": "category-v2",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.28,
+          "probabilities": [0.16, 0.44, 0.36, 0.04],
+          "confidence": 0.39
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "delete-dead-code": 0,
+            "restrict-url": 0.45,
+            "escape-output": 0,
+            "validate-input": 0.12,
+            "add-authz-check": 0,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "none": 0.43,
+            "harden-config": 0
+          },
+          "confidence": 0.37
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.86,
+          "reaches_sink": 0.82,
+          "mitigated": 0.81,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.28,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.14, attacker-controlled 0.86, reaches sink 0.82, mitigated 0.81."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 352
+    },
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.24
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.21,
+          "probabilities": [0.27, 0.27, 0.44, 0.02],
+          "confidence": 0.18
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "restrict-url": 0.42,
+            "harden-config": 0,
+            "none": 0.5,
+            "delete-dead-code": 0,
+            "needs-design-review": 0,
+            "validate-input": 0.08,
+            "add-authz-check": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.43
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.24,
+        "probabilities": {
+          "attacker_controlled": 0.78,
+          "reaches_sink": 0.76,
+          "mitigated": 0.84,
+          "exploitable": 0.24,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.21,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.24, attacker-controlled 0.78, reaches sink 0.76, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2342,
+      "latencyMs": 266
+    },
+    {
+      "caseId": "src/a.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "f9e11ae1c3f29154010d299af0892ef9933014506bc1cfc4e40b9ca94d50ce6a",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.83
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.23,
+          "probabilities": [0.27, 0.25, 0.46, 0.02],
+          "confidence": 0.19
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "none": 0.5,
+            "add-authz-check": 0,
+            "needs-design-review": 0,
+            "escape-output": 0,
+            "validate-input": 0.07,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "restrict-url": 0.43
+          },
+          "confidence": 0.43
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.77,
+          "mitigated": 0.83,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.23,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.14, attacker-controlled 0.76, reaches sink 0.77, mitigated 0.83."
+      },
+      "error": null,
+      "inputTokens": 2499,
+      "latencyMs": 272
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.63
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.28
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.52,
+          "probabilities": [0.16, 0.19, 0.63, 0.02],
+          "confidence": 0.47
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "restrict-url": 0.72,
+            "escape-output": 0,
+            "validate-input": 0.1,
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "add-authz-check": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "none": 0.18
+          },
+          "confidence": 0.68
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.28,
+        "probabilities": {
+          "attacker_controlled": 0.87,
+          "reaches_sink": 0.82,
+          "mitigated": 0.63,
+          "exploitable": 0.28,
+          "non_production": 0.03,
+          "tampering": 0.05
+        },
+        "impact": {
+          "score": 1.52,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.28, attacker-controlled 0.87, reaches sink 0.82, mitigated 0.63."
+      },
+      "error": null,
+      "inputTokens": 2474,
+      "latencyMs": 265
+    },
+    {
+      "caseId": "src/b.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "a9c9cdcb17f3d4b7aa4ae367fe52274ba937f004181fe7bf324f71f6b45e66a4",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.65
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.4
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.49,
+          "probabilities": [0.16, 0.21, 0.6, 0.03],
+          "confidence": 0.44
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "none": 0.17,
+            "avoid-shell": 0,
+            "validate-input": 0.12,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "escape-output": 0,
+            "restrict-url": 0.71,
+            "delete-dead-code": 0
+          },
+          "confidence": 0.67
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.4,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.82,
+          "mitigated": 0.65,
+          "exploitable": 0.4,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": {
+          "score": 1.49,
+          "label": "limited"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.40, attacker-controlled 0.85, reaches sink 0.82, mitigated 0.65."
+      },
+      "error": null,
+      "inputTokens": 2317,
+      "latencyMs": 224
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.16
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.09,
+          "probabilities": [0.21, 0.51, 0.25, 0.03],
+          "confidence": 0.5
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "needs-design-review": 0,
+            "validate-input": 0.04,
+            "delete-dead-code": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "restrict-url": 0.24,
+            "harden-config": 0,
+            "none": 0.72
+          },
+          "confidence": 0.68
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.16,
+        "probabilities": {
+          "attacker_controlled": 0.82,
+          "reaches_sink": 0.78,
+          "mitigated": 0.84,
+          "exploitable": 0.16,
+          "non_production": 0.03,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.09,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.16, attacker-controlled 0.82, reaches sink 0.78, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2336,
+      "latencyMs": 248
+    },
+    {
+      "caseId": "src/c.ts",
+      "expected": "safe",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "a61125eb98806f31ccfca3fd269af4d79f2e5962bf785675fdd396d608a7ce2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.1
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.06
+        },
+        "impact": {
+          "type": "score",
+          "score": 0.98,
+          "probabilities": [0.26, 0.52, 0.19, 0.03],
+          "confidence": 0.5
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "needs-design-review": 0,
+            "validate-input": 0.03,
+            "delete-dead-code": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "restrict-url": 0.24,
+            "harden-config": 0,
+            "none": 0.73
+          },
+          "confidence": 0.69
+        }
+      },
+      "decision": {
+        "verdict": "dismissed",
+        "rule": "dismissed",
+        "confidence": 0.87,
+        "probabilities": {
+          "attacker_controlled": 0.79,
+          "reaches_sink": 0.75,
+          "mitigated": 0.87,
+          "exploitable": 0.1,
+          "non_production": 0.03,
+          "tampering": 0.06
+        },
+        "impact": null,
+        "fixDirection": null,
+        "dismissalReason": "mitigated",
+        "reason": "Dismissed (mitigated 0.87): exploitable 0.10, attacker-controlled 0.79, reaches sink 0.75, mitigated 0.87."
+      },
+      "error": null,
+      "inputTokens": 2445,
+      "latencyMs": 258
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.34
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.3,
+          "probabilities": [0.11, 0.5, 0.36, 0.03],
+          "confidence": 0.47
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "restrict-url": 0.55,
+            "harden-config": 0,
+            "validate-input": 0.23,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "delete-dead-code": 0,
+            "none": 0.22,
+            "escape-output": 0
+          },
+          "confidence": 0.49
+        }
+      },
+      "decision": {
+        "verdict": "survivor",
+        "rule": "survivor",
+        "confidence": 0.73,
+        "probabilities": {
+          "attacker_controlled": 0.94,
+          "reaches_sink": 0.88,
+          "mitigated": 0.34,
+          "exploitable": 0.73,
+          "non_production": 0.04,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.3,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Survivor: exploitable 0.73, attacker-controlled 0.94, reaches sink 0.88, mitigated 0.34."
+      },
+      "error": null,
+      "inputTokens": 2421,
+      "latencyMs": 238
+    },
+    {
+      "caseId": "src/d.ts",
+      "expected": "vulnerable",
+      "mustReview": false,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "4e1f9841b7f4cb7f22fef792d1b9b87e3e58763731e3cdbeda723af39148b1f6",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.65
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.29
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.05
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.07
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.24,
+          "probabilities": [0.14, 0.5, 0.34, 0.02],
+          "confidence": 0.47
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "avoid-shell": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "restrict-url": 0.5,
+            "add-authz-check": 0,
+            "escape-output": 0,
+            "validate-input": 0.23,
+            "delete-dead-code": 0,
+            "none": 0.27
+          },
+          "confidence": 0.44
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "uncertain",
+        "confidence": 0.29,
+        "probabilities": {
+          "attacker_controlled": 0.94,
+          "reaches_sink": 0.88,
+          "mitigated": 0.65,
+          "exploitable": 0.29,
+          "non_production": 0.05,
+          "tampering": 0.07
+        },
+        "impact": {
+          "score": 1.24,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (probabilities are inside the review band): exploitable 0.29, attacker-controlled 0.94, reaches sink 0.88, mitigated 0.65."
+      },
+      "error": null,
+      "inputTokens": 2312,
+      "latencyMs": 240
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.22
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.25,
+          "probabilities": [0.27, 0.23, 0.48, 0.02],
+          "confidence": 0.2
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "delete-dead-code": 0,
+            "restrict-url": 0.52,
+            "escape-output": 0,
+            "validate-input": 0.09,
+            "add-authz-check": 0,
+            "avoid-shell": 0,
+            "none": 0.39,
+            "needs-design-review": 0,
+            "harden-config": 0
+          },
+          "confidence": 0.44
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.22,
+        "probabilities": {
+          "attacker_controlled": 0.77,
+          "reaches_sink": 0.79,
+          "mitigated": 0.87,
+          "exploitable": 0.22,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.25,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.22, attacker-controlled 0.77, reaches sink 0.79, mitigated 0.87."
+      },
+      "error": null,
+      "inputTokens": 2363,
+      "latencyMs": 230
+    },
+    {
+      "caseId": "src/e.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "38336084f6dcfa214253c81140ab66d83c29ea1f2c27c6207d808568c79426c5",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.12
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.24,
+          "probabilities": [0.28, 0.23, 0.46, 0.03],
+          "confidence": 0.19
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "restrict-url": 0.43,
+            "delete-dead-code": 0,
+            "none": 0.48,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "validate-input": 0.09
+          },
+          "confidence": 0.4
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.12,
+        "probabilities": {
+          "attacker_controlled": 0.78,
+          "reaches_sink": 0.78,
+          "mitigated": 0.84,
+          "exploitable": 0.12,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.24,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.12, attacker-controlled 0.78, reaches sink 0.78, mitigated 0.84."
+      },
+      "error": null,
+      "inputTokens": 2520,
+      "latencyMs": 231
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "dbc769deef643692cf8b1e1251dc990713349bc67d151a7793516246e800229a",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.04
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.95
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.01,
+          "probabilities": [0, 0.01, 0.96, 0.03],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "validate-input": 0.01,
+            "none": 0,
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "needs-design-review": 0,
+            "add-authz-check": 0,
+            "restrict-url": 0.99,
+            "harden-config": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.98
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.95,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.95,
+          "mitigated": 0.04,
+          "exploitable": 0.95,
+          "non_production": 0.02,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 2.01,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.95, attacker-controlled 0.97, reaches sink 0.95, mitigated 0.04."
+      },
+      "error": null,
+      "inputTokens": 2486,
+      "latencyMs": 243
+    },
+    {
+      "caseId": "src/f.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "e596f030e4826838d59f6449ad26cbce85410874ad7ffb58d25791b15fed11ed",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.96
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.12
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.93
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.01,
+          "probabilities": [0, 0.01, 0.96, 0.03],
+          "confidence": 0.96
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "none": 0,
+            "restrict-url": 0.99,
+            "escape-output": 0,
+            "validate-input": 0.01,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "delete-dead-code": 0,
+            "add-authz-check": 0,
+            "avoid-shell": 0
+          },
+          "confidence": 0.99
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.93,
+        "probabilities": {
+          "attacker_controlled": 0.97,
+          "reaches_sink": 0.96,
+          "mitigated": 0.12,
+          "exploitable": 0.93,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 2.01,
+          "label": "serious"
+        },
+        "fixDirection": "restrict-url",
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.93, attacker-controlled 0.97, reaches sink 0.96, mitigated 0.12."
+      },
+      "error": null,
+      "inputTokens": 2329,
+      "latencyMs": 234
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.74
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.03,
+          "probabilities": [0.28, 0.45, 0.23, 0.04],
+          "confidence": 0.42
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "add-authz-check": 0,
+            "restrict-url": 0.26,
+            "delete-dead-code": 0,
+            "none": 0.7,
+            "escape-output": 0,
+            "needs-design-review": 0,
+            "harden-config": 0,
+            "validate-input": 0.04
+          },
+          "confidence": 0.65
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.74,
+          "reaches_sink": 0.78,
+          "mitigated": 0.88,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.03,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.14, attacker-controlled 0.74, reaches sink 0.78, mitigated 0.88."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 231
+    },
+    {
+      "caseId": "src/g.ts",
+      "expected": "safe",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "722b01d26557605eba3c4f54bb4f74840819926a3983d41dc1adf0961473e8da",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.1
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1,
+          "probabilities": [0.28, 0.48, 0.21, 0.03],
+          "confidence": 0.44
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "none",
+          "probabilities": {
+            "avoid-shell": 0,
+            "delete-dead-code": 0,
+            "harden-config": 0,
+            "restrict-url": 0.22,
+            "add-authz-check": 0,
+            "validate-input": 0.04,
+            "needs-design-review": 0,
+            "none": 0.74,
+            "escape-output": 0
+          },
+          "confidence": 0.7
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.1,
+        "probabilities": {
+          "attacker_controlled": 0.76,
+          "reaches_sink": 0.73,
+          "mitigated": 0.9,
+          "exploitable": 0.1,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.10, attacker-controlled 0.76, reaches sink 0.73, mitigated 0.90."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 255
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "category-v2",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "c96928b88c8dd64a7814d6d7b0b30e2f4f4d0f1b78ee5d20e7a96fd474cbd03e",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.83
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.14
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.25,
+          "probabilities": [0.17, 0.45999999999999996, 0.32, 0.05],
+          "confidence": 0.42
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "delete-dead-code": 0,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "restrict-url": 0.45,
+            "validate-input": 0.15,
+            "none": 0.4,
+            "harden-config": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.38
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.14,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.83,
+          "mitigated": 0.78,
+          "exploitable": 0.14,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.25,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.14, attacker-controlled 0.85, reaches sink 0.83, mitigated 0.78."
+      },
+      "error": null,
+      "inputTokens": 2466,
+      "latencyMs": 281
+    },
+    {
+      "caseId": "src/h.ts",
+      "expected": "vulnerable",
+      "mustReview": true,
+      "repeat": 2,
+      "variant": "generic-v1",
+      "packetHash": "d83968a3cb1dbb6e26a00f5310eb5c539f51db0f10d70d0708327b4a3bd16c2e",
+      "questionsHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
+      "model": "jev-1.13.0",
+      "answers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.26
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.03
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.98
+        },
+        "impact": {
+          "type": "score",
+          "score": 1.28,
+          "probabilities": [0.15, 0.47, 0.32, 0.06],
+          "confidence": 0.42
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "restrict-url",
+          "probabilities": {
+            "add-authz-check": 0,
+            "delete-dead-code": 0,
+            "needs-design-review": 0,
+            "avoid-shell": 0,
+            "restrict-url": 0.52,
+            "validate-input": 0.14,
+            "none": 0.34,
+            "harden-config": 0,
+            "escape-output": 0
+          },
+          "confidence": 0.45
+        }
+      },
+      "decision": {
+        "verdict": "needs-human-review",
+        "rule": "tampering-suspected",
+        "confidence": 0.26,
+        "probabilities": {
+          "attacker_controlled": 0.85,
+          "reaches_sink": 0.84,
+          "mitigated": 0.79,
+          "exploitable": 0.26,
+          "non_production": 0.03,
+          "tampering": 0.98
+        },
+        "impact": {
+          "score": 1.28,
+          "label": "limited"
+        },
+        "fixDirection": null,
+        "dismissalReason": null,
+        "reason": "Needs review (the code contains text that argues for its own assessment, P=0.98): exploitable 0.26, attacker-controlled 0.85, reaches sink 0.84, mitigated 0.79."
+      },
+      "error": null,
+      "inputTokens": 2357,
+      "latencyMs": 252
+    }
+  ],
+  "summaries": [
+    {
+      "variant": "generic-v1",
+      "complete": true,
+      "unsafeDismissals": [],
+      "reviewGuardMisses": [],
+      "dismissPrecision": null,
+      "survivorRecall": 0,
+      "noiseRemoved": 0,
+      "reviewRate": 1,
+      "verdictFlips": []
+    },
+    {
+      "variant": "category-v2",
+      "complete": true,
+      "unsafeDismissals": [],
+      "reviewGuardMisses": [],
+      "dismissPrecision": 1,
+      "survivorRecall": 0.25,
+      "noiseRemoved": 0.16666666666666666,
+      "reviewRate": 0.7916666666666666,
+      "verdictFlips": ["src/c.ts"]
+    }
+  ],
+  "dataset": "holdout",
+  "corpusHash": "35b254e4e3f9e5ef000ecfa3591f563172f8dbb3137dc6b2d36288412875f779",
+  "fallowVersion": "3.27.0",
+  "baselineCommit": "77a44a620020ce1dfc45bb401164968b29665ab2"
+}

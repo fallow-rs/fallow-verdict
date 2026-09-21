@@ -57,6 +57,13 @@
         "null"
       ]
     },
+    "questionHash": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "engine": {
       "default": null,
       "type": [

@@ -75,6 +75,14 @@ const summaryLine = ({ summary }: Report): string =>
 const verdictColor = (verdict: VerdictStatus): "red" | "yellow" | "dim" =>
   verdict === "survivor" ? "red" : verdict === "needs-human-review" ? "yellow" : "dim";
 
+const incomplete = (report: Report): FindingRecord[] =>
+  report.findings.filter((record) => record.status === "pending" || record.status === "error");
+
+const incompleteReason = (record: FindingRecord): string =>
+  record.error === null
+    ? "No current judgment. Run judge to continue."
+    : `${record.error.code}: ${record.error.message}`;
+
 export const renderHuman = (report: Report, showDismissed: boolean): string => {
   const lines: string[] = [styleText("bold", summaryLine(report)), ""];
   for (const verdict of VERDICT_ORDER) {
@@ -94,8 +102,19 @@ export const renderHuman = (report: Report, showDismissed: boolean): string => {
           "dim",
           `         ${decision.confidence.toFixed(2)}  ${decision.rule}${impact}${fix}`,
         ),
+        `         ${decision.reason}`,
       );
     }
+    lines.push("");
+  }
+  const unfinished = incomplete(report);
+  if (unfinished.length > 0) {
+    lines.push("Incomplete judgments", "");
+    for (const record of unfinished)
+      lines.push(
+        `  ${record.path}:${record.line}  ${record.status}`,
+        `         ${incompleteReason(record)}`,
+      );
     lines.push("");
   }
   if (!showDismissed && report.summary.dismissed > 0) {
@@ -124,16 +143,30 @@ export const renderMarkdown = (report: Report): string => {
     lines.push(
       `## ${VERDICT_TITLE[verdict]} (${records.length})`,
       "",
-      "| Severity | Location | Category | Confidence | Rule | Impact | Fix direction |",
-      "| --- | --- | --- | --- | --- | --- | --- |",
+      "| Severity | Location | Category | Confidence | Rule | Impact | Fix direction | Reason |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- |",
     );
     for (const record of records) {
       const decision = record.decision;
       if (decision === null) continue;
       lines.push(
-        `| ${record.severity} | \`${escapeCell(record.path)}:${record.line}\` | ${escapeCell(record.category ?? "client-server-leak")} | ${decision.confidence.toFixed(2)} | ${decision.dismissalReason ?? decision.rule} | ${decision.impact?.label ?? ""} | ${decision.fixDirection ?? ""} |`,
+        `| ${record.severity} | \`${escapeCell(record.path)}:${record.line}\` | ${escapeCell(record.category ?? "client-server-leak")} | ${decision.confidence.toFixed(2)} | ${decision.dismissalReason ?? decision.rule} | ${decision.impact?.label ?? ""} | ${decision.fixDirection ?? ""} | ${escapeCell(decision.reason)} |`,
       );
     }
+    lines.push("");
+  }
+  const unfinished = incomplete(report);
+  if (unfinished.length > 0) {
+    lines.push(
+      "## Incomplete judgments",
+      "",
+      "| Location | Status | Reason |",
+      "| --- | --- | --- |",
+    );
+    for (const record of unfinished)
+      lines.push(
+        `| \`${escapeCell(record.path)}:${record.line}\` | ${record.status} | ${escapeCell(incompleteReason(record))} |`,
+      );
     lines.push("");
   }
   return lines.join("\n");

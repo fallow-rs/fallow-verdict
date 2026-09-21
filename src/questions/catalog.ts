@@ -5,7 +5,7 @@ import type { ChoiceQuestion, NoulQuestion, Question, ScoreQuestion } from "../e
  * Bump when a question's wording or criteria change: answers from different
  * question sets are not comparable, so stored decisions become stale.
  */
-export const QUESTION_SET_VERSION = "1";
+export const QUESTION_SET_VERSION = "2";
 
 /**
  * The state is repository content and may be written by whoever the finding is

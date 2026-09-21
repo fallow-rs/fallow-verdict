@@ -7,13 +7,27 @@ export const LABELS_SCHEMA = "fallow-verdict-labels/v1";
 /** Ground truth for a candidate: is it a real, exploitable issue or not. */
 export const labelsSchema = z.object({
   schema_version: z.literal(LABELS_SCHEMA),
-  labels: z.array(
-    z.object({
-      finding_id: z.string().min(1),
-      expected: z.enum(["vulnerable", "safe"]),
-      note: z.string().optional(),
+  labels: z
+    .array(
+      z.object({
+        finding_id: z.string().min(1),
+        expected: z.enum(["vulnerable", "safe"]),
+        note: z.string().optional(),
+      }),
+    )
+    .min(1)
+    .superRefine((labels, context) => {
+      const seen = new Set<string>();
+      for (const [index, label] of labels.entries()) {
+        if (seen.has(label.finding_id))
+          context.addIssue({
+            code: "custom",
+            message: "Each finding_id must be labeled exactly once.",
+            path: [index, "finding_id"],
+          });
+        seen.add(label.finding_id);
+      }
     }),
-  ),
 });
 
 export type Labels = z.infer<typeof labelsSchema>;
@@ -61,6 +75,7 @@ const calibrationError = (
 };
 
 export const evaluate = (records: readonly FindingRecord[], labels: Labels): EvalReport => {
+  labelsSchema.parse(labels);
   const byId = new Map(records.map((record) => [record.finding_id, record]));
   const pairs = labels.labels.flatMap(({ finding_id, expected }) => {
     const record = byId.get(finding_id);
@@ -74,30 +89,36 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
   const vulnerable = pairs.filter((pair) => pair.vulnerable);
   const safe = pairs.filter((pair) => !pair.vulnerable);
   const missed = dismissed.filter((pair) => pair.vulnerable);
+  const complete = pairs.length === labels.labels.length;
 
   return {
     labeled: labels.labels.length,
     judged: pairs.length,
     unjudged: labels.labels.length - pairs.length,
-    dismissPrecision: ratio(dismissed.length - missed.length, dismissed.length),
+    dismissPrecision: complete ? ratio(dismissed.length - missed.length, dismissed.length) : null,
     missedVulnerabilities: missed.map(({ finding_id }) => finding_id),
-    survivorRecall: ratio(
-      vulnerable.filter(({ decision }) => decision.verdict === "survivor").length,
-      vulnerable.length,
-    ),
-    noiseRemoved: ratio(
-      safe.filter(({ decision }) => decision.verdict === "dismissed").length,
-      safe.length,
-    ),
-    reviewRate: ratio(
-      pairs.filter(({ decision }) => decision.verdict === "needs-human-review").length,
-      pairs.length,
-    ),
-    calibrationError: calibrationError(
-      pairs.flatMap(({ decision, vulnerable: isVulnerable }) => {
-        const p = decision.probabilities["exploitable"];
-        return p === undefined ? [] : [{ p, vulnerable: isVulnerable }];
-      }),
-    ),
+    survivorRecall: complete
+      ? ratio(
+          vulnerable.filter(({ decision }) => decision.verdict === "survivor").length,
+          vulnerable.length,
+        )
+      : null,
+    noiseRemoved: complete
+      ? ratio(safe.filter(({ decision }) => decision.verdict === "dismissed").length, safe.length)
+      : null,
+    reviewRate: complete
+      ? ratio(
+          pairs.filter(({ decision }) => decision.verdict === "needs-human-review").length,
+          pairs.length,
+        )
+      : null,
+    calibrationError: complete
+      ? calibrationError(
+          pairs.flatMap(({ decision, vulnerable: isVulnerable }) => {
+            const p = decision.probabilities["exploitable"];
+            return p === undefined ? [] : [{ p, vulnerable: isVulnerable }];
+          }),
+        )
+      : null,
   };
 };

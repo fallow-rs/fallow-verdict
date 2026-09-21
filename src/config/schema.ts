@@ -30,6 +30,8 @@ export const configSchema = z
     root: z.string().default("."),
     /** Where state is kept. Relative to the root. */
     dataDir: z.string().default(".fallow-verdict"),
+    /** Opt into destination-specific questions for SSRF and open redirects. */
+    questionProfile: z.enum(["generic", "category"]).default("generic"),
     fallow: z
       .object({
         binary: z.string().optional(),

@@ -46,6 +46,7 @@
     "pretest": "npm run build",
     "prepack": "npm run build && npm run schemas",
     "eval:live": "npm run build && node scripts/evaluate-corpus.ts",
+    "eval:compare": "node scripts/compare-questions.ts",
     "lint": "oxlint",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",

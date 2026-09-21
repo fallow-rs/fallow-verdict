@@ -24,6 +24,10 @@ jobs:
       - run: npm run fmt:check
       - run: npm test
       - run: npm run build
+      - name: Evaluation inputs match their frozen labels and questions
+        run: |
+          npm run eval:compare -- --dataset development --dry-run
+          npm run eval:compare -- --dataset holdout --dry-run
       - name: Schemas are up to date
         run: npm run schemas && git diff --exit-code schemas
       - name: Packed CLI starts

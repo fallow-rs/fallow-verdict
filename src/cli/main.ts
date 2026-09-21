@@ -300,7 +300,13 @@ export const main = async (argv: readonly string[]): Promise<number> => {
     outcome = loaded.ok
       ? await dispatch({
           options,
-          loaded: loaded.data,
+          loaded: {
+            ...loaded.data,
+            config: {
+              ...loaded.data.config,
+              questionProfile: options.questionProfile ?? loaded.data.config.questionProfile,
+            },
+          },
           store: openStore(loaded.data.dataDir),
           signal: controller.signal,
         })

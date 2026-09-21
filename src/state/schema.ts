@@ -60,6 +60,7 @@ export const recordSchema = z.object({
   /** Packet fingerprint the current decision was made on. */
   fingerprint: z.string().nullable(),
   questionSet: z.string().nullable(),
+  questionHash: z.string().nullable().default(null),
   /** Requested model and endpoint used for the cached judgment. */
   engine: z.string().nullable().default(null),
   /** Raw engine answers, kept so a policy change can be applied without asking again. */

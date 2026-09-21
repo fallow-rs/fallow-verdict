@@ -32,6 +32,7 @@ const newRecord = (finding: SecurityFinding, now: string): FindingRecord => ({
   lastSeenAt: now,
   fingerprint: null,
   questionSet: null,
+  questionHash: null,
   engine: null,
   answers: null,
   decision: null,
@@ -78,7 +79,12 @@ export const syncRecords = async (
     const current =
       built !== null &&
       loaded !== undefined &&
-      isCurrent(existing, built, engineIdentity(loaded.config.engine));
+      isCurrent(
+        existing,
+        built,
+        engineIdentity(loaded.config.engine),
+        loaded.config.questionProfile,
+      );
     await store.writeRecord({
       ...(current ? existing : invalidate(existing)),
       path: finding.path,

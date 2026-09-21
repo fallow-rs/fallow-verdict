@@ -1,7 +1,8 @@
 # Questions and policy
 
-The question set is fixed and identical for every candidate (`src/questions/catalog.ts`). Every
-question repeats that comments, strings, and names in the code are untrusted.
+The default `generic` question set is fixed and identical for every candidate
+(`src/questions/catalog.ts`). Every question repeats that comments, strings, and names in the
+code are untrusted.
 
 | Id                    | Type   | Asks                                                                 |
 | --------------------- | ------ | -------------------------------------------------------------------- |
@@ -16,6 +17,17 @@ question repeats that comments, strings, and names in the code are untrusted.
 
 `exploitable` carries an explicit negative criterion: style problems, missing error handling, and
 security-sounding names are not vulnerabilities.
+
+## Experimental category profile
+
+`questionProfile: "category"` replaces only the exploitation and mitigation criteria for SSRF
+and open redirects (`src/questions/category.ts`). It distinguishes attacker control over a URL
+origin from control over an encoded path segment, considers outbound redirects, and asks whether
+URL checks actually restrict destinations. It retains the same answer types, tampering question,
+and policy thresholds. Blind packets and other categories use the generic questions.
+
+The exact question content is hashed into each finding record. See the
+[paired evaluation](evaluation-v2.md) for measured behavior and limitations.
 
 ## Policy
 

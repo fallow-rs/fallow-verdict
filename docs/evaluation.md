@@ -43,7 +43,8 @@ vulnerable candidates cannot measure dismiss precision.
 ## Included development corpus
 
 `eval/corpus` is a small application with both vulnerable operations and safe look-alikes that
-fallow still reports. `eval/cases.json` records the reviewed label and rationale for each file.
+fallow still reports. `eval/cases.json` records the reviewed label, threat assumptions, candidate category/callee, and
+source SHA-256 for each file. Source or candidate drift requires an explicit label review.
 Exported identifier arguments are assumed to be externally supplied. Request URLs are attacker
 controlled; `Response.redirect` has Express-style redirect semantics; `Database.query` executes
 SQL as given. These assumptions are part of the labels, not claims about every real caller.
@@ -57,9 +58,42 @@ npm run eval:live
 The runner scans the corpus, refuses unexpected/missing/duplicate candidates, derives finding IDs
 from the current scanner, judges with a small cost budget, validates the exported verdicts, and
 runs `eval`. Labels stay outside engine packets. State and generated labels are gitignored.
-A rerun uses cached answers; use `judge --cwd eval/corpus --rejudge` to request new answers.
+A rerun uses cached answers. Use `npm run eval:live -- --rejudge --question-profile category`
+to request fresh answers with the experimental profile.
 
 This is a development set, not an independent holdout or evidence of production calibration.
 `dismissPrecision: null` means no dismissal was observed, not perfect accuracy. `eval` exits 2
-when labeled candidates have no current judgment. Pending, errored and resolved decisions are
-excluded from scoring. See [validation.md](validation.md) for the initial live result.
+when labeled candidates have no current judgment. Empty or duplicate labels are rejected. If any labeled candidate is pending, errored, resolved,
+or missing, all aggregate rates are `null`; observed unsafe dismissals remain listed. See [validation.md](validation.md) for the initial live result.
+
+## Fresh paired comparisons
+
+The comparison runner bypasses persisted judgment caches. It sends the same evidence and policy
+to the frozen generic baseline and category questions, alternates their order, and repeats every
+case with the same concrete model version. Labels and threat assumptions are never sent to Jev.
+
+```bash
+npm run eval:compare -- --dataset development --dry-run
+npm run eval:compare -- --dataset holdout --dry-run
+# With TYPESAFE_API_KEY already exported:
+npm run eval:compare -- --dataset development --output /tmp/development.json
+npm run eval:compare -- --dataset holdout --output /tmp/holdout.json
+```
+
+Defaults are `jev-1.13.0`, three fresh calls per variant and case, and an estimated $0.05 cap.
+Aliases are rejected, and an unexpected response model stops the run. Override `--repeats`,
+`--model`, or `--max-cost-usd` explicitly. Dry runs make no engine calls. Live comparisons require `--output` and print their estimate
+before making calls. The runner verifies
+source labels and frozen question hashes before any call. Output includes evidence/question
+hashes, raw answers, decisions, cost, missing observations, and verdict changes across repeats.
+Incomplete variants have `null` aggregate rates. Provider retries and failed requests can cost
+more than recorded successful-response usage.
+
+Exit 1 means a vulnerable case was dismissed or a mandatory human-review guard failed. Exit 2
+means incomplete execution. Exit 0 means those checks passed; it does not establish stability,
+calibration, or readiness to change the default. Repeated calls are not independent code examples.
+
+The separately authored `eval/holdout` covers parsed URL restrictions, misleading prefix checks,
+and adversarial reviewer comments. Its labels include executable runtime checks. It was first
+queried after the category questions were frozen. It is now a consumed pilot holdout: future
+tuning needs new unseen cases. See [evaluation-v2.md](evaluation-v2.md) for the published results.

@@ -7,6 +7,7 @@
       "const": "fallow-verdict-labels/v1"
     },
     "labels": {
+      "minItems": 1,
       "type": "array",
       "items": {
         "type": "object",

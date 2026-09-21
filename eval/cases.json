@@ -1,22 +1,47 @@
 {
   "src/lookup.ts": {
+    "path": "src/lookup.ts",
+    "category": "ssrf",
+    "callee": "fetch",
+    "sourceSha256": "cf5296ea92ef8d2ebb0f88a8fd5b748638a100aad8e8e20ea83f6943cef758b1",
     "expected": "safe",
-    "note": "The origin is fixed, the untrusted identifier is percent-encoded in a path segment, and redirects are rejected. No attacker-controlled destination is requested."
+    "rationale": "The origin is fixed, the untrusted identifier is percent-encoded in a path segment, and redirects are rejected. No attacker-controlled destination is requested.",
+    "threatAssumptions": "Exported inputs are attacker-controlled. Request URLs are untrusted. Response.redirect uses Express redirect semantics. Database.query executes SQL as supplied."
   },
   "src/profile.ts": {
+    "path": "src/profile.ts",
+    "category": "open-redirect",
+    "callee": "response.redirect",
+    "sourceSha256": "8accec03a731a78b60936688b352c274348f020c99119839b5473742a5913a5a",
     "expected": "safe",
-    "note": "The redirect always starts with /profiles/ on the current origin. Encoding the account identifier prevents it from becoming a scheme or authority."
+    "rationale": "The redirect always starts with /profiles/ on the current origin. Encoding the account identifier prevents it from becoming a scheme or authority.",
+    "threatAssumptions": "Exported inputs are attacker-controlled. Request URLs are untrusted. Response.redirect uses Express redirect semantics. Database.query executes SQL as supplied."
   },
   "src/proxy.ts": {
+    "path": "src/proxy.ts",
+    "category": "ssrf",
+    "callee": "fetch",
+    "sourceSha256": "cb4ac195dd632c06f55116b3efd25711040baf1503aa3740e8dfc1189315d332",
     "expected": "vulnerable",
-    "note": "An HTTP query parameter controls the fetch destination without a destination restriction. An attacker can request internal services."
+    "rationale": "An HTTP query parameter controls the fetch destination without a destination restriction. An attacker can request internal services.",
+    "threatAssumptions": "Exported inputs are attacker-controlled. Request URLs are untrusted. Response.redirect uses Express redirect semantics. Database.query executes SQL as supplied."
   },
   "src/redirect.ts": {
+    "path": "src/redirect.ts",
+    "category": "open-redirect",
+    "callee": "response.redirect",
+    "sourceSha256": "1669c013b3264b935dadd7bbd6fff83a5fd56b9a17fc42891ce75f6211c7986e",
     "expected": "vulnerable",
-    "note": "An HTTP query parameter controls the redirect destination, including external origins."
+    "rationale": "An HTTP query parameter controls the redirect destination, including external origins.",
+    "threatAssumptions": "Exported inputs are attacker-controlled. Request URLs are untrusted. Response.redirect uses Express redirect semantics. Database.query executes SQL as supplied."
   },
   "src/query.ts": {
+    "path": "src/query.ts",
+    "category": "sql-injection",
+    "callee": "database.query",
+    "sourceSha256": "5770882e141439968d22b53825ad47cb06c40ac4302c80480a247be1de085907",
     "expected": "vulnerable",
-    "note": "The caller supplies an untrusted SQL fragment in a numeric value position. For example, 0 OR 1=1 changes query semantics."
+    "rationale": "The caller supplies an untrusted SQL fragment in a numeric value position. For example, 0 OR 1=1 changes query semantics.",
+    "threatAssumptions": "Exported inputs are attacker-controlled. Request URLs are untrusted. Response.redirect uses Express redirect semantics. Database.query executes SQL as supplied."
   }
 }
