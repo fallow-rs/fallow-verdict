@@ -1,0 +1,74 @@
+{
+  "name": "fallow-verdict",
+  "version": "0.1.0",
+  "description": "Verdicts for fallow security candidates: deterministic discovery by fallow, calibrated decisions by Jev.",
+  "keywords": [
+    "fallow",
+    "jev",
+    "sast",
+    "security",
+    "static-analysis",
+    "triage"
+  ],
+  "license": "MIT",
+  "author": "Bart Waardenburg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fallow-rs/fallow-verdict.git"
+  },
+  "bin": {
+    "fallow-verdict": "bin/fallow-verdict.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "schemas",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "exports": {
+    "./config": {
+      "types": "./dist/config/define.d.ts",
+      "import": "./dist/config/define.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/types.d.ts",
+      "import": "./dist/engine/types.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "schemas": "node scripts/generate-schemas.ts",
+    "verify": "npm run typecheck && npm run lint && npm run fmt:check && npm run test && npm run build"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "fallow": "^3.27.0",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "peerDependencies": {
+    "fallow": ">=3.27.0"
+  },
+  "peerDependenciesMeta": {
+    "fallow": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

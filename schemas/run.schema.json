@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "fallow-verdict-run/v1"
+    },
+    "runId": {
+      "type": "string"
+    },
+    "command": {
+      "type": "string"
+    },
+    "startedAt": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "running",
+        "done",
+        "error",
+        "interrupted",
+        "budget-exhausted"
+      ]
+    },
+    "engine": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "judged": {
+          "type": "number"
+        },
+        "skipped": {
+          "type": "number"
+        },
+        "errors": {
+          "type": "number"
+        },
+        "inputTokens": {
+          "type": "number"
+        },
+        "costUsd": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "judged",
+        "skipped",
+        "errors",
+        "inputTokens",
+        "costUsd"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "runId",
+    "command",
+    "startedAt",
+    "completedAt",
+    "outcome",
+    "engine",
+    "stats"
+  ]
+}

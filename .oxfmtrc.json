@@ -1,0 +1,4 @@
+{
+  "printWidth": 100,
+  "ignorePatterns": ["dist", "node_modules", "schemas", "CHANGELOG.md"]
+}
