@@ -38,7 +38,8 @@ const byPriority = (a: FindingRecord, b: FindingRecord): number =>
   SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
   (b.decision?.confidence ?? 0) - (a.decision?.confidence ?? 0) ||
   a.path.localeCompare(b.path) ||
-  a.line - b.line;
+  a.line - b.line ||
+  (a.col ?? -1) - (b.col ?? -1);
 
 export const buildReport = (records: readonly FindingRecord[]): Report => {
   const live = records.filter((record) => record.status !== "resolved");
@@ -151,10 +152,14 @@ const verdictColor = (verdict: VerdictStatus): "red" | "yellow" | "dim" =>
 const incomplete = (report: Report): FindingRecord[] =>
   report.findings.filter((record) => record.status === "pending" || record.status === "error");
 
-const incompleteReason = (record: FindingRecord): string =>
-  record.error === null
-    ? "No current assessment. Run fallow-verdict judge with the same config and question profile to continue."
-    : `${record.error.code}: ${record.error.message}`;
+const location = (record: FindingRecord): string =>
+  `${record.path}:${record.line}${record.col == null ? "" : `:${record.col}`}`;
+
+const NEXT_ASSESSMENT =
+  "No current assessment. Run fallow-verdict judge with the same config and question profile to continue.";
+
+const incompleteReason = (record: FindingRecord): string | null =>
+  record.error === null ? null : `${record.error.code}: ${record.error.message}`;
 
 export const renderHuman = (report: Report, showDismissed: boolean): string => {
   const lines: string[] = [styleText("bold", "Security review"), "", summaryLine(report), ""];
@@ -172,7 +177,7 @@ export const renderHuman = (report: Report, showDismissed: boolean): string => {
       if (decision === null) continue;
       lines.push(
         "",
-        `  ${record.path}:${record.line}`,
+        `  ${location(record)}`,
         `  ${categoryLabel(record.category)} | Fallow severity: ${record.severity}`,
         ...(decision.rule === "survivor" ? [] : [`  ${explanation(decision)}`]),
         styleText("dim", `  ${estimate(decision)}`),
@@ -185,10 +190,11 @@ export const renderHuman = (report: Report, showDismissed: boolean): string => {
   const unfinished = incomplete(report);
   if (unfinished.length > 0) {
     lines.push("Not assessed", "");
+    if (unfinished.some((record) => record.error === null)) lines.push(NEXT_ASSESSMENT, "");
     for (const record of unfinished)
       lines.push(
-        `  ${record.path}:${record.line} | ${record.status === "error" ? "Assessment failed" : "Pending"}`,
-        `  ${incompleteReason(record)}`,
+        `  ${location(record)} | ${record.status === "error" ? "Assessment failed" : "Pending"}`,
+        ...(record.error === null ? [] : [`  ${incompleteReason(record)}`]),
         "",
       );
     lines.push("");
@@ -220,7 +226,7 @@ export const renderMarkdown = (report: Report): string => {
       const decision = record.decision;
       if (decision === null) continue;
       lines.push(
-        `### ${escapeText(record.path)}:${record.line}`,
+        `### ${escapeText(location(record))}`,
         "",
         `${escapeText(categoryLabel(record.category))} | Fallow severity: ${record.severity}`,
         "",
@@ -250,11 +256,13 @@ export const renderMarkdown = (report: Report): string => {
   const unfinished = incomplete(report);
   if (unfinished.length > 0) {
     lines.push("## Not assessed", "");
+    if (unfinished.some((record) => record.error === null)) lines.push(NEXT_ASSESSMENT, "");
     for (const record of unfinished)
       lines.push(
-        `### ${escapeText(record.path)}:${record.line}`,
+        `### ${escapeText(location(record))}`,
         "",
-        `${record.status === "error" ? "Assessment failed" : "Pending"}. ${escapeText(incompleteReason(record))}`,
+        `${record.status === "error" ? "Assessment failed" : "Pending"}.`,
+        ...(record.error === null ? [] : [escapeText(incompleteReason(record) ?? "")]),
         "",
       );
     lines.push("");

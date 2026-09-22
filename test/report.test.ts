@@ -8,6 +8,7 @@ const reviewRecord = (overrides: Partial<StoredDecision> = {}): FindingRecord =>
   finding_id: "review-candidate",
   path: "src/proxy.ts",
   line: 4,
+  col: null,
   category: "ssrf",
   severity: "high",
   status: "judged",

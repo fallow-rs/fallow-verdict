@@ -48,6 +48,8 @@ export const recordSchema = z.object({
   finding_id: z.string().min(1),
   path: z.string(),
   line: z.number(),
+  /** Zero-based byte column from Fallow; null for legacy records without a column. */
+  col: z.number().int().nonnegative().nullable().default(null),
   category: z.string().nullable(),
   severity: z.enum(["high", "medium", "low"]),
   /**

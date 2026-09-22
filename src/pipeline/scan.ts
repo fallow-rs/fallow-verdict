@@ -25,6 +25,7 @@ const newRecord = (finding: SecurityFinding, now: string): FindingRecord => ({
   finding_id: finding.finding_id,
   path: finding.path,
   line: finding.line,
+  col: finding.col ?? null,
   category: finding.category ?? null,
   severity: finding.severity,
   status: "pending",
@@ -89,6 +90,7 @@ export const syncRecords = async (
       ...(current ? existing : invalidate(existing)),
       path: finding.path,
       line: finding.line,
+      col: finding.col ?? null,
       severity: finding.severity,
       lastSeenAt: now,
     });
