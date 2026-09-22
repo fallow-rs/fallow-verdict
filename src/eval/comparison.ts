@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type { Policy } from "../config/schema.ts";
 import type { Answer, DecisionEngine, Question } from "../engine/types.ts";
 import type { BuiltPacket, VerifierPacket } from "../packet/build.ts";
-import { decide, type Decision } from "../policy/decide.ts";
+import { decide, type Decision, type PolicyRule } from "../policy/decide.ts";
 import type { VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
 
@@ -35,6 +35,11 @@ export type Observation = {
   latencyMs: number;
 };
 
+/** Rules that intentionally leave a candidate for human review. */
+export type ReviewPolicyRule = Exclude<PolicyRule, "survivor" | "dismissed">;
+
+export type ReviewByRule = Record<ReviewPolicyRule, number>;
+
 export type VariantSummary = {
   variant: string;
   complete: boolean;
@@ -44,6 +49,10 @@ export type VariantSummary = {
   survivorRecall: number | null;
   noiseRemoved: number | null;
   reviewRate: number | null;
+  /** Count of human reviews by the deterministic policy rule that caused them. */
+  reviewByRule: ReviewByRule;
+  /** Review rate after excluding cases labeled as mandatory review. */
+  eligibleReviewRate: number | null;
   verdictFlips: string[];
 };
 
@@ -72,6 +81,25 @@ const uniqueIds = (matches: Observation[]): string[] => [
   ...new Set(matches.map((row) => row.caseId)),
 ];
 
+const isReviewRule = (rule: PolicyRule): rule is ReviewPolicyRule =>
+  rule !== "survivor" && rule !== "dismissed";
+
+const reviewByRule = (rows: readonly Observation[]): ReviewByRule => {
+  const counts: ReviewByRule = {
+    "evidence-missing": 0,
+    "tampering-suspected": 0,
+    "truncated-evidence": 0,
+    "evidence-conflict": 0,
+    uncertain: 0,
+  };
+  for (const row of rows) {
+    if (row.decision?.verdict !== "needs-human-review") continue;
+    const rule = row.decision.rule;
+    if (isReviewRule(rule)) counts[rule] += 1;
+  }
+  return counts;
+};
+
 const summarize = (
   cases: readonly ComparisonCase[],
   observations: Observation[],
@@ -82,6 +110,8 @@ const summarize = (
   const complete =
     rows.length === cases.length * repeats && rows.every((row) => row.error === null);
   const dismissed = rows.filter((row) => row.decision?.verdict === "dismissed");
+  const eligibleRows = rows.filter((row) => !row.mustReview);
+  const eligibleCases = cases.filter((item) => !item.mustReview).length * repeats;
   return {
     variant,
     complete,
@@ -113,6 +143,13 @@ const summarize = (
       ? ratio(
           rows.filter((row) => row.decision?.verdict === "needs-human-review").length,
           rows.length,
+        )
+      : null,
+    reviewByRule: reviewByRule(rows),
+    eligibleReviewRate: complete
+      ? ratio(
+          eligibleRows.filter((row) => row.decision?.verdict === "needs-human-review").length,
+          eligibleCases,
         )
       : null,
     verdictFlips: cases
