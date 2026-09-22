@@ -12,6 +12,11 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 fallow no longer reports become `resolved`. A scoped scan (`--changed-since`, explicit paths) sees
 only part of the project and therefore never resolves anything.
 
+Every selected candidate must have a non-empty, unique finding ID. Invalid or ambiguous IDs
+stop the scan before state is replaced. Loading stored candidates applies the same check before
+judgment or reporting. A scoped scan checks the selected set, so collisions outside that scope
+do not block it.
+
 **packet** builds one self-contained `fallow-security-verifier-input/v2` evidence packet per candidate.
 It matches Fallow's top-level attack-surface entries by sink location and category, preserving
 distinct paths and their controls. Legacy inline surfaces remain supported. Fallow never
