@@ -19,6 +19,7 @@ import {
   SAFE_MITIGATED,
   SINK_FILE,
   SINK_SOURCE,
+  VULNERABLE,
 } from "./helpers.ts";
 
 type Surface = NonNullable<SecurityFinding["attack_surface"]>;
@@ -54,6 +55,39 @@ const build = (
   );
 
 describe("top-level attack-surface evidence", () => {
+  it("sends file-level control observations without treating them as protection for the sink", async () => {
+    const root = await project();
+    const unrelatedGuard =
+      'export const unrelated = (url) => { if (url.origin !== "https://trusted.example") throw new Error(); };';
+    await writeFile(path.join(root, CONTROL_FILE), unrelatedGuard);
+    const finding = makeFinding();
+    const surface = makeSurface(finding);
+    surface.defensive_boundary.controls = surface.defensive_boundary.controls.map((control) => ({
+      ...control,
+      callee: "origin-equality-guard",
+    }));
+    const loaded = makeLoaded(root);
+    const store = openStore(loaded.dataDir);
+    const output = { ...makeOutput([finding]), attack_surface: [surface] };
+    await store.writeJson(store.candidatesPath, output);
+    await syncRecords(store, output, false, loaded);
+    const engine = mockEngine((state) => {
+      expect(state).toMatchObject({
+        defensive_controls_scope: {
+          discovery: "files-on-trace",
+          applicability_to_sink: "not-established",
+        },
+        defensive_controls: [{ callee: "origin-equality-guard" }],
+        source_windows: expect.arrayContaining([expect.objectContaining({ path: CONTROL_FILE })]),
+      });
+      expect(JSON.stringify(state)).toContain("export const unrelated");
+      return VULNERABLE;
+    });
+    await judge(loaded, store, engine, { rejudge: false, dryRun: false });
+    expect(engine.calls).toBe(1);
+    expect((await store.readRecords()).records[0]?.decision?.verdict).toBe("survivor");
+  });
+
   it("includes controls and source paths emitted by the real CLI envelope", async () => {
     const result = await build(await project(), [makeSurface()]);
     expect(result.packet.defensive_controls).toEqual(makeSurface().defensive_boundary.controls);

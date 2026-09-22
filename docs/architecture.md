@@ -21,6 +21,11 @@ are merged so a line is sent once. If the packet exceeds the token budget, the w
 shrinks stepwise; if that is not enough, trace, control, and source windows are dropped in that
 order. The sink window is never dropped. A packet that was cut is marked `truncated`.
 
+`defensive_controls_scope` states that controls were found in files on the trace and their
+applicability to the sink is not established. This scope covers both the flattened controls and
+those retained per attack surface. A control may belong to another function or operate on a
+different value. Its presence alone cannot establish effective mitigation.
+
 **engine** sends the packet as `state` with the question set in a single request. Questions
 are evaluated in parallel by the engine; their errors can be correlated. The response is validated: every
 question must be answered in the type that was asked, and a choice must be one of the offered

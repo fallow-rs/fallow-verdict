@@ -7,6 +7,12 @@ import { collectWindows, type Location, type SourceWindow } from "./windows.ts";
 
 export const PACKET_SCHEMA = "fallow-security-verifier-input/v2";
 
+/** Fallow observes controls in trace files without proving that they protect this sink. */
+const DEFENSIVE_CONTROL_SCOPE = {
+  discovery: "files-on-trace",
+  applicability_to_sink: "not-established",
+} as const;
+
 /** Tried in order until the packet fits the token budget. */
 const RADIUS_LADDER: readonly number[] = [20, 12, 6, 3];
 
@@ -40,6 +46,7 @@ export type VerifierPacket = {
   } | null;
   attack_surface: SurfaceEvidence[];
   defensive_controls: SurfaceEvidence["controls"];
+  defensive_controls_scope: typeof DEFENSIVE_CONTROL_SCOPE;
   dead_code: { kind: string; guidance: string } | null;
   runtime_state: string | null;
   source_windows: SourceWindow[];
@@ -139,6 +146,7 @@ const skeleton = (
           },
     attack_surface: surfaces,
     defensive_controls: uniqueEvidence(surfaces.flatMap((surface) => surface.controls)),
+    defensive_controls_scope: DEFENSIVE_CONTROL_SCOPE,
     dead_code: finding.dead_code
       ? { kind: finding.dead_code.kind, guidance: finding.dead_code.guidance }
       : null,

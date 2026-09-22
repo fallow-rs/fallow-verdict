@@ -19,6 +19,10 @@ candidate using the sink location and category, retaining distinct paths to the 
 inline surface evidence remains supported. Controls and their source windows travel with the
 packet; a control name alone does not establish that the protection is effective.
 
+The packet makes that limit explicit in `defensive_controls_scope`: controls are observations
+from files on the trace, and their applicability to the sink is not established. A control may
+belong to another function or check a different value. Later mutations can also defeat a check.
+
 Packets use `fallow-security-verifier-input/v2`. The changed packet fingerprint invalidates older
 decisions before reporting or reuse, while their history remains available. Added locations use
 the existing project-root containment checks and token budget. Unreadable evidence or a packet
@@ -42,9 +46,11 @@ implementations. Recognizing a built-in safeguard requires receiver provenance a
 shadowed or replaced methods. This runtime-modeling work is still open. See the
 [Node HTTP contract](https://nodejs.org/docs/latest-v24.x/api/http.html#responsewriteheadstatuscode-statusmessage-headers).
 
-Parsed-origin guards also belong in Fallow's structured evidence. Recognizing a guard should not
-automatically suppress SSRF: outbound redirects can escape an otherwise valid origin check, and
-the allowed destination must match the application's trust policy.
+Exact comparisons of an `.origin` property against a known string belong in Fallow's control
+observations when the mismatch branch exits. That does not establish a built-in URL receiver or
+prove the check protects the sink. That requires tracing the value through the check to the sink,
+including any mutations. Even a correctly applied origin check cannot automatically suppress SSRF:
+outbound redirects can escape it, and the destination must match the application's trust policy.
 
 ## Evaluation boundary
 
