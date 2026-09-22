@@ -89,7 +89,7 @@ const REVIEW_REASONS: Readonly<Partial<Record<string, string>>> = {
   "evidence-conflict":
     "Jev's exploitability estimate conflicts with its answers about the input or protections. Check how input reaches the sensitive operation.",
   uncertain:
-    "The assessment is inconclusive. Review how input reaches the sensitive operation and check the protections along that path.",
+    "Review how input reaches the sensitive operation and check the protections along that path.",
 } satisfies Record<Exclude<PolicyRule, "survivor" | "dismissed">, string>;
 
 const DISMISSAL_REASONS: Readonly<Partial<Record<string, string>>> = {
@@ -100,13 +100,20 @@ const DISMISSAL_REASONS: Readonly<Partial<Record<string, string>>> = {
 } satisfies Record<DismissalReason, string>;
 
 const explanation = (decision: SavedDecision): string => {
+  if (decision.verdict === "needs-human-review") {
+    const label = decision.rule === "uncertain" ? "Assessment inconclusive" : "Review required";
+    const reason = Object.hasOwn(REVIEW_REASONS, decision.rule)
+      ? (REVIEW_REASONS[decision.rule] ?? decision.reason)
+      : decision.reason;
+    return `${label}: ${reason}`;
+  }
   if (decision.rule === "survivor")
     return "Jev assessed these as exploitable in the supplied code.";
   if (decision.rule === "dismissed")
     return decision.dismissalReason === null
       ? decision.reason
       : (DISMISSAL_REASONS[decision.dismissalReason] ?? decision.reason);
-  return REVIEW_REASONS[decision.rule] ?? decision.reason;
+  return decision.reason;
 };
 
 const categoryLabel = (category: string | null): string => {
