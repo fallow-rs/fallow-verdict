@@ -42,3 +42,9 @@ The repository workflow runs the built CLI against a real Fallow binary and a lo
 no API secret is required for CI. Live model evaluation is an explicit maintainer operation with
 `npm run eval:live`. Before scanning untrusted code, inspect configuration and install scripts:
 JavaScript and TypeScript config files execute locally.
+
+`npm run verify:package` installs the actual tarball in a temporary consumer project and checks
+its public TypeScript imports. The installed CLI scans the development corpus and prepares a
+dry run without credentials. State stays in the temporary directory. To check a public project,
+use `npm run verify:package -- --project /path/to/project --scope src`; the scope must contain
+at least one security candidate. CI runs this check in its Node matrix.

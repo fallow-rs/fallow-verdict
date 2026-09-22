@@ -51,6 +51,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "schemas": "node scripts/generate-schemas.ts",
+    "verify:package": "node scripts/verify-package.ts",
     "verify": "npm run typecheck && npm run lint && npm run fmt:check && npm run test && npm run build"
   },
   "dependencies": {

@@ -30,9 +30,5 @@ jobs:
           npm run eval:compare -- --dataset holdout --dry-run
       - name: Schemas are up to date
         run: npm run schemas && git diff --exit-code schemas
-      - name: Packed CLI starts
-        run: |
-          npm pack --silent
-          mkdir /tmp/consumer && cd /tmp/consumer && npm init -y >/dev/null
-          npm i --silent "$GITHUB_WORKSPACE"/fallow-verdict-*.tgz
-          npx fallow-verdict --version
+      - name: Packed CLI and public imports work in a clean installation
+        run: npm run verify:package
