@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Preserve completed comparison answers and recorded cost during interruptions; stop requests when checkpoint storage fails.
 - Include matching top-level Fallow attack-surface evidence and controls in v2 verifier packets; invalidate decisions made with older packets.
 - Label defensive controls as observations from files on the trace, with applicability to the sink unproven.
 - Distinguish mandatory review from inconclusive model assessments in terminal and Markdown reports.

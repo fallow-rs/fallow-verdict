@@ -138,6 +138,8 @@ export const compareQuestions = async (options: {
   repeats: number;
   maxCostUsd: number;
   dryRun: boolean;
+  /** Persist each snapshot before another request starts. A failed write stops the run. */
+  onProgress?: (report: ComparisonReport) => Promise<void>;
 }): Promise<ComparisonReport> => {
   if (!Number.isInteger(options.repeats) || options.repeats < 1 || options.repeats > 10)
     throw new Error("Repeats must be an integer from 1 to 10.");
@@ -186,6 +188,15 @@ export const compareQuestions = async (options: {
     summaries: [],
   };
   if (options.dryRun) return report;
+
+  const checkpoint = async (): Promise<void> => {
+    report.summaries = options.variants.map((variant) =>
+      summarize(options.cases, observations, variant.id, options.repeats),
+    );
+    report.complete = report.summaries.every((summary) => summary.complete);
+    await options.onProgress?.(structuredClone(report));
+  };
+  await checkpoint();
 
   rounds: for (let repeat = 0; repeat < options.repeats; repeat += 1) {
     for (const [index, item] of jobs.entries()) {
@@ -236,12 +247,10 @@ export const compareQuestions = async (options: {
           report.stopError = error;
           break rounds;
         }
+        await checkpoint();
       }
     }
   }
-  report.summaries = options.variants.map((variant) =>
-    summarize(options.cases, observations, variant.id, options.repeats),
-  );
-  report.complete = report.summaries.every((summary) => summary.complete);
+  await checkpoint();
   return report;
 };
