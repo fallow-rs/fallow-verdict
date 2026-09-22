@@ -115,8 +115,7 @@ const parseJson = (text: string): Result<unknown, VerdictError> => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** Validates the envelope only; the finding shape is fallow's contract and is trusted. */
-export const parseSecurityOutput = (value: unknown): Result<SecurityOutput, VerdictError> => {
+const parseSecurityEnvelope = (value: unknown): Result<SecurityOutput, VerdictError> => {
   if (!isRecord(value) || !Array.isArray(value["security_findings"])) {
     return err(
       verdictError(
@@ -135,7 +134,43 @@ export const parseSecurityOutput = (value: unknown): Result<SecurityOutput, Verd
       ),
     );
   }
+  for (const finding of value["security_findings"]) {
+    if (!isRecord(finding) || typeof finding["path"] !== "string" || finding["path"].length === 0) {
+      return err(
+        verdictError("fallow_output_invalid", "Each security finding must have a source path."),
+      );
+    }
+  }
   return ok(value as unknown as SecurityOutput);
+};
+
+/** Validate the envelope and record identities; remaining finding fields follow fallow's contract. */
+export const parseSecurityOutput = (value: unknown): Result<SecurityOutput, VerdictError> => {
+  const output = parseSecurityEnvelope(value);
+  if (!output.ok) return output;
+  const seen = new Set<string>();
+  for (const finding of output.data.security_findings) {
+    const id = finding.finding_id;
+    if (typeof id !== "string" || id.trim().length === 0) {
+      return err(
+        verdictError(
+          "fallow_output_invalid",
+          "Each security finding must have a non-empty finding_id.",
+        ),
+      );
+    }
+    if (seen.has(id)) {
+      return err(
+        verdictError(
+          "fallow_output_invalid",
+          "Fallow returned duplicate finding IDs. Separate findings cannot share a verdict record.",
+          "Update fallow and rerun the scan.",
+        ),
+      );
+    }
+    seen.add(id);
+  }
+  return output;
 };
 
 export const runSecurityScan = async (
@@ -161,12 +196,13 @@ export const runSecurityScan = async (
   }
   const parsed = parseJson(captured.data.stdout);
   if (!parsed.ok) return parsed;
-  const output = parseSecurityOutput(parsed.data);
-  if (!output.ok || (options.paths?.length ?? 0) === 0) return output;
+  const output = parseSecurityEnvelope(parsed.data);
+  if (!output.ok) return output;
+  if ((options.paths?.length ?? 0) === 0) return parseSecurityOutput(output.data);
   // Fallow's positional scope accepts one directory; --file only accepts exact files.
   // Filter the full graph's anchors locally to support unions of files and directories.
   const scopes = (options.paths ?? []).map((scope) => path.resolve(options.root, scope));
-  return ok({
+  return parseSecurityOutput({
     ...output.data,
     security_findings: output.data.security_findings.filter((finding) =>
       scopes.some((scope) => {

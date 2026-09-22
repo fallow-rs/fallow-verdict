@@ -7,6 +7,8 @@ either layer, so reproduce the behavior before changing a detector or a decision
 | Concern                         | Owner          | Required behavior                                                                              |
 | ------------------------------- | -------------- | ---------------------------------------------------------------------------------------------- |
 | URL construction and data flow  | Fallow         | Describe whether input can change the final origin. A trusted-looking prefix is insufficient.  |
+| Finding identity                | Fallow         | Give distinct locations unique IDs, including separate sinks on the same source line.          |
+| Ambiguous scanner output        | fallow-verdict | Reject duplicate selected IDs before updating state or requesting judgments.                   |
 | Guards and runtime API identity | Fallow         | Attach source-backed controls and identify the actual API where the analysis can establish it. |
 | Evidence selection              | fallow-verdict | Include matching attack-surface paths and controls, with readable source windows.              |
 | Category interpretation         | fallow-verdict | Ask whether the supplied code permits the claimed attack, including relevant runtime behavior. |
