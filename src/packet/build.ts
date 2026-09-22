@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 
 import type { SecurityFinding, SecurityOutput } from "../fallow/types.ts";
 import { estimateTokens } from "../util/tokens.ts";
+import { surfacesFor, uniqueEvidence, type SurfaceEvidence } from "./surfaces.ts";
 import { collectWindows, type Location, type SourceWindow } from "./windows.ts";
 
-export const PACKET_SCHEMA = "fallow-security-verifier-input/v1";
+export const PACKET_SCHEMA = "fallow-security-verifier-input/v2";
 
 /** Tried in order until the packet fits the token budget. */
 const RADIUS_LADDER: readonly number[] = [20, 12, 6, 3];
@@ -37,7 +38,8 @@ export type VerifierPacket = {
     crosses_boundary: boolean;
     blast_radius: number;
   } | null;
-  defensive_controls: { kind: string; path: string; line: number; callee: string }[];
+  attack_surface: SurfaceEvidence[];
+  defensive_controls: SurfaceEvidence["controls"];
   dead_code: { kind: string; guidance: string } | null;
   runtime_state: string | null;
   source_windows: SourceWindow[];
@@ -57,19 +59,26 @@ export type BuiltPacket = {
   unreadable: string[];
 };
 
-const locationsOf = (finding: SecurityFinding): Location[] => {
+const locationsOf = (finding: SecurityFinding, surfaces: SurfaceEvidence[]): Location[] => {
   const locations: Location[] = [
     { path: finding.candidate.sink.path, line: finding.candidate.sink.line, role: "sink" },
   ];
-  const source = finding.taint_flow?.source ?? finding.attack_surface?.source;
-  if (source) locations.push({ path: source.path, line: source.line, role: "source" });
-  const hops = [...finding.trace, ...(finding.reachability?.untrusted_source_trace ?? [])];
+  const sources = surfaces.map((surface) => surface.source);
+  if (finding.taint_flow) sources.push(finding.taint_flow.source);
+  for (const source of sources) {
+    locations.push({ path: source.path, line: source.line, role: "source" });
+  }
+  const hops = [
+    ...finding.trace,
+    ...(finding.reachability?.untrusted_source_trace ?? []),
+    ...surfaces.flatMap((surface) => surface.path),
+  ];
   for (const hop of hops) {
     const role =
       hop.role === "sink" ? "sink" : hop.role === "untrusted-source" ? "source" : "trace";
     locations.push({ path: hop.path, line: hop.line, role });
   }
-  for (const control of finding.attack_surface?.defensive_boundary.controls ?? []) {
+  for (const control of surfaces.flatMap((surface) => surface.controls)) {
     locations.push({ path: control.path, line: control.line, role: "control" });
   }
   return locations;
@@ -100,6 +109,7 @@ const skeleton = (
   finding: SecurityFinding,
   output: SecurityOutput,
   blind: boolean,
+  surfaces: SurfaceEvidence[],
 ): VerifierPacket => {
   const reachability = finding.reachability ?? null;
   const sink = blind
@@ -127,9 +137,8 @@ const skeleton = (
             crosses_boundary: reachability.crosses_boundary,
             blast_radius: reachability.blast_radius,
           },
-    defensive_controls: (finding.attack_surface?.defensive_boundary.controls ?? []).map(
-      ({ kind, path, line, callee }) => ({ kind, path, line, callee }),
-    ),
+    attack_surface: surfaces,
+    defensive_controls: uniqueEvidence(surfaces.flatMap((surface) => surface.controls)),
     dead_code: finding.dead_code
       ? { kind: finding.dead_code.kind, guidance: finding.dead_code.guidance }
       : null,
@@ -151,8 +160,9 @@ export const buildPacket = async (
   output: SecurityOutput,
   options: PacketOptions,
 ): Promise<BuiltPacket> => {
-  const base = skeleton(finding, output, options.blind);
-  const locations = locationsOf(finding);
+  const surfaces = surfacesFor(finding, output);
+  const base = skeleton(finding, output, options.blind, surfaces);
+  const locations = locationsOf(finding, surfaces);
   const ladder = [options.radius, ...RADIUS_LADDER.filter((radius) => radius < options.radius)];
 
   let truncated = false;

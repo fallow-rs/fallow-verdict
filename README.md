@@ -85,7 +85,8 @@ Exit codes: `0` nothing at or above `--fail-on`, `1` verdicts at or above `--fai
 The terminal and Markdown reports group findings into likely vulnerabilities, candidates needing
 review, and dismissed candidates. Each finding gives its location and the reason for the verdict.
 Markdown reports keep the stored policy details in expandable sections. Percentages are Jev's
-exploitability estimates. See the [example report](docs/examples/category-report.md).
+exploitability estimates. `Review required` identifies a policy requirement; `Assessment inconclusive`
+identifies an unresolved assessment. See the [example report](docs/examples/category-report.md).
 
 ## Why you can trust a dismissal
 
@@ -116,6 +117,7 @@ at a safe point; the next run continues.
 ## Documentation
 
 - [Architecture](docs/architecture.md): pipeline, state layout, design decisions
+- [Responsibilities](docs/responsibilities.md): what belongs in Fallow and in fallow-verdict
 - [Configuration](docs/configuration.md): config file and policy thresholds
 - [Questions and policy](docs/questions.md): the question set and how answers become verdicts
 - [Evaluation](docs/evaluation.md): labels format and the metrics that matter

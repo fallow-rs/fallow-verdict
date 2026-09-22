@@ -12,10 +12,11 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 fallow no longer reports become `resolved`. A scoped scan (`--changed-since`, explicit paths) sees
 only part of the project and therefore never resolves anything.
 
-**packet** builds one self-contained evidence packet per candidate, following the
-`fallow-security-verifier-input/v1` convention from fallow's verification recipe. fallow never
+**packet** builds one self-contained `fallow-security-verifier-input/v2` evidence packet per candidate.
+It matches Fallow's top-level attack-surface entries by sink location and category, preserving
+distinct paths and their controls. Legacy inline surfaces remain supported. Fallow never
 emits source text, so the packet builder reads numbered source windows from disk around the sink,
-the source endpoint, every trace hop, and every detected defensive control. Overlapping windows
+the source endpoints, trace hops, and detected defensive controls. Overlapping windows
 are merged so a line is sent once. If the packet exceeds the token budget, the window radius
 shrinks stepwise; if that is not enough, trace, control, and source windows are dropped in that
 order. The sink window is never dropped. A packet that was cut is marked `truncated`.
@@ -61,6 +62,10 @@ Older records without a question content hash load with `questionHash: null`. Th
 fresh judgment before their verdict can be reported. Their history remains available. Switching
 profiles also requires fresh calls when it changes the questions; it never silently reuses answers
 from another rubric.
+
+The v2 packet adds matched attack-surface evidence. Its changed fingerprint also invalidates
+decisions made with v1 packets, including findings whose source files have not changed. The raw
+Fallow candidate output and exported `fallow-security-verdicts/v1` contract are unchanged.
 
 ## Failure handling
 

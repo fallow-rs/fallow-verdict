@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Include matching top-level Fallow attack-surface evidence and controls in v2 verifier packets; invalidate decisions made with older packets.
+- Distinguish mandatory review from inconclusive model assessments in terminal and Markdown reports.
+
 - Rewrite terminal messages and reports with plain-language verdicts, labeled model estimates, and expandable assessment details.
 
 - Initial pipeline: `scan`, `judge`, `report`, `run`, `status`, `eval`, `init`.
