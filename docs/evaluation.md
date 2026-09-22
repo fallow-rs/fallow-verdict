@@ -86,6 +86,13 @@ Aliases are rejected, and an unexpected response model stops the run. Override `
 before making calls. The runner verifies
 source labels and frozen question hashes before any call. Output includes evidence/question
 hashes, raw answers, decisions, cost, missing observations, and verdict changes across repeats.
+Each variant summary also includes `reviewByRule`, with observed counts for `evidence-missing`,
+`tampering-suspected`, `truncated-evidence`, `evidence-conflict`, and `uncertain`.
+`eligibleReviewRate` excludes cases labeled with `mustReview: true`, so adversarial
+review guards are reported separately from review caused by ordinary uncertainty. The
+rule counts are partial observations while a comparison is incomplete. `eligibleReviewRate`
+is `null` for incomplete comparisons or when no eligible cases exist. The existing aggregate
+`reviewRate` still includes every observed case for backwards compatibility.
 Incomplete variants have `null` aggregate rates. Provider retries and failed requests can cost
 more than recorded successful-response usage.
 

@@ -13,7 +13,14 @@ import { QUESTIONS } from "../src/questions/catalog.ts";
 import { openStore } from "../src/state/store.ts";
 import { ok, type Result } from "../src/util/result.ts";
 import { tokensToUsd } from "../src/util/tokens.ts";
-import { answersFor, makeFinding, makeOutput, makeProject, SAFE_MITIGATED } from "./helpers.ts";
+import {
+  answersFor,
+  makeFinding,
+  makeOutput,
+  makeProject,
+  SAFE_MITIGATED,
+  VULNERABLE,
+} from "./helpers.ts";
 
 const MODEL = "jev-1.13.0";
 const INPUT_TOKENS = 1000;
@@ -72,8 +79,18 @@ it("persists completed evidence before starting a request that unexpectedly reje
     costUsd: tokensToUsd(INPUT_TOKENS),
     observations: [{ model: MODEL, answers: answersFor(SAFE_MITIGATED), variant: "baseline" }],
     summaries: [
-      { complete: false, noiseRemoved: null, dismissPrecision: null },
-      { complete: false, noiseRemoved: null, dismissPrecision: null },
+      {
+        complete: false,
+        noiseRemoved: null,
+        dismissPrecision: null,
+        eligibleReviewRate: null,
+      },
+      {
+        complete: false,
+        noiseRemoved: null,
+        dismissPrecision: null,
+        eligibleReviewRate: null,
+      },
     ],
   });
 });
@@ -174,4 +191,108 @@ it("persists final summaries and gives observers isolated snapshots", async () =
   expect(report.complete).toBe(true);
   expect(report.observations.length).toBe(prepared.repeats * prepared.variants.length);
   expect(report.policy).toEqual(prepared.policy);
+});
+
+it("separates mandatory review guards from eligible uncertainty", async () => {
+  const prepared = await setup();
+  const mandatory = structuredClone(prepared.cases[0]!);
+  mandatory.id = "mandatory";
+  mandatory.mustReview = true;
+  mandatory.built.packet.finding_id = mandatory.id;
+  const eligible = structuredClone(prepared.cases[0]!);
+  eligible.id = "eligible";
+  eligible.built.packet.finding_id = eligible.id;
+  const report = await compareQuestions({
+    ...prepared,
+    cases: [mandatory, eligible],
+    repeats: 1,
+    engine: {
+      id: "mixed-review",
+      evaluate: async ({ state }) => {
+        const findingId = (state as { finding_id: string }).finding_id;
+        const answers =
+          findingId === mandatory.id
+            ? answersFor({ ...SAFE_MITIGATED, tampering: 0.8 })
+            : answersFor(SAFE_MITIGATED);
+        return ok({ model: MODEL, answers, inputTokens: INPUT_TOKENS, latencyMs: 1 });
+      },
+    },
+  });
+  expect(report.summaries).toEqual([
+    expect.objectContaining({
+      reviewByRule: {
+        "evidence-conflict": 0,
+        "evidence-missing": 0,
+        "tampering-suspected": 1,
+        "truncated-evidence": 0,
+        uncertain: 0,
+      },
+      reviewRate: 0.5,
+      eligibleReviewRate: 0,
+    }),
+    expect.objectContaining({
+      reviewByRule: {
+        "evidence-conflict": 0,
+        "evidence-missing": 0,
+        "tampering-suspected": 1,
+        "truncated-evidence": 0,
+        uncertain: 0,
+      },
+      reviewRate: 0.5,
+      eligibleReviewRate: 0,
+    }),
+  ]);
+});
+
+it("returns no eligible review rate when every case is mandatory review", async () => {
+  const prepared = await setup();
+  const mandatory = structuredClone(prepared.cases[0]!);
+  mandatory.mustReview = true;
+  const report = await compareQuestions({
+    ...prepared,
+    cases: [mandatory],
+    repeats: 1,
+    engine: { id: "mandatory-only", evaluate: async () => response() },
+  });
+  expect(report.summaries.every((summary) => summary.eligibleReviewRate === null)).toBe(true);
+});
+
+it("breaks down evidence guards separately from uncertainty", async () => {
+  const prepared = await setup();
+  const missing = structuredClone(prepared.cases[0]!);
+  missing.id = "missing";
+  missing.built.packet.finding_id = missing.id;
+  missing.built.unreadable = ["src/missing.ts"];
+  const truncated = structuredClone(prepared.cases[0]!);
+  truncated.id = "truncated";
+  truncated.built.packet.finding_id = truncated.id;
+  truncated.built.truncated = true;
+  const conflict = structuredClone(prepared.cases[0]!);
+  conflict.id = "conflict";
+  conflict.built.packet.finding_id = conflict.id;
+  const report = await compareQuestions({
+    ...prepared,
+    cases: [missing, truncated, conflict],
+    repeats: 1,
+    engine: {
+      id: "evidence-guards",
+      evaluate: async ({ state }) => {
+        const findingId = (state as { finding_id: string }).finding_id;
+        const answers =
+          findingId === "conflict"
+            ? answersFor({ ...VULNERABLE, reaches_sink: 0.2 })
+            : answersFor(SAFE_MITIGATED);
+        return ok({ model: MODEL, answers, inputTokens: INPUT_TOKENS, latencyMs: 1 });
+      },
+    },
+  });
+  expect(report.summaries[0]).toMatchObject({
+    reviewByRule: {
+      "evidence-conflict": 1,
+      "evidence-missing": 1,
+      "tampering-suspected": 0,
+      "truncated-evidence": 1,
+      uncertain: 0,
+    },
+  });
 });
