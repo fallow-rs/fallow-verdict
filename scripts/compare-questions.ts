@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -7,10 +7,11 @@ import { z } from "zod";
 
 import { configSchema } from "../src/config/schema.ts";
 import { createJevEngine } from "../src/engine/jev.ts";
-import { compareQuestions, digest } from "../src/eval/comparison.ts";
+import { compareQuestions, digest, type ComparisonReport } from "../src/eval/comparison.ts";
 import { prepareCorpus } from "../src/eval/corpus.ts";
 import { runSecurityScan } from "../src/fallow/run.ts";
 import { questionsFor } from "../src/questions/category.ts";
+import { openStore } from "../src/state/store.ts";
 
 const { values } = parseArgs({
   options: {
@@ -98,20 +99,18 @@ const metadata = {
   baselineCommit: baseline.source_commit,
   candidateFrozenAt: freeze.frozenAt,
 };
+const destination = values.output === undefined ? null : path.resolve(values.output);
+const save = async (snapshot: ComparisonReport): Promise<void> => {
+  if (destination === null) return;
+  await openStore(path.dirname(destination)).writeJson(destination, { ...snapshot, ...metadata });
+};
 if (!values["dry-run"] && values.output !== undefined) {
-  // Verify artifact storage before making paid calls; interrupted runs leave an incomplete plan.
-  await writeFile(
-    path.resolve(values.output),
-    `${JSON.stringify({ ...report, ...metadata }, null, 2)}\n`,
-  );
   process.stderr.write(
     `Estimated request cost: $${report.estimatedUsd.toFixed(6)}; budget: $${comparison.maxCostUsd.toFixed(6)}. Results: ${path.resolve(values.output)}\n`,
   );
-  report = await compareQuestions({ ...comparison, dryRun: false });
+  report = await compareQuestions({ ...comparison, dryRun: false, onProgress: save });
 }
-const artifact = { ...report, ...metadata };
-if (values.output !== undefined)
-  await writeFile(path.resolve(values.output), `${JSON.stringify(artifact, null, 2)}\n`);
+if (values["dry-run"]) await save(report);
 process.stdout.write(
   `${JSON.stringify({ dataset, corpusHash: prepared.corpusHash, complete: report.complete, estimatedUsd: report.estimatedUsd, costUsd: report.costUsd, stopError: report.stopError, summaries: report.summaries }, null, 2)}\n`,
 );

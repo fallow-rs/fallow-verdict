@@ -89,6 +89,12 @@ hashes, raw answers, decisions, cost, missing observations, and verdict changes 
 Incomplete variants have `null` aggregate rates. Provider retries and failed requests can cost
 more than recorded successful-response usage.
 
+Live comparisons save an initial plan and replace the output atomically after each response,
+before starting the next request. An interruption leaves the completed observations available
+with their recorded cost. A storage failure stops further requests. Incomplete variants retain
+null aggregate rates, and a response interrupted before it was saved may still incur provider
+charges. These checkpoints do not resume a run; use a new output path for another comparison.
+
 Exit 1 means a vulnerable case was dismissed or a mandatory human-review guard failed. Exit 2
 means incomplete execution. Exit 0 means those checks passed; it does not establish stability,
 calibration, or readiness to change the default. Repeated calls are not independent code examples.
