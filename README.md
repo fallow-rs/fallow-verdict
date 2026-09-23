@@ -1,4 +1,33 @@
-# fallow-verdict
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fallow-rs/fallow/main/assets/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/fallow-rs/fallow/main/assets/logo.svg">
+    <img src="https://raw.githubusercontent.com/fallow-rs/fallow/main/assets/logo.svg" alt="Fallow" width="290">
+  </picture>
+</p>
+
+<h1 align="center">fallow-verdict</h1>
+
+<p align="center">
+  <strong>Review Fallow security findings with Jev.</strong><br>
+  An explanation for each verdict, with uncertain findings left for you to review.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/fallow-verdict"><img src="https://img.shields.io/npm/v/fallow-verdict.svg" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/fallow-verdict"><img src="https://img.shields.io/node/v/fallow-verdict.svg" alt="Node.js version"></a>
+  <a href="https://github.com/fallow-rs/fallow-verdict/actions/workflows/ci.yml"><img src="https://github.com/fallow-rs/fallow-verdict/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/fallow-rs/fallow-verdict/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#try-the-preview">Quickstart</a> ·
+  <a href="docs/configuration.md">Configuration</a> ·
+  <a href="docs/examples/category-report.md">Example report</a> ·
+  <a href="docs/evaluation.md">Evaluation</a>
+</p>
+
+---
 
 [`fallow security`](https://github.com/fallow-rs/fallow) flags JavaScript and TypeScript code
 that might be vulnerable. `fallow-verdict` asks [Jev](https://docs.typesafe.ai) to
