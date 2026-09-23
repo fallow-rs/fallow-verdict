@@ -7,29 +7,16 @@ reason for each verdict. Uncertain findings stay in the report for you to review
 
 ## Try the preview
 
-The development preview is available from this repository. You need Node.js 22.18
-or newer and a Jev API key to request assessments.
-
-Clone and build the package:
-
-```bash
-git clone https://github.com/fallow-rs/fallow-verdict.git
-cd fallow-verdict
-npm ci
-npm run build
-verdict_source="$PWD"
-```
-
-In the same terminal, install it in the project you want to review:
+You need Node.js 22.18 or newer and a Jev API key to request assessments.
+Install the preview in the project you want to review:
 
 ```bash
 cd /path/to/project
-npm install --save-dev "$verdict_source" fallow
+npm install --save-dev fallow-verdict fallow
 npx fallow-verdict init
 npx fallow-verdict run --dry-run
 ```
 
-The installation links to your source checkout, so keep that directory available.
 `init` creates the config and adds the review data directory to `.gitignore`.
 The dry run scans the project and estimates the cost without contacting Jev.
 

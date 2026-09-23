@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 (2026-09-23)
+
+First npm release, available as a development preview.
+
+- Document npm installation and compatibility with saved preview records.
+- Separate mandatory reviews from uncertain assessments in evaluation summaries.
 
 - Preserve source columns in saved findings and reports so separate sinks on one line remain distinguishable; show the pending-assessment instruction once per report.
 - Reject duplicate or missing finding IDs before replacing scan state or judging candidates.
