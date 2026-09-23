@@ -1,0 +1,178 @@
+name: Release
+run-name: Release ${{ inputs.tag }} from ${{ github.sha }}${{ inputs.dry_run && ' (dry run)' || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version matching package.json, such as v0.2.0
+        required: true
+        type: string
+      dry_run:
+        description: Build and verify the artifact without staging it on npm
+        type: boolean
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  RELEASE_TAG: ${{ inputs.tag }}
+
+jobs:
+  context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.20.0"
+      - name: Check release source and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          test "$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA" --jq '.commit.verification.verified')" = true
+          if [ "$DRY_RUN" = false ]; then
+            tags=$(git ls-remote --tags origin "refs/tags/$RELEASE_TAG")
+            test -z "$tags" || { echo 'Release tag already exists. Use the original run for recovery.'; exit 1; }
+          fi
+      - run: npm ci --ignore-scripts
+      - run: npm run release:check -- --tag "$RELEASE_TAG"
+
+  validation:
+    needs: context
+    permissions:
+      contents: read
+    uses: ./.github/workflows/release-validation.yml
+
+  prepare:
+    needs: validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      sha256: ${{ steps.artifact.outputs.sha256 }}
+      integrity: ${{ steps.artifact.outputs.integrity }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.20.0"
+          cache: npm
+      - run: npm ci
+      - name: Pack once and verify those bytes
+        id: artifact
+        run: |
+          set -euo pipefail
+          npm run release:pack -- --tag "$RELEASE_TAG" --directory "$RUNNER_TEMP/release"
+          git diff --exit-code
+          npm run verify:package -- --tarball "$RUNNER_TEMP/release/fallow-verdict-${RELEASE_TAG#v}.tgz"
+          echo "sha256=$(jq -r .sha256 "$RUNNER_TEMP/release/release.json")" >> "$GITHUB_OUTPUT"
+          echo "integrity=$(jq -r .integrity "$RUNNER_TEMP/release/release.json")" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/release/release.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: npm-release
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 30
+
+  stage:
+    if: ${{ !inputs.dry_run }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # No checkout or project dependency installation in this job.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.20.0"
+          registry-url: https://registry.npmjs.org
+      - name: Install pinned publishing tool without lifecycle scripts
+        # Pinned npm is the publishing tool itself; project dependencies never enter this job.
+        run: npm install --global --ignore-scripts npm@11.19.0 # zizmor: ignore[adhoc-packages]
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: npm-release
+          path: tarballs
+      - name: Submit the verified tarball to npm staging
+        env:
+          EXPECTED_SHA256: ${{ needs.prepare.outputs.sha256 }}
+          EXPECTED_INTEGRITY: ${{ needs.prepare.outputs.integrity }}
+          NODE_AUTH_TOKEN: ""
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          file="tarballs/fallow-verdict-$version.tgz"
+          printf '%s  %s\n' "$EXPECTED_SHA256" "$file" | sha256sum --check --strict
+          status=$(curl --silent --show-error --retry 3 --max-time 30 --output public.json --write-out '%{http_code}' "https://registry.npmjs.org/fallow-verdict/$version")
+          if [ "$status" = 200 ]; then
+            test "$(jq -r .dist.integrity public.json)" = "$EXPECTED_INTEGRITY"
+            echo 'Version already public; the next job verifies its bytes.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          test "$status" = 404 || { echo "Registry returned HTTP $status"; exit 1; }
+          set +e
+          npm stage publish "$file" --access public --tag latest --provenance --ignore-scripts > stage.log 2>&1
+          result=$?
+          set -e
+          cat stage.log
+          if [ "$result" -ne 0 ] && ! grep -q '^npm error code E409$' stage.log; then
+            exit "$result"
+          fi
+          {
+            echo "## Awaiting npm approval for $RELEASE_TAG"
+            echo "Download the stage and compare SHA256: $EXPECTED_SHA256"
+            echo 'An existing stage (E409) is not proof that its bytes match.'
+            echo 'Approve the matching stage with npm 2FA. CI will then check the public package.'
+            echo 'Follow docs/releasing.md before creating a signed tag.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  public-package:
+    needs: [prepare, stage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.20.0"
+          cache: npm
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: npm-release
+          path: ${{ runner.temp }}/release
+      - run: npm ci
+      - name: Wait for approval and compare public bytes
+        run: npm run release:verify -- --directory "$RUNNER_TEMP/release" --wait-seconds 1800 --require-latest
+      - name: Install from the public registry and test the CLI
+        run: npm run verify:package -- --published "${RELEASE_TAG#v}"
+      - name: Check the tag is still absent
+        run: |
+          set -euo pipefail
+          tags=$(git ls-remote --tags origin "refs/tags/$RELEASE_TAG")
+          test -z "$tags" || { echo 'Tag was created before release verification completed.'; exit 1; }
+          echo "Public package verified. Sign $RELEASE_TAG at $GITHUB_SHA, then create the GitHub release with this run's artifact." >> "$GITHUB_STEP_SUMMARY"

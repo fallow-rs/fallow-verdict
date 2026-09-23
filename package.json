@@ -52,6 +52,9 @@
     "fmt:check": "oxfmt --check",
     "schemas": "node scripts/generate-schemas.ts",
     "verify:package": "node scripts/verify-package.ts",
+    "release:check": "node scripts/release.ts check",
+    "release:pack": "npm run build && npm run schemas && node scripts/release.ts pack",
+    "release:verify": "node scripts/release.ts verify-public",
     "verify": "npm run typecheck && npm run lint && npm run fmt:check && npm run test && npm run build"
   },
   "dependencies": {

@@ -48,3 +48,14 @@ its public TypeScript imports. The installed CLI scans the development corpus an
 dry run without credentials. State stays in the temporary directory. To check a public project,
 use `npm run verify:package -- --project /path/to/project --scope src`; the scope must contain
 at least one security candidate. CI runs this check in its Node matrix.
+
+## Package releases
+
+Maintainers use [the release procedure](releasing.md) for staged npm publication.
+`release-validation.yml` reuses CI and checks clean installs on macOS and Windows.
+`release.yml` builds one tarball, stages it through OIDC, and verifies the public download
+after npm approval. The signed version tag and GitHub release come last.
+
+To test an existing artifact, use `npm run verify:package -- --tarball /path/to/package.tgz`.
+To test a registry version, use `npm run verify:package -- --published 0.1.0`.
+Both checks install Fallow in the temporary consumer and send no Jev requests.
