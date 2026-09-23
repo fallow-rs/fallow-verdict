@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/fallow-verdict"><img src="https://img.shields.io/npm/v/fallow-verdict.svg" alt="npm version"></a>
-  <a href="https://www.npmjs.com/package/fallow-verdict"><img src="https://img.shields.io/npm/dm/fallow-verdict.svg" alt="npm downloads"></a>
+  <a href="https://www.npmjs.com/package/fallow-verdict"><img src="https://img.shields.io/node/v/fallow-verdict.svg" alt="Node.js version"></a>
   <a href="https://github.com/fallow-rs/fallow-verdict/actions/workflows/ci.yml"><img src="https://github.com/fallow-rs/fallow-verdict/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/fallow-rs/fallow-verdict/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </p>
