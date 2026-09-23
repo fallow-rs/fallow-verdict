@@ -1,0 +1,44 @@
+name: Release Published
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check release tag before checkout
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.20.0"
+          cache: npm
+      - run: npm ci
+      - name: Verify signed tag and attached release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')
+          gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha" > "$RUNNER_TEMP/tag.json"
+          test "$(jq -r .verification.verified "$RUNNER_TEMP/tag.json")" = true
+          test "$(jq -r .object.sha "$RUNNER_TEMP/tag.json")" = "$GITHUB_SHA"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern release.json --pattern '*.tgz' --pattern SHA256SUMS --dir "$RUNNER_TEMP/release"
+          test "$(jq -r .commit "$RUNNER_TEMP/release/release.json")" = "$GITHUB_SHA"
+          test "$(jq -r .tag "$RUNNER_TEMP/release/release.json")" = "$RELEASE_TAG"
+          npm run release:check -- --tag "$RELEASE_TAG"
+          npm run release:verify -- --directory "$RUNNER_TEMP/release"
+          npm run verify:package -- --published "${RELEASE_TAG#v}"

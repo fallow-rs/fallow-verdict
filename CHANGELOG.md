@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add staged npm releases with OIDC, artifact verification, and checks before creating release tags.
+
 ## 0.1.0 (2026-09-23)
 
 First npm release, available as a development preview.
