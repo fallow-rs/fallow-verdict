@@ -42,8 +42,10 @@ code and use JSON configuration when reviewing untrusted repositories.
 
 ## Release gates
 
-The public repository is a development preview. Before an npm release, require green CI on the
-exact release commit, a clean packed-install smoke test, a documented state migration policy,
-and published holdout evaluation. Provider-side billing limits remain necessary for a hard cost
+The package is a development preview. Each npm release requires green CI on the
+exact release commit and a clean packed-install smoke test. Changes to saved data
+must follow the [state compatibility policy](architecture.md#state-compatibility).
+Keep the published holdout evaluation available alongside each release.
+Provider-side billing limits remain necessary for a hard cost
 cap. Accuracy comparisons with deepsec or Warden require the same pinned projects, labels and
 scope, including findings outside Fallow's catalogue.

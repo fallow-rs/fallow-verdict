@@ -1,7 +1,7 @@
 {
   "name": "fallow-verdict",
   "version": "0.1.0",
-  "description": "Verdicts for fallow security candidates: deterministic discovery by fallow, structured triage by Jev.",
+  "description": "Review Fallow security findings with Jev and explanations for each verdict.",
   "keywords": [
     "fallow",
     "jev",

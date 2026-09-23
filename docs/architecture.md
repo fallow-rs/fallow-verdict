@@ -77,6 +77,23 @@ The v2 packet adds matched attack-surface evidence. Its changed fingerprint also
 decisions made with v1 packets, including findings whose source files have not changed. The raw
 Fallow candidate output and exported `fallow-security-verdicts/v1` contract are unchanged.
 
+## State compatibility
+
+Version 0.1.0 reads `fallow-verdict-record/v1` records from the source preview.
+Missing optional fields receive defaults. Older evidence or engine settings can
+make a stored decision stale, so the next assessment may require a Jev call.
+Existing history is retained when those decisions are invalidated.
+
+Before upgrading, stop active runs and back up `.fallow-verdict/`. There is no
+automatic migration for an unsupported record schema. Invalid records stop
+judgment and reporting with an error. To start again without losing the archive,
+select a new `dataDir` in the config and run a fresh scan and assessment. This
+creates new review history and can incur new Jev charges.
+
+Future releases that change the stored schema must document the migration or
+fresh-start procedure in their release notes. Keep the previous package version
+and backup together if you need to return to an earlier review state.
+
 ## Failure handling
 
 - Transient engine errors (408, 429, 5xx, 529, timeouts) are retried with jittered backoff and
