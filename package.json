@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
-    "fallow": "^3.27.0",
+    "fallow": "^3.30.0",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "typescript": "^7.0.2",
