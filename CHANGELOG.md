@@ -5,6 +5,7 @@
 - Stop the run at once when Jev reports that the account is out of credits (HTTP 402), with the new error code `engine_out_of_credits`. It was retried like an outage.
 - Space Jev requests under `engine.requestsPerMinute` (default 1,000) across all workers, so large runs stay below the documented limit of 1,200 requests per minute.
 - Default `engine.model` to the versioned `jev-1.13.0` instead of the `jev-latest` alias. Stored decisions made with the alias need one fresh assessment.
+- Add four skills for coding assistants in `skills/`: `fallow-verdict-similar-code`, `fallow-verdict-security-triage`, `fallow-verdict-review` and `fallow-verdict-rules`. The npm package ships them. A test keeps every command, option and kind in the skills in step with `fallow-verdict --help`. See the "Skills" section of the README.
 - Add staged npm releases with OIDC, artifact verification, and checks before creating release tags.
 - Add `--kind <name>` to select the Fallow analysis. `security` is the only kind and the default, so behavior does not change.
 - Store the analysis kind on each finding record. Records without it load as `security` records.

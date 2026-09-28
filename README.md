@@ -166,6 +166,37 @@ It is a preview. See [similar-code pairs](docs/similar-code.md).
 `check` is for an edit loop. It exits `0` when the findings are resolved, dismissed or
 closed, and `1` when a finding stands. See [check and close](docs/check.md).
 
+## Skills
+
+The `skills/` directory holds skills for coding assistants. A skill is a `SKILL.md` file with
+instructions and a `references/` directory with details. Each skill uses Fallow to find the
+candidates and fallow-verdict to judge them. The skills change with the CLI, so they ship in
+this package.
+
+| Skill                            | What it does                                                   | Changes code      |
+| -------------------------------- | -------------------------------------------------------------- | ----------------- |
+| `fallow-verdict-similar-code`    | Merges function pairs that Jev marks safe, then runs the tests | Inside task scope |
+| `fallow-verdict-security-triage` | Reports likely vulnerabilities first, checks each fix          | Only on request   |
+| `fallow-verdict-review`          | Reviews the changed functions before a pull request            | No, reports only  |
+| `fallow-verdict-rules`           | Helps write review rules, and prefers a Fallow rule            | No, proposes only |
+
+Each skill runs `--dry-run` first and shows the cost, and passes `--fail-on off`. Config,
+suppressions, rules, thresholds and `close` always go to the user. No skill runs
+fallow-verdict in a hook.
+
+To install a skill, copy or link its directory into the skills directory that your coding
+assistant reads, for example `.claude/skills/` or `.agents/skills/` in the project:
+
+```bash
+npm install --save-dev fallow-verdict fallow
+mkdir -p .agents/skills
+cp -R node_modules/fallow-verdict/skills/fallow-verdict-review .agents/skills/
+```
+
+A link keeps the skill in step with the installed version:
+`ln -s ../../node_modules/fallow-verdict/skills/fallow-verdict-review .agents/skills/`.
+Plugin packaging for the skills is on the roadmap.
+
 ## What has been tested
 
 Live Jev runs have covered public Fallow fixtures and OWASP NodeGoat. In the
