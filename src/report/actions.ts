@@ -82,7 +82,6 @@ const findingActions = (record: FindingRecord, suffix: string): NextAction[] => 
     command: `fallow-verdict check ${id}${suffix}`,
     finding_id: record.finding_id,
   };
-  if (verdict === "survivor") return [check];
   return [
     check,
     {
@@ -98,8 +97,8 @@ const findingActions = (record: FindingRecord, suffix: string): NextAction[] => 
 
 /**
  * Next steps for a report: `judge` when findings have no current assessment, then for each open
- * finding a `check`, and a `close` for a finding that needs a person. Dismissed and closed
- * findings have no action.
+ * finding a `check` and a `close`, as `check` gives them. Only a person can close a finding.
+ * Dismissed and closed findings have no action.
  */
 export const reportActions = (report: Report, kind: string): NextAction[] => {
   const suffix = kindSuffix(kind);

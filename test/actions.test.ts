@@ -120,6 +120,11 @@ describe("actions in the report output", () => {
     ).toEqual([
       { type: "judge", command: "fallow-verdict judge", finding_id: undefined },
       { type: "check", command: `fallow-verdict check ${ID.survivor}`, finding_id: ID.survivor },
+      {
+        type: "close",
+        command: `fallow-verdict close ${ID.survivor} --reason "<reason>"`,
+        finding_id: ID.survivor,
+      },
       { type: "check", command: `fallow-verdict check ${ID.review}`, finding_id: ID.review },
       {
         type: "close",
@@ -127,8 +132,8 @@ describe("actions in the report output", () => {
         finding_id: ID.review,
       },
     ]);
-    const close = report.actions.find((action) => action.type === "close");
-    expect(close?.description).toContain("person");
+    for (const close of report.actions.filter((action) => action.type === "close"))
+      expect(close.description).toContain("Only a person can close");
     for (const action of report.actions) expect(action.auto_fixable).toBe(false);
   });
 
@@ -146,6 +151,7 @@ describe("actions in the report output", () => {
     expect(report.actions.map((action) => action.type)).toEqual([
       "judge",
       "check",
+      "close",
       "check",
       "close",
     ]);

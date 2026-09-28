@@ -32,7 +32,7 @@ A command names `--kind <name>` for a kind other than `security`.
 | ------- | ------------------------------------------------------- | ----------------------------------------------- |
 | `judge` | At least one finding is pending or has a failed request | `fallow-verdict judge`                          |
 | `check` | For each survivor and each `needs-human-review` finding | `fallow-verdict check <id>`                     |
-| `close` | For each `needs-human-review` finding                   | `fallow-verdict close <id> --reason "<reason>"` |
+| `close` | For each survivor and each `needs-human-review` finding | `fallow-verdict close <id> --reason "<reason>"` |
 
 The `judge` action comes first. The finding actions follow the order of `findings`. Dismissed
 findings and closed findings have no action.

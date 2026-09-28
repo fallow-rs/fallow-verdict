@@ -38,7 +38,7 @@ The report output of `run` and `report` has an `actions` array. Each action has 
 | ------- | -------------------------------------------- | --------------------------------- |
 | `judge` | Findings are pending or failed               | Tell the user. Run it after a yes |
 | `check` | A survivor or a `needs-human-review` finding | Run it after a fix                |
-| `close` | A `needs-human-review` finding               | Send it to the user. Never run it |
+| `close` | A survivor or a `needs-human-review` finding | Send it to the user. Never run it |
 
 Dismissed and closed findings have no action.
 
