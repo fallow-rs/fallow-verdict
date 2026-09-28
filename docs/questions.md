@@ -62,8 +62,9 @@ policy. The stored confidence is then the lower confidence of the two decisions.
 
 The rule also fires when there is no second answer set: the second call failed, the budget or time
 limit did not allow it, or the record is from before this rule. A policy change remaps both stored
-answer sets. A remap never gives `dismissed` without a confirming answer set. Run `judge --rejudge`
-to ask again. The rule is part of the shared pipeline, so it applies to every analysis kind.
+answer sets. A remap never gives `dismissed` without a confirming answer set. The next `judge` asks
+again for a stored dismissal that has no second call. A disagreement or a failed second call is
+final for the current evidence; run `judge --rejudge` to ask again. The rule is part of the shared pipeline, so it applies to every analysis kind.
 
 The second call is independent only as far as the engine is: fallow-verdict does not control
 server-side caching or correlated errors. `confirmDismissals: false` keeps the single-call behavior

@@ -80,7 +80,7 @@ const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
 const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   answers: Record<string, Answer>,
-  confirmationAnswers: Record<string, Answer> | undefined,
+  confirmationAnswers: Record<string, Answer> | null | undefined,
   built: Built,
   loaded: LoadedConfig,
   missing?: string,
@@ -88,9 +88,27 @@ const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   const first = adapter.policy(answers, built, loaded);
   if (!loaded.config.policy.confirmDismissals) return first;
   const second =
-    confirmationAnswers === undefined ? null : adapter.policy(confirmationAnswers, built, loaded);
+    confirmationAnswers === undefined || confirmationAnswers === null
+      ? null
+      : adapter.policy(confirmationAnswers, built, loaded);
   return confirmDismissal(first, second, missing);
 };
+
+/**
+ * A stored dismissal that was never confirmed: a record from before the confirmation rule, or
+ * one judged with `confirmDismissals: false`. `judge` asks again for these. A confirmation that
+ * disagreed or failed (`confirmationAnswers: null`) is final for the current evidence.
+ */
+const needsConfirmation = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  record: FindingRecord,
+  built: Built,
+  loaded: LoadedConfig,
+): boolean =>
+  loaded.config.policy.confirmDismissals &&
+  record.answers !== null &&
+  record.confirmationAnswers === undefined &&
+  adapter.policy(record.answers, built, loaded).verdict === "dismissed";
 
 const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -98,6 +116,8 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   output: Output,
   records: readonly FindingRecord[],
   rejudge: boolean,
+  /** `judge` also asks again for a stored dismissal that was never confirmed. */
+  confirmMissing: boolean,
 ): Promise<{ jobs: Job<Built>[]; current: Job<Built>[] }> => {
   const candidates = new Map<string, Candidate>(
     adapter.scan
@@ -110,7 +130,12 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
     const candidate = candidates.get(record.finding_id);
     if (candidate === undefined || record.status === "resolved") continue;
     const built = await adapter.packet.build(candidate, output, loaded);
-    if (!rejudge && isCurrent(adapter, record, built, loaded)) current.push({ record, built });
+    if (
+      !rejudge &&
+      isCurrent(adapter, record, built, loaded) &&
+      !(confirmMissing && needsConfirmation(adapter, record, built, loaded))
+    )
+      current.push({ record, built });
     else jobs.push({ record, built });
   }
   // The kind decides what matters most, so a budget cap spends on that first.
@@ -147,11 +172,14 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   const first = adapter.policy(response.data.answers, job.built, loaded);
   let confirmation: EvaluateResponse | null = null;
   let missing: string | undefined;
+  let confirmationAnswers: Record<string, Answer> | null | undefined;
   if (loaded.config.policy.confirmDismissals && first.verdict === "dismissed") {
     if (mayConfirm()) {
       const second = await engine.evaluate(request);
       if (second.ok) confirmation = second.data;
       else missing = `the second assessment failed (${second.error.code})`;
+      // Asked but not answered: final for this evidence, so `judge` does not ask on every run.
+      confirmationAnswers = confirmation?.answers ?? null;
     } else {
       missing = "the budget, the time limit or an interruption stopped the second assessment";
     }
@@ -174,7 +202,7 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
     questionHash: adapter.questions.hash(job.built, loaded),
     engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
-    confirmationAnswers: confirmation?.answers,
+    confirmationAnswers,
     decision,
     evidence: adapter.packet.summary(job.built),
     usage: {
@@ -208,13 +236,14 @@ const applyPolicy = async <Output, Candidate, Built extends BuiltEvidence>(
   loaded: LoadedConfig,
   store: Store,
 ): Promise<void> => {
-  for (const { record, built } of jobs) {
+  for (const job of jobs) {
+    const { record, built } = job;
     if (record.answers === null || record.decision === null) continue;
     const decision = decideWith(adapter, record.answers, record.confirmationAnswers, built, loaded);
     if (decision.verdict === record.decision.verdict && decision.rule === record.decision.rule) {
       continue;
     }
-    await store.writeRecord({
+    job.record = {
       ...record,
       decision,
       history: [
@@ -229,7 +258,8 @@ const applyPolicy = async <Output, Candidate, Built extends BuiltEvidence>(
           model: record.history.at(-1)?.model ?? "unknown",
         },
       ],
-    });
+    };
+    await store.writeRecord(job.record);
   }
 };
 
@@ -285,7 +315,7 @@ export const refreshVerdictsWith = async <Output, Candidate, Built extends Built
 ): Promise<Result<void, VerdictError>> => {
   const state = await loadState(adapter, store);
   if (!state.ok) return state;
-  const plan = await planJobs(adapter, loaded, state.data.output, state.data.records, false);
+  const plan = await planJobs(adapter, loaded, state.data.output, state.data.records, false, false);
   await invalidateJobs(adapter, plan.jobs, loaded, store);
   await applyPolicy(adapter, plan.current, loaded, store);
   return ok(undefined);
@@ -311,6 +341,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
     state.data.output,
     state.data.records,
     options.rejudge,
+    true,
   );
   const jobs = options.limit === undefined ? plan.jobs : plan.jobs.slice(0, options.limit);
   const estimatedTokens = jobs.reduce(
@@ -345,7 +376,9 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   };
   if (options.dryRun) return ok(summary);
   await invalidateJobs(adapter, plan.jobs, loaded, store);
-  await applyPolicy(adapter, plan.current, loaded, store);
+  // Invalidated jobs have no answers, so this remaps only the current records and the stored
+  // dismissals that wait for confirmation. A stop before their new call leaves the review verdict.
+  await applyPolicy(adapter, [...plan.current, ...plan.jobs], loaded, store);
   if (jobs.length === 0) return ok(summary);
 
   const run: RunRecord = {

@@ -158,6 +158,79 @@ describe("dismissal agreement", () => {
       usage: { inputTokens: 1000 },
     });
     expect(result).toMatchObject({ ok: true, data: { judged: 1, errors: 0, inputTokens: 1000 } });
+    expect(record.confirmationAnswers).toBeNull();
+
+    // The failed confirmation is final for this evidence: judge does not ask on every run.
+    const again = await judge(loaded, store, engine, judgeOptions);
+    expect(calls).toBe(2);
+    expect(again).toMatchObject({ ok: true, data: { judged: 0, upToDate: 1 } });
+  });
+});
+
+describe("unconfirmed stored dismissals", () => {
+  const judgedWithoutConfirmation = async () => {
+    const context = await setup();
+    await judge(
+      makeLoaded(context.root, {
+        engine: { concurrency: 1 },
+        policy: { confirmDismissals: false },
+      }),
+      context.store,
+      mockEngine(() => SAFE_MITIGATED),
+      judgeOptions,
+    );
+    return context;
+  };
+
+  it("asks again in judge for a dismissal that was never confirmed", async () => {
+    const { loaded, store } = await judgedWithoutConfirmation();
+    const engine = mockEngine(() => SAFE_MITIGATED);
+
+    const plan = await judge(loaded, store, engine, { ...judgeOptions, dryRun: true });
+    expect(plan).toMatchObject({ ok: true, data: { upToDate: 0, pending: 1 } });
+
+    const result = await judge(loaded, store, engine, judgeOptions);
+
+    const record = await onlyRecord(store);
+    expect(engine.calls).toBe(2);
+    expect(result).toMatchObject({ ok: true, data: { judged: 1, upToDate: 0 } });
+    expect(record.decision?.verdict).toBe("dismissed");
+    expect(record.confirmationAnswers).toEqual(answersFor(SAFE_MITIGATED));
+  });
+
+  it("does not ask again for a dismissal whose confirmation disagreed", async () => {
+    const { loaded, store } = await setup();
+    const engine = sequence(SAFE_MITIGATED, VULNERABLE);
+    await judge(loaded, store, engine, judgeOptions);
+
+    const again = await judge(loaded, store, engine, judgeOptions);
+
+    expect(engine.calls).toBe(2);
+    expect(again).toMatchObject({ ok: true, data: { judged: 0, upToDate: 1 } });
+    expect((await onlyRecord(store)).decision?.rule).toBe("dismissal-unconfirmed");
+  });
+
+  it("shows the review verdict in a report without judge", async () => {
+    const { loaded, store } = await judgedWithoutConfirmation();
+
+    await refreshVerdicts(loaded, store);
+
+    const record = await onlyRecord(store);
+    expect(record.status).toBe("judged");
+    expect(record.decision).toMatchObject({
+      verdict: "needs-human-review",
+      rule: "dismissal-unconfirmed",
+    });
+  });
+
+  it("keeps the review verdict when a budget stop skips the new judgment", async () => {
+    const { loaded, store } = await judgedWithoutConfirmation();
+    const engine = mockEngine(() => SAFE_MITIGATED);
+
+    await judge(loaded, store, engine, { ...judgeOptions, limit: 0 });
+
+    expect(engine.calls).toBe(0);
+    expect((await onlyRecord(store)).decision?.rule).toBe("dismissal-unconfirmed");
   });
 });
 

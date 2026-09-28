@@ -99,10 +99,11 @@ export const recordSchema = z
     /** Raw engine answers, kept so a policy change can be applied without asking again. */
     answers: z.record(z.string(), answerSchema).nullable().default(null),
     /**
-     * Raw answers of the second call that confirms a dismissal. Absent when no second call was
-     * made, for example for a survivor or for a record from before the confirmation rule.
+     * Raw answers of the second call that confirms a dismissal. `null` when the second call
+     * failed. Absent when no second call was made, for example for a survivor, for a record from
+     * before the confirmation rule, or when the budget stopped the second call.
      */
-    confirmationAnswers: z.record(z.string(), answerSchema).optional(),
+    confirmationAnswers: z.record(z.string(), answerSchema).nullable().optional(),
     decision: decisionSchema.nullable(),
     /**
      * Evidence summary. The pipeline reads only `truncated`; each kind owns the other fields.

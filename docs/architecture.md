@@ -145,6 +145,15 @@ The remap uses both stored answer sets, `answers` and `confirmationAnswers`. Wit
 answer set, a remap gives `needs-human-review` with the rule `dismissal-unconfirmed`, never
 `dismissed`.
 
+With `policy.confirmDismissals: true`, `judge` also treats an unconfirmed stored dismissal as
+pending: the first answers map to `dismissed`, and `confirmationAnswers` is absent. This covers a
+record from before the confirmation rule, a record judged with `confirmDismissals: false`, and a
+record whose second call a budget or time limit stopped. `judge` asks again with a first call and a
+confirmation call, and the dry-run plan counts the record as "to assess". A confirmation that
+disagreed, or that failed (`confirmationAnswers: null`), is final for the current evidence, so
+`judge` does not ask again on every run. `report` without `judge` makes no calls and shows the
+review verdict with the rule `dismissal-unconfirmed`.
+
 Older records without a question content hash load with `questionHash: null`. They require a
 fresh judgment before their verdict can be reported. Their history remains available. Switching
 profiles also requires fresh calls when it changes the questions; it never silently reuses answers
@@ -162,7 +171,7 @@ Missing optional fields receive defaults. A record without a `kind` field loads 
 records keep their layout: one location in `path`, `line` and `col`, a severity, and the same
 evidence summary. A record without `confirmationAnswers` stays valid and is remapped as before,
 but a remap cannot make it `dismissed`: it gives `needs-human-review` with the rule
-`dismissal-unconfirmed` until a fresh judgment (`judge --rejudge`) asks again. Older evidence or engine settings can
+`dismissal-unconfirmed`. The next `judge` asks again for such a stored dismissal (see Staleness). Older evidence or engine settings can
 make a stored decision stale, so the next assessment may require a Jev call.
 Existing history is retained when those decisions are invalidated.
 
