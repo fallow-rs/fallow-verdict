@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { locationSchema } from "../state/schema.ts";
 import { formatUsd } from "../util/tokens.ts";
-import type { FindingText, KindPresentation } from "./render.ts";
+import { dismissedWords, type FindingText, type KindPresentation } from "./render.ts";
 
 export const CHECK_SCHEMA = "fallow-verdict-check/v1";
 
@@ -93,7 +93,7 @@ const label = (result: CheckResult, presentation: KindPresentation): string => {
     return result.verdict === "survivor"
       ? presentation.survivor.label
       : result.verdict === "dismissed"
-        ? "Dismissed"
+        ? dismissedWords(presentation).label
         : "Needs review";
   const labels: Readonly<Record<Exclude<CheckResult["status"], "judged">, string>> = {
     resolved: "Resolved",

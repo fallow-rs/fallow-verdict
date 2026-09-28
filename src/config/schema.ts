@@ -59,6 +59,11 @@ export const reviewSchema = z
     maxUnits: z.number().int().min(1).max(1_000).default(50),
     /** Minimum P(has_bug) that makes a function a finding. */
     bugFloor: probability.default(0.5),
+    /**
+     * Minimum P(the function does not do what its name and comment state) that makes a function
+     * a finding. The engine answers P(does what it claims), so the check is 1 - P >= this floor.
+     */
+    claimFloor: probability.default(0.5),
     /** Minimum P(breach) that makes a rule breach a finding, for a rule without `floor`. */
     ruleFloor: probability.default(0.5),
     /** Project rules as sentences. Each rule in scope adds one question to the same request. */

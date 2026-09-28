@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFile, writeFile } from "node:fs/promises";
+import { chmod, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,11 +15,18 @@ import { checkWith } from "../src/pipeline/check.ts";
 import { closeWith } from "../src/pipeline/close.ts";
 import { judgeWith } from "../src/pipeline/judge.ts";
 import { scanWith } from "../src/pipeline/scan.ts";
+import { runHealthScan } from "../src/fallow/health.ts";
 import { globMatcher } from "../src/review/glob.ts";
 import { buildReviewPacket } from "../src/review/packet.ts";
 import { decideReview } from "../src/review/policy.ts";
 import { rulesFor, whereOptions } from "../src/review/questions.ts";
-import { identify, runReviewScan, selectUnits, type ReviewUnit } from "../src/review/units.ts";
+import {
+  identify,
+  reviewConclusive,
+  runReviewScan,
+  selectUnits,
+  type ReviewUnit,
+} from "../src/review/units.ts";
 import { openStore, type Store } from "../src/state/store.ts";
 import { ok } from "../src/util/result.ts";
 import { makeLoaded, makeProject } from "./helpers.ts";
@@ -133,6 +140,18 @@ const scanned = async (loaded: LoadedConfig, paths: string[] = ["src"]): Promise
 const units = async (store: Store): Promise<ReviewUnit[]> =>
   (JSON.parse(await readFile(store.candidatesPath, "utf8")) as { units: ReviewUnit[] }).units;
 
+const healthEntry = (name: string, exceeded: string): Record<string, unknown> => ({
+  path: "src/calc.ts",
+  name,
+  line: name === "add" ? 4 : 9,
+  col: 1,
+  cyclomatic: 1,
+  cognitive: 0,
+  line_count: 1,
+  severity: "moderate",
+  exceeded,
+});
+
 describe("review unit selection", () => {
   it("puts hotspots first, folds nested functions into the outer one and merges reasons", () => {
     const selected = selectUnits(
@@ -201,6 +220,92 @@ describe("review unit selection", () => {
       ["add", ["changed"]],
       ["read", ["changed"]],
     ]);
+  });
+  it("makes a nested hotspot part of the function around it, in scan and in check", async () => {
+    const inner = Array.from(
+      { length: 24 },
+      (_, index) =>
+        `    if (value === ${index} && (flag || mode === "m${index}")) return "v${index}";`,
+    );
+    const nest = [
+      "export const outer = (items: number[]): string[] => {",
+      "  const inner = (value: number, flag: boolean, mode: string): string => {",
+      ...inner,
+      '    return "other";',
+      "  };",
+      '  return items.map((item) => inner(item, true, "m"));',
+      "};",
+      "",
+    ].join("\n");
+    const root = await makeProject({ ...PROJECT, "src/nest.ts": nest });
+    const loaded = makeLoaded(root, { fallow: { binary: FALLOW } });
+    const store = reviewStore(loaded);
+    expect(await scanWith(reviewAdapter, loaded, store, {})).toMatchObject({ ok: true });
+    const outer = (await units(store)).find((unit) => unit.path === "src/nest.ts");
+    expect(outer).toMatchObject({ name: "outer", hotspot: "critical", selected: ["hotspot"] });
+    for (const target of [outer?.finding_id ?? "", "src/nest.ts"]) {
+      const checked = await checkWith(reviewAdapter, loaded, store, {
+        target,
+        cwd: root,
+        dryRun: true,
+        engine: () => ok(reviewEngine([{ bug: 0.1 }])),
+      });
+      expect(checked).toMatchObject({
+        ok: true,
+        data: {
+          report: {
+            outcome: "estimated",
+            results: [{ status: "not-assessed", stored_id: outer?.finding_id }],
+          },
+        },
+      });
+    }
+  });
+
+  it("drops CRAP-only hotspots and runs one listing per path", async () => {
+    const root = await makeProject(PROJECT);
+    const log = path.join(root, "calls.log");
+    const fake = path.join(root, "fake-fallow.mjs");
+    const output = {
+      schema_version: 11,
+      version: "3.30.0",
+      findings: [healthEntry("add", "crap"), healthEntry("read", "cyclomatic")],
+    };
+    await writeFile(
+      fake,
+      [
+        "#!/usr/bin/env node",
+        'import { appendFileSync } from "node:fs";',
+        `appendFileSync(${JSON.stringify(log)}, JSON.stringify(process.argv.slice(2)) + "\\n");`,
+        `process.stdout.write(${JSON.stringify(JSON.stringify(output))});`,
+        "process.exit(1);",
+        "",
+      ].join("\n"),
+    );
+    await chmod(fake, 0o755);
+    const base = { root, binary: fake };
+    const hot = await runHealthScan({ ...base, everyFunction: false });
+    expect(hot.ok && hot.data.functions.map((entry) => entry.name)).toEqual(["read"]);
+    const every = await runHealthScan({
+      ...base,
+      everyFunction: true,
+      paths: ["src/calc.ts", "src/hot.ts", "src/gone.ts"],
+    });
+    expect(every).toMatchObject({
+      ok: true,
+      data: { listed: ["src/calc.ts", "src/hot.ts"], missing: ["src/gone.ts"] },
+    });
+    expect(every.ok && every.data.functions.map((entry) => entry.name)).toEqual(["add", "read"]);
+    const calls = (await readFile(log, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as string[]);
+    // One run for the hotspots, then one listing per existing path. The missing path is never sent.
+    expect(calls.map((args) => args.at(-1))).toEqual(["--quiet", "src/calc.ts", "src/hot.ts"]);
+    expect(await runHealthScan({ ...base, everyFunction: true, paths: ["src/gone.ts"] })).toEqual({
+      ok: true,
+      data: { version: null, functions: [], listed: [], missing: ["src/gone.ts"] },
+    });
   });
 });
 
@@ -349,6 +454,18 @@ describe("review policy", () => {
       confidence: expect.closeTo(0.3) as unknown as number,
       kindData: { where: null },
     });
+    expect(
+      decideReview(
+        { ...policyAnswers(0.2, 0.1), does_what_it_claims: { type: "noul", probability: 0.3 } },
+        evidence,
+        config,
+      ),
+    ).toMatchObject({
+      verdict: "survivor",
+      rule: "claim-mismatch",
+      confidence: 0.7,
+      kindData: { claimMismatch: true },
+    });
     const { rule_no_fs: _missing, ...partial } = policyAnswers(0.9, 0.1);
     expect(decideReview(partial, evidence, config)).toMatchObject({
       verdict: "needs-human-review",
@@ -382,6 +499,30 @@ describe("review policy", () => {
     expect(small.stateTokens).toBeLessThanOrEqual(700);
     expect(small.packet.omitted.at(-1)).toMatch(/^source after line \d+$/);
     expect(small.lines?.end).toBeLessThan(27);
+  });
+
+  it("cuts a first line that alone exceeds the budget", async () => {
+    const long = `export const big = (): string => "${"x".repeat(9_000)}";\n`;
+    const root = await makeProject({ "src/big.ts": long });
+    const [unit] = await identify(
+      root,
+      selectUnits(
+        [],
+        [
+          {
+            reason: "path",
+            functions: [fn({ path: "src/big.ts", name: "big", line: 1, line_count: 1 })],
+          },
+        ],
+      ),
+    );
+    if (unit === undefined) throw new Error("Missing unit");
+    const cut = await buildReviewPacket(unit, root, 1_000);
+    expect(cut.truncated).toBe(true);
+    expect(cut.stateTokens).toBeLessThanOrEqual(1_000);
+    expect(cut.packet.omitted).toContainEqual(
+      expect.stringMatching(/^line 1 after character \d+$/),
+    );
   });
 });
 
@@ -511,8 +652,70 @@ describe("review mode in the pipeline", () => {
     );
     expect(await check(add.finding_id)).toMatchObject({
       ok: true,
-      data: { report: { outcome: "needs-person", results: [{ status: "ambiguous" }] } },
+      data: {
+        report: {
+          outcome: "needs-person",
+          results: [
+            {
+              status: "ambiguous",
+              reason: expect.stringContaining("another current finding") as unknown as string,
+            },
+          ],
+        },
+      },
     });
+  });
+
+  it("resolves the units of a deleted file, by path and by id", async () => {
+    const loaded = await reviewLoaded();
+    const store = await scanned(loaded);
+    const add = (await units(store)).find((unit) => unit.name === "add");
+    if (add === undefined) throw new Error("Missing unit");
+    await rm(path.join(loaded.root, "src/calc.ts"));
+    for (const target of ["src/calc.ts", add.finding_id]) {
+      const checked = await checkWith(reviewAdapter, loaded, store, {
+        target,
+        cwd: loaded.root,
+        dryRun: true,
+        engine: () => ok(reviewEngine([{ bug: 0.1 }])),
+      });
+      expect(checked).toMatchObject({ ok: true, data: { report: { outcome: "cleared" } } });
+      expect(
+        checked.ok && checked.data.report.results.every((result) => result.status === "resolved"),
+      ).toBe(true);
+    }
+  });
+
+  it("is conclusive only for files that the output lists or rules out", () => {
+    const output = {
+      schema_version: "fallow-verdict-review-units/v1" as const,
+      fallow_version: null,
+      in_scope: 0,
+      units: [],
+      exhaustive: { listed: ["src/a.ts"], missing: ["src/b.ts"] },
+    };
+    expect(reviewConclusive(output, ["src/a.ts", "src/b.ts"])).toBe(true);
+    expect(reviewConclusive(output, ["src/c.ts"])).toBe(false);
+  });
+
+  it("names dismissed units as functions without a likely problem", async () => {
+    const loaded = await reviewLoaded();
+    const store = await scanned(loaded);
+    await judgeWith(reviewAdapter, loaded, store, reviewEngine([{ bug: 0.1 }]), {
+      rejudge: false,
+      dryRun: false,
+    });
+    const outcome = await dispatchKind(reviewAdapter, {
+      options: optionsFor(["report", "--quiet", "--kind", "review", "--show-dismissed"]),
+      loaded,
+      store,
+      signal: new AbortController().signal,
+    });
+    expect(outcome.ok && outcome.data.human).toContain("3 without a likely problem");
+    expect(outcome.ok && outcome.data.human).toContain("No likely problem (3)");
+    expect(
+      outcome.ok && (outcome.data.json as { summary: { dismissed: number } }).summary.dismissed,
+    ).toBe(3);
   });
 
   it("keeps a closed unit out of the next assessment while its source is the same", async () => {

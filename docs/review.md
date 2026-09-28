@@ -27,8 +27,20 @@ thresholds of zero.
 
 The order is highest risk first: hotspot severity (critical, high, moderate), then cognitive
 complexity, then cyclomatic complexity. `review.maxUnits` (default 50) limits the number of
-functions per scan. A nested function is part of the function around it, so it is not a
-separate unit.
+functions per scan.
+
+A nested function is part of the function around it, so it is not a separate unit. A hotspot
+inside another function moves to the outermost function around it, with its severity. To find
+that function, fallow-verdict lists every function of each file with a selected hotspot, with one
+`fallow health` run per file. A scoped scan already lists every function in scope, so it needs
+no extra runs. `check` uses the same nesting, so an unchanged file gives the same units.
+
+Hotspots come from complexity thresholds only. A function that `fallow health` reports only for
+its CRAP score is not a hotspot.
+
+With more than one path, the list of every function is one `fallow health` run per path, so the
+output covers only those paths. A path that does not exist has no functions and is not sent to
+Fallow.
 
 The record `category` tells why a function is in scope: `hotspot-critical`, `hotspot-high`,
 `hotspot-moderate`, `changed` or `path`. The budget and the report use this order. The record
@@ -104,18 +116,23 @@ request.
 
 ## Policy
 
-| Rule                 | Verdict              | When                                                |
-| -------------------- | -------------------- | --------------------------------------------------- |
-| `source-changed`     | `needs-human-review` | The source differs from the source at scan time     |
-| `truncated-evidence` | `needs-human-review` | The packet was cut to fit the token budget          |
-| `answers-missing`    | `needs-human-review` | A required answer is missing                        |
-| `has-bug`            | `survivor`           | P(`has_bug`) is at or above `review.bugFloor` (0.5) |
-| `rule-breach`        | `survivor`           | P(breach) of a rule is at or above its floor        |
-| `no-likely-problem`  | `dismissed`          | No probability reaches its floor                    |
+| Rule                 | Verdict              | When                                                                  |
+| -------------------- | -------------------- | --------------------------------------------------------------------- |
+| `source-changed`     | `needs-human-review` | The source differs from the source at scan time                       |
+| `truncated-evidence` | `needs-human-review` | The packet was cut to fit the token budget                            |
+| `answers-missing`    | `needs-human-review` | A required answer is missing                                          |
+| `has-bug`            | `survivor`           | P(`has_bug`) is at or above `review.bugFloor` (0.5)                   |
+| `claim-mismatch`     | `survivor`           | 1 - P(`does_what_it_claims`) is at or above `review.claimFloor` (0.5) |
+| `rule-breach`        | `survivor`           | P(breach) of a rule is at or above its floor                          |
+| `no-likely-problem`  | `dismissed`          | No probability reaches its floor                                      |
 
-A survivor is a likely problem. A dismissed function has no likely problem. The report shows
-the probabilities of `has_bug`, `does_what_it_claims` and each rule, the severity estimate, and
-the line from `where`.
+A survivor is a likely problem. A dismissed function has no likely problem. When more than one
+reason applies, the rule is the first of `has-bug`, `claim-mismatch` and `rule-breach`, and
+`kindData` holds `claimMismatch` and `breaches`. The report shows the probabilities of
+`has_bug`, `does_what_it_claims` and each rule, the severity estimate, and the line from `where`.
+
+The reports call a dismissed function "No likely problem" and count "N without a likely
+problem". The JSON verdict value stays `dismissed`.
 
 ### Dismissal confirmation
 
@@ -137,6 +154,24 @@ Review mode never fails a run by default: `review.failOn` is `off`. The top-leve
 security and does not apply to review mode. Set `review.failOn`, or pass `--fail-on`, to make
 `run` and `report` exit `1` on survivors. `check` keeps its own exit codes. See
 [check and close](check.md).
+
+## Check
+
+`check` lists every function in its target files, independent of hotspots and the cap. Thus:
+
+- An edited function has the same path and name, so `check` finds it and judges its new source.
+- A deleted file has no functions. Its units are `resolved`, by path and by id.
+- A deleted function in a file with other functions is `ambiguous`, exit `3`. The function is
+  gone, but another function in the file can be the same function after an edit, for example
+  after a rename. A person decides.
+- A function with the same source in another file or under another name also blocks
+  `resolved`.
+- `check` gives `resolved` only when the Fallow output lists each target file, or confirms that
+  the file does not exist. Otherwise the result is `ambiguous`.
+
+As for security, a Fallow suppression comment also removes a unit from the Fallow output. A
+`fallow-ignore` comment on the last function of a file therefore makes `check` report
+`resolved`. The rerun is the proof, so review the suppression itself.
 
 ## Output
 

@@ -21,6 +21,7 @@ import { scanWith } from "../pipeline/scan.ts";
 import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
+  dismissedWords,
   renderHuman,
   renderMarkdown,
   type KindPresentation,
@@ -88,7 +89,7 @@ const onJudgeProgress =
         decision?.verdict === "survivor"
           ? presentation.survivor.label
           : decision?.verdict === "dismissed"
-            ? "Dismissed"
+            ? dismissedWords(presentation).label
             : decision?.verdict === "needs-human-review"
               ? "Needs review"
               : "Assessment unavailable";

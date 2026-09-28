@@ -63,9 +63,16 @@ const functionLabel = (decision: StoredDecision): string => {
 const explanation = (decision: StoredDecision): string | null => {
   if (decision.verdict === "needs-human-review")
     return `Review required: ${REVIEW_REASONS[decision.rule] ?? decision.reason}`;
-  if (decision.verdict === "dismissed") return "Jev found no likely bug and no likely rule breach.";
+  if (decision.verdict === "dismissed")
+    return "Jev found no likely bug, no likely mismatch with the stated purpose and no likely rule breach.";
   const breaches = stringList(decision.kindData?.["breaches"]);
-  return breaches.length === 0 ? null : `Likely breach of project rules: ${breaches.join(", ")}.`;
+  const parts = [
+    ...(decision.kindData?.["claimMismatch"] === true
+      ? ["The function likely does not do what its name or comment states."]
+      : []),
+    ...(breaches.length === 0 ? [] : [`Likely breach of project rules: ${breaches.join(", ")}.`]),
+  ];
+  return parts.length === 0 ? null : parts.join(" ");
 };
 
 const estimate = (decision: StoredDecision): string => {
@@ -97,6 +104,11 @@ export const reviewPresentation: KindPresentation = {
     label: "Likely problem",
     count: "likely problems",
     note: SURVIVOR_NOTE,
+  },
+  dismissed: {
+    heading: "No likely problem",
+    label: "No likely problem",
+    count: "without a likely problem",
   },
   describe: (record: FindingRecord, decision: StoredDecision) => ({
     facts: [functionLabel(decision), CATEGORY_LABELS[record.category ?? ""] ?? "Selected function"],

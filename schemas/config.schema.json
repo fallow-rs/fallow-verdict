@@ -162,6 +162,12 @@
           "minimum": 0,
           "maximum": 1
         },
+        "claimFloor": {
+          "default": 0.5,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
         "ruleFloor": {
           "default": 0.5,
           "type": "number",

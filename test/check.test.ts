@@ -596,7 +596,7 @@ describe("check never resolves a finding that can still exist", () => {
       ...options(state, "security:tainted-sink:src/a.ts:2:2", engineFor(VULNERABLE)),
       signal: controller.signal,
     });
-    expect(scopes).toEqual([{ signal: controller.signal, complete: ["src/a.ts"] }]);
+    expect(scopes).toEqual([{ signal: controller.signal, exhaustiveIn: ["src/a.ts"] }]);
   });
 
   it("returns an error, never resolved, when the Fallow run fails", async () => {

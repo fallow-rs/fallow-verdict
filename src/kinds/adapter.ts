@@ -14,12 +14,11 @@ export type ScanScope = {
   /** Stops the Fallow run, for example on an interruption. */
   signal?: AbortSignal | undefined;
   /**
-   * Files in which the kind lists every candidate it can find, also outside its own selection
-   * and cap. `check` sets it to the target files, so a kind that selects candidates, such as
-   * review mode, cannot drop a candidate that still exists. A kind that lists everything can
-   * ignore it.
+   * List every candidate that exists in these files, ignoring the selection and the cap of the
+   * kind. Only `check` sets it, to its target files. A kind that always lists every candidate
+   * can ignore it.
    */
-  complete?: readonly string[] | undefined;
+  exhaustiveIn?: readonly string[] | undefined;
 };
 
 /** The fields of a finding record that come from the candidate itself. */
@@ -64,6 +63,11 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
     /** Validate stored output from `candidates.json`. */
     parse: (value: unknown) => Result<Output, VerdictError>;
     candidates: (output: Output) => readonly Candidate[];
+    /**
+     * True when the output proves which candidates are absent in these files. `check` gives
+     * `resolved` only for conclusive output. Absent: true.
+     */
+    conclusive?: (output: Output, paths: readonly string[]) => boolean;
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;

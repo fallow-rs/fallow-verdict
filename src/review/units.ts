@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import type { LoadedConfig } from "../config/load.ts";
-import { runHealthScan, type HealthFunction, type HealthScanOptions } from "../fallow/health.ts";
+import { runHealthScan, type HealthFunction } from "../fallow/health.ts";
 import type { ScanScope } from "../kinds/adapter.ts";
 import { readContained } from "../packet/windows.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
@@ -40,11 +40,18 @@ const unitSchema = z.object({
 
 export const reviewOutputSchema = z.object({
   schema_version: z.literal(REVIEW_UNITS_SCHEMA),
-  /** Version of the Fallow binary that selected the units. */
-  fallow_version: z.string(),
+  /** Version of the Fallow binary that selected the units. Null when no run was needed. */
+  fallow_version: z.string().nullable(),
   /** Functions in scope before `review.maxUnits` was applied. */
   in_scope: z.number().int().min(0),
   units: z.array(unitSchema),
+  /**
+   * Files of `ScanScope.exhaustiveIn`: `listed` files have every function in `units`, and
+   * `missing` files do not exist. `check` needs both lists to conclude `resolved`.
+   */
+  exhaustive: z
+    .object({ listed: z.array(z.string()), missing: z.array(z.string()) })
+    .prefault({ listed: [], missing: [] }),
 });
 
 export type ReviewUnit = z.infer<typeof unitSchema>;
@@ -95,46 +102,59 @@ const merge = (target: Selection, other: Selection): void => {
 };
 
 /**
- * Keeps the outermost functions. A nested function is part of the source of the function around
- * it, so it adds no unit; its hotspot severity and its selection reasons move to the outer one.
+ * The outermost function around `selection`: the function with the lowest first line, then the
+ * highest last line, whose range holds the range of `selection` in the same file.
  */
-const outermost = (selections: readonly Selection[]): Selection[] => {
-  const sorted = selections.toSorted(
-    (a, b) => a.path.localeCompare(b.path) || a.line - b.line || b.end_line - a.end_line,
-  );
-  const kept: Selection[] = [];
-  for (const selection of sorted) {
-    const outer = kept.findLast(
-      (candidate) =>
-        candidate.path === selection.path &&
-        candidate.line <= selection.line &&
-        candidate.end_line >= selection.end_line,
+const outermostOf = (selection: Selection, functions: readonly Selection[]): Selection =>
+  functions
+    .filter(
+      (fn) =>
+        fn.path === selection.path &&
+        fn.line <= selection.line &&
+        fn.end_line >= selection.end_line,
+    )
+    .reduce(
+      (outer, fn) =>
+        fn.line < outer.line || (fn.line === outer.line && fn.end_line > outer.end_line)
+          ? fn
+          : outer,
+      selection,
     );
-    if (outer === undefined) kept.push({ ...selection, selected: [...selection.selected] });
-    else merge(outer, selection);
-  }
-  return kept;
-};
 
 /**
  * Selects the functions to review: the hotspots, plus every function in the scoped files when a
- * scope is given. Highest risk first: hotspot severity, then cognitive and cyclomatic complexity.
+ * scope is given. A nested function is part of the source of the function around it, so it adds
+ * no unit: its hotspot severity and its reasons move to the outermost function. `inventory` holds
+ * every function of the files in play, so nesting is the same for `scan` and `check`. Highest
+ * risk first: hotspot severity, then cognitive and cyclomatic complexity.
  */
 export const selectUnits = (
   hotspots: readonly HealthFunction[],
   scopes: readonly ScopedFunctions[],
+  inventory: readonly HealthFunction[] = [],
 ): Selection[] => {
-  const byLocation = new Map<string, Selection>();
-  const add = (selection: Selection): void => {
-    const key = JSON.stringify([selection.path, selection.line, selection.col]);
-    const known = byLocation.get(key);
-    if (known === undefined) byLocation.set(key, selection);
-    else merge(known, selection);
-  };
-  for (const fn of hotspots) add(toSelection(fn, true, "hotspot"));
-  for (const scoped of scopes)
-    for (const fn of scoped.functions) add(toSelection(fn, false, scoped.reason));
-  return outermost([...byLocation.values()]).toSorted(byRisk);
+  const selected: Selection[] = [
+    ...hotspots.map((fn) => toSelection(fn, true, "hotspot")),
+    ...scopes.flatMap((scoped) =>
+      scoped.functions.map((fn) => toSelection(fn, false, scoped.reason)),
+    ),
+  ];
+  const all = [
+    ...inventory.map((fn) => ({ ...toSelection(fn, false, "path"), selected: [] })),
+    ...selected,
+  ];
+  const units = new Map<string, Selection>();
+  for (const selection of selected) {
+    const outer = outermostOf(selection, all);
+    const key = JSON.stringify([outer.path, outer.line, outer.col]);
+    let unit = units.get(key);
+    if (unit === undefined) {
+      unit = { ...outer, hotspot: null, selected: [] };
+      units.set(key, unit);
+    }
+    merge(unit, selection);
+  }
+  return [...units.values()].toSorted(byRisk);
 };
 
 export const sourceHash = (lines: readonly string[]): string =>
@@ -185,19 +205,20 @@ export const parseReviewOutput = (value: unknown): Result<ReviewOutput, VerdictE
   return ok(parsed.data);
 };
 
-const scopedRun = async (
-  invocation: Omit<HealthScanOptions, "everyFunction" | "paths">,
-  paths: readonly string[] | undefined,
-  reason: Selected,
-): Promise<Result<ScopedFunctions, VerdictError>> => {
-  const listed = await runHealthScan({ ...invocation, paths, everyFunction: true });
-  return listed.ok ? ok({ functions: listed.data.functions, reason }) : listed;
-};
+const byFile = (functions: readonly HealthFunction[]): Set<string> =>
+  new Set(functions.map((fn) => fn.path));
 
 /**
- * Runs Fallow health once for the hotspots and, with a scope, once for every function in scope.
- * The result is capped at `review.maxUnits`, highest risk first. The cap never drops a function
- * in a file of `scope.complete`, so `check` sees every function of its target files.
+ * Selects the units with `fallow health`:
+ *
+ * 1. One run for the hotspots in scope.
+ * 2. With a scope, a list of every function in it, per path.
+ * 3. With `exhaustiveIn`, a list of every function in these files, per file.
+ * 4. Without `exhaustiveIn`: a list of every function in each other file of a selected hotspot,
+ *    so a nested hotspot moves to the function around it, as in `check`.
+ *
+ * The result is capped at `review.maxUnits`, highest risk first. The cap never drops a function in
+ * a file of `exhaustiveIn`.
  */
 export const runReviewScan = async (
   loaded: LoadedConfig,
@@ -210,31 +231,65 @@ export const runReviewScan = async (
     changedSince: scope.changedSince,
     signal: scope.signal,
   };
+  const everyIn = (
+    paths: readonly string[] | undefined,
+    changedSince: string | undefined,
+  ): ReturnType<typeof runHealthScan> =>
+    runHealthScan({ ...invocation, changedSince, paths, everyFunction: true });
+
   const hotspots = await runHealthScan({ ...invocation, paths: scope.paths, everyFunction: false });
   if (!hotspots.ok) return hotspots;
+  let version = hotspots.data.version;
   const scopes: ScopedFunctions[] = [];
   if (scope.changedSince !== undefined || (scope.paths?.length ?? 0) > 0) {
+    const listed = await everyIn(scope.paths, scope.changedSince);
+    if (!listed.ok) return listed;
+    version ??= listed.data.version;
     const reason = scope.changedSince === undefined ? "path" : "changed";
-    const listed = await scopedRun(invocation, scope.paths, reason);
-    if (!listed.ok) return listed;
-    scopes.push(listed.data);
+    scopes.push({ functions: listed.data.functions, reason });
   }
-  const complete = scope.complete ?? [];
-  if (complete.length > 0) {
-    const listed = await scopedRun({ ...invocation, changedSince: undefined }, complete, "path");
+  const requested = scope.exhaustiveIn ?? [];
+  let exhaustive: ReviewOutput["exhaustive"] = { listed: [], missing: [] };
+  if (requested.length > 0) {
+    const listed = await everyIn(requested, undefined);
     if (!listed.ok) return listed;
-    scopes.push(listed.data);
+    version ??= listed.data.version;
+    scopes.push({ functions: listed.data.functions, reason: "path" });
+    exhaustive = { listed: listed.data.listed, missing: listed.data.missing };
   }
-  const selections = selectUnits(hotspots.data.functions, scopes);
-  const inComplete = (selection: Selection): boolean =>
-    complete.some((file) => selection.path === file || selection.path.startsWith(`${file}/`));
-  const kept = selections.filter(
-    (selection, index) => index < loaded.config.review.maxUnits || inComplete(selection),
-  );
+  const inExhaustive = (selection: Selection): boolean =>
+    requested.some((file) => selection.path === file || selection.path.startsWith(`${file}/`));
+  const cap = (selections: readonly Selection[]): Selection[] =>
+    selections.filter(
+      (selection, index) => index < loaded.config.review.maxUnits || inExhaustive(selection),
+    );
+
+  const inventory = scopes.flatMap((scoped) => scoped.functions);
+  const first = selectUnits(hotspots.data.functions, scopes, inventory);
+  const files = new Set(cap(first).map((selection) => selection.path));
+  const covered = byFile(inventory);
+  // `check` stores nothing and compares only its target files, so it skips these runs.
+  const open = requested.length > 0 ? [] : [...files].filter((file) => !covered.has(file));
+  if (open.length > 0) {
+    const listed = await everyIn(open, undefined);
+    if (!listed.ok) return listed;
+    version ??= listed.data.version;
+    inventory.push(...listed.data.functions);
+  }
+  // Only the hotspots of the files that the cap kept: their nesting is known now.
+  const kept = hotspots.data.functions.filter((fn) => files.has(fn.path));
+  const selections = cap(selectUnits(kept, scopes, inventory));
   return ok({
     schema_version: REVIEW_UNITS_SCHEMA,
-    fallow_version: hotspots.data.version,
-    in_scope: selections.length,
-    units: await identify(loaded.root, kept),
+    fallow_version: version,
+    in_scope: first.length,
+    units: await identify(loaded.root, selections),
+    exhaustive,
   });
 };
+
+/** The output proves which units are absent in `paths` when it lists or rules out each path. */
+export const reviewConclusive = (output: ReviewOutput, paths: readonly string[]): boolean =>
+  paths.every(
+    (file) => output.exhaustive.listed.includes(file) || output.exhaustive.missing.includes(file),
+  );

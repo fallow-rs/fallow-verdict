@@ -6,6 +6,7 @@ import { NO_LINE, ruleQuestionId, rulesFor, SEVERITY_LABELS } from "./questions.
 
 export const REVIEW_RULES = [
   "has-bug",
+  "claim-mismatch",
   "rule-breach",
   "no-likely-problem",
   "source-changed",
@@ -74,6 +75,7 @@ export const decideReview = (
       endLine: built.packet.unit.end_line,
       where: where?.type === "choice" && where.choice !== NO_LINE ? where.choice : null,
       breaches: [] as string[],
+      claimMismatch: false,
     },
   };
 
@@ -89,17 +91,32 @@ export const decideReview = (
       "truncated-evidence",
       `The evidence was shortened to fit the request budget (${built.packet.omitted.join(", ")}).`,
     );
-  if (bug === null || rules.some((rule) => rule.probability === null))
+  if (bug === null || claims === null || rules.some((rule) => rule.probability === null))
     return review(base, "answers-missing", "Required answers are missing.");
 
   const breaches = rules.filter((rule) => (rule.probability ?? 0) >= rule.floor);
-  const kindData = { ...base.kindData, breaches: breaches.map((rule) => rule.name) };
+  const mismatch = 1 - claims;
   const bugFound = bug >= config.bugFloor;
-  if (bugFound || breaches.length > 0) {
-    const passing = [...(bugFound ? [bug] : []), ...breaches.map((rule) => rule.probability ?? 0)];
+  const claimMismatch = mismatch >= config.claimFloor;
+  const kindData = {
+    ...base.kindData,
+    breaches: breaches.map((rule) => rule.name),
+    claimMismatch,
+  };
+  if (bugFound || claimMismatch || breaches.length > 0) {
+    const passing = [
+      ...(bugFound ? [bug] : []),
+      ...(claimMismatch ? [mismatch] : []),
+      ...breaches.map((rule) => rule.probability ?? 0),
+    ];
     const parts = [
       ...(bugFound
         ? [`P(bug) ${percent(bug)} reaches the floor ${percent(config.bugFloor)}.`]
+        : []),
+      ...(claimMismatch
+        ? [
+            `P(the function does not do what it claims) ${percent(mismatch)} reaches the floor ${percent(config.claimFloor)}.`,
+          ]
         : []),
       ...breaches.map(
         (rule) =>
@@ -110,18 +127,18 @@ export const decideReview = (
       ...base,
       kindData,
       verdict: "survivor",
-      rule: bugFound ? "has-bug" : "rule-breach",
+      rule: bugFound ? "has-bug" : claimMismatch ? "claim-mismatch" : "rule-breach",
       confidence: Math.max(...passing),
       reason: parts.join(" "),
     };
   }
-  const highest = Math.max(bug, ...rules.map((rule) => rule.probability ?? 0));
+  const highest = Math.max(bug, mismatch, ...rules.map((rule) => rule.probability ?? 0));
   return {
     ...base,
     kindData: { ...kindData, where: null },
     verdict: "dismissed",
     rule: "no-likely-problem",
     confidence: 1 - highest,
-    reason: `P(bug) ${percent(bug)} is below the floor ${percent(config.bugFloor)}, and no rule breach reaches its floor.`,
+    reason: `P(bug) ${percent(bug)} and P(the function does not do what it claims) ${percent(mismatch)} are below their floors, and no rule breach reaches its floor.`,
   };
 };

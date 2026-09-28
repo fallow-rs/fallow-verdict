@@ -42,8 +42,28 @@ export type KindPresentation = {
     /** First line under the group heading. */
     note: string;
   };
+  /** Words for `dismissed`. Absent: "Dismissed" and "dismissed". The JSON value stays `dismissed`. */
+  dismissed?: {
+    /** Group heading, for example "No likely problem". */
+    heading: string;
+    /** Progress label for one finding. */
+    label: string;
+    /** Count text in the summary line, for example "without a likely problem". */
+    count: string;
+  };
   describe: (record: FindingRecord, decision: StoredDecision) => FindingText;
 };
+
+const DEFAULT_DISMISSED: NonNullable<KindPresentation["dismissed"]> = {
+  heading: "Dismissed",
+  label: "Dismissed",
+  count: "dismissed",
+};
+
+/** The words for `dismissed` of a kind. */
+export const dismissedWords = (
+  presentation: KindPresentation,
+): NonNullable<KindPresentation["dismissed"]> => presentation.dismissed ?? DEFAULT_DISMISSED;
 
 const FACT_SEPARATOR = " | ";
 
@@ -52,7 +72,7 @@ const verdictTitle = (presentation: KindPresentation, verdict: VerdictStatus): s
     ? presentation.survivor.heading
     : verdict === "needs-human-review"
       ? "Needs review"
-      : "Dismissed";
+      : dismissedWords(presentation).heading;
 
 export type ReportSummary = {
   candidates: number;
@@ -129,7 +149,7 @@ const group = (report: Report, verdict: VerdictStatus): FindingRecord[] =>
 
 const summaryLine = ({ summary }: Report, presentation: KindPresentation): string =>
   `${summary.candidates} candidates: ${summary.survivors} ${presentation.survivor.count}, ` +
-  `${summary.needsHumanReview} need review, ${summary.dismissed} dismissed` +
+  `${summary.needsHumanReview} need review, ${summary.dismissed} ${dismissedWords(presentation).count}` +
   (summary.pending > 0 ? `, ${summary.pending} pending` : "") +
   (summary.errors > 0 ? `, ${summary.errors} errors` : "") +
   (summary.closed === undefined ? "" : `, ${summary.closed} closed by a person`) +

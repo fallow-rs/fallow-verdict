@@ -31,6 +31,7 @@ export default defineConfig({
   review: {
     maxUnits: 50, // functions per scan, highest risk first
     bugFloor: 0.5, // minimum P(has_bug) for a likely problem
+    claimFloor: 0.5, // minimum 1 - P(does_what_it_claims) for a likely problem
     ruleFloor: 0.5, // minimum P(breach) for a rule without its own floor
     rules: [], // project rules as sentences, see docs/review.md
     confirmDismissals: false, // review dismissals are single calls by default

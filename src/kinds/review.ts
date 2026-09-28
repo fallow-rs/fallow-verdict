@@ -9,6 +9,7 @@ import {
 } from "../review/questions.ts";
 import {
   parseReviewOutput,
+  reviewConclusive,
   runReviewScan,
   type ReviewOutput,
   type ReviewUnit,
@@ -50,6 +51,7 @@ export const reviewAdapter: AnalysisAdapter<ReviewOutput, ReviewUnit, BuiltRevie
     run: runReviewScan,
     parse: parseReviewOutput,
     candidates: (output) => output.units,
+    conclusive: reviewConclusive,
   },
   identity,
   match,

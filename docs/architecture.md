@@ -57,10 +57,18 @@ usage error with exit code 2. The security adapter (`src/kinds/security.ts`) con
 modules under `src/fallow`, `src/packet`, `src/questions`, `src/policy` and `src/verdicts`.
 The registry (`src/kinds/registry.ts`) maps each name in `ANALYSIS_KINDS` to one adapter.
 
-`ScanScope.complete` lists files in which the kind must list every candidate it can find, also
-outside its own selection and cap. `check` sets it to the target files. Security lists every
+`ScanScope.exhaustiveIn` asks the kind to list every candidate that exists in these files,
+ignoring its selection and cap. Only `check` sets it, to its target files. Security lists every
 finding, so it ignores the field. Review mode lists every function in these files, so `check`
 always sees the edited function.
+
+The optional `scan.conclusive(output, paths)` says whether the output proves which candidates
+are absent in these files. `check` gives `resolved` only for conclusive output; otherwise the
+result is `ambiguous`. Without the function, output is conclusive. Review output is conclusive
+when it lists each file or confirms that the file does not exist.
+
+The optional `report.dismissed` gives the words for `dismissed` in the reports. Without it, the
+reports say "Dismissed". The JSON value stays `dismissed`.
 
 The review adapter (`src/kinds/review.ts`) connects `src/fallow/health.ts` and the modules under
 `src/review`. It selects functions with `fallow health`, builds one packet per function, asks the

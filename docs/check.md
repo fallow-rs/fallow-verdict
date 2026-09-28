@@ -89,9 +89,15 @@ fix one of two identical calls, the other call stays claimed, so the fixed one c
 For security, a scoped Fallow run also analyzes the whole project and filters the findings
 afterwards. Thus `check` runs Fallow once without a scope and filters the findings itself.
 
-The fresh run also names the target files. A kind that selects candidates lists every candidate
-in these files. Review mode lists every function in them, so an edited function is judged again
-and is never `resolved` while a function with the same path and name exists.
+The fresh run also names the target files in `exhaustiveIn`. A kind that selects candidates lists
+every candidate in these files. Review mode lists every function in them, so an edited function
+is judged again and is never `resolved` while a function with the same path and name exists.
+When the kind says that its output is not conclusive for the target files, the result is
+`ambiguous`, never `resolved`.
+
+The `reason` of an `ambiguous` result tells which case applies: more than one current finding
+has the same key, another current finding with the same rule or in the same file can be the
+finding, or the output does not prove that the finding is gone.
 
 ## `close <id> --reason "<text>"`
 

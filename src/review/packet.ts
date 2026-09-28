@@ -137,5 +137,22 @@ export const buildReviewPacket = async (
       ],
     };
   }
+  // A first line that alone exceeds the budget, for example minified code, is cut too.
+  const [first = ""] = read.lines;
+  let chars = first.length;
+  while (!fits(packet) && chars > 0) {
+    chars = Math.floor(chars * 0.8);
+    packet = {
+      ...packet,
+      source: numberLines([first.slice(0, chars)], unit.line),
+      omitted: [
+        ...packet.omitted.filter(
+          (part) => !part.startsWith("source after") && !part.startsWith("line "),
+        ),
+        `line ${unit.line} after character ${chars}`,
+        ...(read.lines.length > 1 ? [`source after line ${unit.line}`] : []),
+      ],
+    };
+  }
   return finish(packet, { start: unit.line, end: unit.line + kept - 1 }, sourceChanged);
 };
