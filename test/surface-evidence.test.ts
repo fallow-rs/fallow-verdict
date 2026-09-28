@@ -67,7 +67,7 @@ describe("top-level attack-surface evidence", () => {
       callee: "origin-equality-guard",
     }));
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const output = { ...makeOutput([finding]), attack_surface: [surface] };
     await store.writeJson(store.candidatesPath, output);
     await syncRecords(store, output, false, loaded);
@@ -143,7 +143,7 @@ describe("top-level attack-surface evidence", () => {
   it("invalidates a cached dismissal when only an external control changes", async () => {
     const root = await project();
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const finding = makeFinding();
     const output = { ...makeOutput([finding]), attack_surface: [makeSurface(finding)] };
     await store.writeJson(store.candidatesPath, output);

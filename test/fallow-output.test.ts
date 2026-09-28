@@ -47,7 +47,7 @@ it.each([undefined, null, "", "   ", 3])("rejects missing or invalid identities"
 
 it("rejects stored ambiguous candidates before making an engine request", async () => {
   const loaded = makeLoaded(await makeProject());
-  const store = openStore(loaded.dataDir);
+  const store = openStore(loaded.dataDir, "security");
   const output = duplicateOutput();
   await store.writeJson(store.candidatesPath, output);
   await syncRecords(store, makeOutput([makeFinding()]), false, loaded);
@@ -73,7 +73,7 @@ it("checks uniqueness within the selected scope and preserves prior state on sca
   );
   const loaded = makeLoaded(root);
   loaded.config.fallow.binary = binary;
-  const store = openStore(loaded.dataDir);
+  const store = openStore(loaded.dataDir, "security");
   const prior = makeOutput([makeFinding({ finding_id: "previous" })]);
   await store.writeJson(store.candidatesPath, prior);
   await syncRecords(store, prior, false, loaded);

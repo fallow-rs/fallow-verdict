@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   VERDICT_SCHEMA,
   VERDICTS_SCHEMA,
@@ -6,8 +8,21 @@ import {
 } from "../fallow/types.ts";
 import type { FindingRecord } from "../state/schema.ts";
 
+/** The evidence summary that the security adapter stores on each record. */
+export const securityEvidenceSchema = z.object({
+  truncated: z.boolean(),
+  windows: z.number(),
+  hasSource: z.boolean(),
+  hasTrace: z.boolean(),
+});
+
+export type SecurityEvidence = z.infer<typeof securityEvidenceSchema>;
+
 const toVerdict = (record: FindingRecord): FallowVerdict | null => {
-  const { decision, evidence } = record;
+  const { decision } = record;
+  const parsed = securityEvidenceSchema.safeParse(record.evidence);
+  // Missing or foreign evidence counts as not checked.
+  const evidence = parsed.success ? parsed.data : null;
   if (record.status !== "judged" || decision === null) return null;
   return {
     schema_version: VERDICT_SCHEMA,

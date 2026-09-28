@@ -16,8 +16,13 @@ import {
   type JudgeSummary,
 } from "../pipeline/judge.ts";
 import { scanWith } from "../pipeline/scan.ts";
-import { buildReport, renderHuman, renderMarkdown, type Report } from "../report/render.ts";
-import type { FindingRecord } from "../state/schema.ts";
+import {
+  buildReport,
+  renderHuman,
+  renderMarkdown,
+  type KindPresentation,
+  type Report,
+} from "../report/render.ts";
 import { openStore, type Store } from "../state/store.ts";
 import { EXIT, verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
@@ -32,7 +37,12 @@ export default defineConfig({
 });
 `;
 
-type Context = { options: CliOptions; loaded: LoadedConfig; store: Store; signal: AbortSignal };
+export type Context = {
+  options: CliOptions;
+  loaded: LoadedConfig;
+  store: Store;
+  signal: AbortSignal;
+};
 type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
   Output,
   Candidate,
@@ -62,7 +72,7 @@ const createEngine = (loaded: LoadedConfig): Result<DecisionEngine, VerdictError
 };
 
 const onJudgeProgress =
-  (options: CliOptions) =>
+  (options: CliOptions, presentation: KindPresentation) =>
   (event: JudgeProgress): void => {
     if (event.type === "plan") {
       progress(
@@ -73,7 +83,7 @@ const onJudgeProgress =
       const decision = event.record.decision;
       const label =
         decision?.verdict === "survivor"
-          ? "Likely vulnerability"
+          ? presentation.survivor.label
           : decision?.verdict === "dismissed"
             ? "Dismissed"
             : decision?.verdict === "needs-human-review"
@@ -114,7 +124,7 @@ const runJudge = async <Output, Candidate, Built extends BuiltEvidence>(
     maxCostUsd: options.maxCostUsd,
     maxDurationMs: options.maxDurationMs,
     signal,
-    onProgress: onJudgeProgress(options),
+    onProgress: onJudgeProgress(options, adapter.report),
   });
 };
 
@@ -145,14 +155,6 @@ const candidateIds = async <Output, Candidate, Built extends BuiltEvidence>(
   );
 };
 
-const recordsOfKind = async (
-  kind: FindingRecord["kind"],
-  store: Store,
-): Promise<{ records: FindingRecord[]; corrupt: string[] }> => {
-  const { records, corrupt } = await store.readRecords();
-  return { records: records.filter((record) => record.kind === kind), corrupt };
-};
-
 const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   context: Context,
@@ -160,7 +162,7 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   const { options, loaded, store } = context;
   const refreshed = await refreshVerdictsWith(adapter, loaded, store);
   if (!refreshed.ok) return refreshed;
-  const { records, corrupt } = await recordsOfKind(adapter.kind, store);
+  const { records, corrupt } = await store.readRecords();
   for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
 
   const candidates = await candidateIds(adapter, store);
@@ -173,12 +175,15 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
     if (!validated.ok) return validated;
   }
 
-  const report = buildReport(records.filter((record) => ids.has(record.finding_id)));
-  await writeFile(store.reportPath, renderMarkdown(report));
+  const report = buildReport(
+    records.filter((record) => ids.has(record.finding_id)),
+    adapter.priority,
+  );
+  await writeFile(store.reportPath, renderMarkdown(report, adapter.report));
   return ok({
     exitCode: exitCodeFor(report, options.failOn ?? loaded.config.failOn),
     json: report,
-    human: renderHuman(report, options.showDismissed),
+    human: renderHuman(report, adapter.report, options.showDismissed),
   });
 };
 
@@ -214,7 +219,7 @@ const runEval = async <Output, Candidate, Built extends BuiltEvidence>(
   if (!labels.success) {
     return err(verdictError("config_invalid", `Invalid labels file: ${labels.error.message}`));
   }
-  const { records } = await recordsOfKind(adapter.kind, store);
+  const { records } = await store.readRecords();
   const candidates = await candidateIds(adapter, store);
   if (!candidates.ok) return candidates;
   const ids = candidates.data;
@@ -250,20 +255,42 @@ const runEval = async <Output, Candidate, Built extends BuiltEvidence>(
   });
 };
 
-const dispatchKind = async <Output, Candidate, Built extends BuiltEvidence>(
+/** A usage error for an option that the selected kind does not support, or null. */
+export const unsupportedOption = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  options: CliOptions,
+): VerdictError | null => {
+  if (options.questionProfile !== undefined && !adapter.supports.questionProfile)
+    return verdictError(
+      "config_invalid",
+      `--question-profile is not available for the ${adapter.kind} kind.`,
+      "Remove --question-profile, or select a kind that supports it.",
+    );
+  if (options.command === "eval" && !adapter.supports.eval)
+    return verdictError(
+      "config_invalid",
+      `\`eval\` is not available for the ${adapter.kind} kind.`,
+    );
+  return null;
+};
+
+/** Runs one command for one kind. The store must hold the state of that kind. */
+export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   context: Context,
 ): Promise<Outcome> => {
   const { options, loaded, store } = context;
   const scanOptions = { changedSince: options.changedSince, paths: options.positionals };
+  const unsupported = unsupportedOption(adapter, options);
+  if (unsupported !== null) return err(unsupported);
 
   if (options.command === "status") {
-    const { records } = await recordsOfKind(adapter.kind, store);
-    const report = buildReport(records);
+    const { records } = await store.readRecords();
+    const report = buildReport(records, adapter.priority);
     return ok({
       exitCode: EXIT.ok,
       json: report,
-      human: renderHuman(report, options.showDismissed),
+      human: renderHuman(report, adapter.report, options.showDismissed),
     });
   }
   const release = await store.lock();
@@ -315,7 +342,7 @@ const dispatchKind = async <Output, Candidate, Built extends BuiltEvidence>(
 };
 
 const dispatch = (context: Context): Promise<Outcome> =>
-  kindFor(context.options.kind).use((adapter) => dispatchKind(adapter, context));
+  kindFor(context.options.analysisKind).use((adapter) => dispatchKind(adapter, context));
 
 const printError = (error: VerdictError, format: CliOptions["format"]): void => {
   if (format === "json") {
@@ -363,7 +390,7 @@ export const main = async (argv: readonly string[]): Promise<number> => {
               questionProfile: options.questionProfile ?? loaded.data.config.questionProfile,
             },
           },
-          store: openStore(loaded.data.dataDir),
+          store: openStore(loaded.data.dataDir, options.analysisKind),
           signal: controller.signal,
         })
       : loaded;

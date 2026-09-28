@@ -56,14 +56,14 @@ describe("analysis kind registry", () => {
 describe("--kind", () => {
   it("defaults to security", () => {
     const parsed = parseCli(["scan"]);
-    expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.kind).toBe(
+    expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.analysisKind).toBe(
       "security",
     );
   });
 
   it.each(["scan", "judge", "run", "report", "status"])("accepts security for %s", (command) => {
     const parsed = parseCli([command, "--kind", "security", "--dry-run"]);
-    expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.kind).toBe(
+    expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.analysisKind).toBe(
       "security",
     );
   });
@@ -80,7 +80,7 @@ describe("finding records", () => {
   it("stores the analysis kind on new records", async () => {
     const root = await makeProject();
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const output = makeOutput([makeFinding()]);
     await store.writeJson(store.candidatesPath, output);
     await syncRecords(store, output, false);
@@ -92,7 +92,7 @@ describe("finding records", () => {
   it("loads a record without a kind as a security record and judges it", async () => {
     const root = await makeProject();
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const finding = makeFinding();
     const output = makeOutput([finding]);
     await store.writeJson(store.candidatesPath, output);

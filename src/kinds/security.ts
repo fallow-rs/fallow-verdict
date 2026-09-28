@@ -4,7 +4,8 @@ import { buildPacket, type BuiltPacket } from "../packet/build.ts";
 import { decide } from "../policy/decide.ts";
 import { QUESTION_SET_VERSION } from "../questions/catalog.ts";
 import { questionHash, questionsForProfile } from "../questions/category.ts";
-import { toVerdictsFile } from "../verdicts/export.ts";
+import { securityPresentation, securityPriority } from "../report/security.ts";
+import { toVerdictsFile, type SecurityEvidence } from "../verdicts/export.ts";
 import type { AnalysisAdapter } from "./adapter.ts";
 
 /** `fallow security` candidates, judged per sink and joined by `fallow security survivors`. */
@@ -24,16 +25,15 @@ export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, B
   },
   identity: (finding) => ({
     finding_id: finding.finding_id,
-    path: finding.path,
-    line: finding.line,
-    col: finding.col ?? null,
+    locations: [{ path: finding.path, line: finding.line, col: finding.col ?? null }],
     category: finding.category ?? null,
     severity: finding.severity,
   }),
+  priority: securityPriority,
   packet: {
     build: (finding, output, loaded) =>
       buildPacket(finding, output, { root: loaded.root, ...loaded.config.packet }),
-    summary: (built) => ({
+    summary: (built): SecurityEvidence => ({
       truncated: built.truncated,
       windows: built.packet.source_windows.length,
       hasSource: built.packet.source_windows.some((window) => window.roles.includes("source")),
@@ -46,6 +46,8 @@ export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, B
     hash: (built, loaded) => questionHash(built.packet, loaded.config.questionProfile),
   },
   policy: (answers, built, loaded) => decide(answers, built, loaded.config.policy),
+  report: securityPresentation,
+  supports: { questionProfile: true, eval: true },
   export: {
     verdicts: toVerdictsFile,
     validate: (loaded, store) =>

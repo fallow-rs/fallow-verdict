@@ -1,5 +1,5 @@
 import type { AnalysisAdapter, BuiltEvidence } from "./adapter.ts";
-import type { AnalysisKind } from "./names.ts";
+import type { AnalysisKind, KindName } from "./names.ts";
 import { securityAdapter } from "./security.ts";
 
 /** Receives an adapter without knowing its output, candidate and packet types. */
@@ -12,7 +12,7 @@ export type AdapterUser<R> = <Output, Candidate, Built extends BuiltEvidence>(
  * types, so the registry cannot hold the adapters directly without losing type safety.
  */
 export type RegisteredKind = {
-  kind: AnalysisKind;
+  kind: KindName;
   use: <R>(user: AdapterUser<R>) => R;
 };
 

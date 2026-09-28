@@ -1,20 +1,53 @@
 import { styleText } from "node:util";
 
-import type { VerdictStatus } from "../fallow/types.ts";
-import type { FixDirection } from "../fallow/types.ts";
-import type { DismissalReason, PolicyRule } from "../policy/decide.ts";
-import type { FindingRecord } from "../state/schema.ts";
+import { recordLocations, type FindingRecord, type StoredDecision } from "../state/schema.ts";
 import { formatUsd } from "../util/tokens.ts";
 
 export const REPORT_SCHEMA = "fallow-verdict-report/v1";
 
-const SEVERITY_RANK = { high: 0, medium: 1, low: 2 } as const;
+type VerdictStatus = StoredDecision["verdict"];
+
 const VERDICT_ORDER: readonly VerdictStatus[] = ["survivor", "needs-human-review", "dismissed"];
-const VERDICT_TITLE: Record<VerdictStatus, string> = {
-  survivor: "Likely vulnerabilities",
-  "needs-human-review": "Needs review",
-  dismissed: "Dismissed",
+
+/** The kind-specific lines for one judged finding. */
+export type FindingText = {
+  /** What Fallow reported, for example the category and severity. */
+  facts: string;
+  /** Why the policy chose the verdict, or null when the group heading says enough. */
+  explanation: string | null;
+  /** The model estimate behind the verdict. */
+  estimate: string;
+  suggestion: string | null;
 };
+
+/**
+ * The words and evidence lines that a kind supplies to the shared reports. The three verdict
+ * values are shared; only `survivor` has a meaning that depends on the kind.
+ */
+export type KindPresentation = {
+  /** Report heading, for example "Security review". */
+  title: string;
+  /** Lead paragraph of the Markdown report. */
+  intro: string;
+  survivor: {
+    /** Group heading, for example "Likely vulnerabilities". */
+    heading: string;
+    /** Progress label for one finding, for example "Likely vulnerability". */
+    label: string;
+    /** Count noun in the summary line, for example "likely vulnerabilities". */
+    count: string;
+    /** First line under the group heading. */
+    note: string;
+  };
+  describe: (record: FindingRecord, decision: StoredDecision) => FindingText;
+};
+
+const verdictTitle = (presentation: KindPresentation, verdict: VerdictStatus): string =>
+  verdict === "survivor"
+    ? presentation.survivor.heading
+    : verdict === "needs-human-review"
+      ? "Needs review"
+      : "Dismissed";
 
 export type ReportSummary = {
   candidates: number;
@@ -34,14 +67,20 @@ export type Report = {
   findings: FindingRecord[];
 };
 
-const byPriority = (a: FindingRecord, b: FindingRecord): number =>
-  SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
-  (b.decision?.confidence ?? 0) - (a.decision?.confidence ?? 0) ||
-  a.path.localeCompare(b.path) ||
-  a.line - b.line ||
-  (a.col ?? -1) - (b.col ?? -1);
+const byPriority =
+  (priority: (record: FindingRecord) => number) =>
+  (a: FindingRecord, b: FindingRecord): number =>
+    priority(a) - priority(b) ||
+    (b.decision?.confidence ?? 0) - (a.decision?.confidence ?? 0) ||
+    a.path.localeCompare(b.path) ||
+    a.line - b.line ||
+    (a.col ?? -1) - (b.col ?? -1);
 
-export const buildReport = (records: readonly FindingRecord[]): Report => {
+/** `priority` is the adapter priority of the kind: a lower value comes first. */
+export const buildReport = (
+  records: readonly FindingRecord[],
+  priority: (record: FindingRecord) => number,
+): Report => {
   const live = records.filter((record) => record.status !== "resolved");
   const count = (verdict: VerdictStatus): number =>
     live.filter((record) => record.status === "judged" && record.decision?.verdict === verdict)
@@ -59,7 +98,7 @@ export const buildReport = (records: readonly FindingRecord[]): Report => {
       resolved: records.length - live.length,
       costUsd: records.reduce((sum, record) => sum + (record.usage?.costUsd ?? 0), 0),
     },
-    findings: live.toSorted(byPriority),
+    findings: live.toSorted(byPriority(priority)),
   };
 };
 
@@ -68,83 +107,12 @@ const group = (report: Report, verdict: VerdictStatus): FindingRecord[] =>
     (record) => record.status === "judged" && record.decision?.verdict === verdict,
   );
 
-const summaryLine = ({ summary }: Report): string =>
-  `${summary.candidates} candidates: ${summary.survivors} likely vulnerabilities, ` +
+const summaryLine = ({ summary }: Report, presentation: KindPresentation): string =>
+  `${summary.candidates} candidates: ${summary.survivors} ${presentation.survivor.count}, ` +
   `${summary.needsHumanReview} need review, ${summary.dismissed} dismissed` +
   (summary.pending > 0 ? `, ${summary.pending} pending` : "") +
   (summary.errors > 0 ? `, ${summary.errors} errors` : "") +
   (summary.resolved > 0 ? `, ${summary.resolved} no longer reported by Fallow` : "");
-
-const INTRO =
-  "Fallow found these candidates; Jev assessed the supplied code. Review the evidence before acting on a verdict.";
-
-type SavedDecision = NonNullable<FindingRecord["decision"]>;
-
-const REVIEW_REASONS: Readonly<Partial<Record<string, string>>> = {
-  "evidence-missing":
-    "Required source evidence or model answers are missing. Check the inputs and rerun the assessment.",
-  "tampering-suspected":
-    "Jev detected text aimed at influencing the assessment. Review that text with the surrounding code.",
-  "truncated-evidence":
-    "The evidence was shortened to fit the request budget. Review the omitted context before dismissing this candidate.",
-  "evidence-conflict":
-    "Jev's exploitability estimate conflicts with its answers about the input or protections. Check how input reaches the sensitive operation.",
-  uncertain:
-    "Review how input reaches the sensitive operation and check the protections along that path.",
-} satisfies Record<Exclude<PolicyRule, "survivor" | "dismissed">, string>;
-
-const DISMISSAL_REASONS: Readonly<Partial<Record<string, string>>> = {
-  "not-attacker-controlled": "Jev considers the input outside an attacker's control.",
-  "does-not-reach-sink": "Jev considers the input unable to reach the sensitive operation.",
-  mitigated: "Jev considers the protection in the supplied code effective.",
-  "non-production-code": "Jev identifies this as code that does not run in production.",
-} satisfies Record<DismissalReason, string>;
-
-const explanation = (decision: SavedDecision): string => {
-  if (decision.verdict === "needs-human-review") {
-    const label = decision.rule === "uncertain" ? "Assessment inconclusive" : "Review required";
-    const reason = Object.hasOwn(REVIEW_REASONS, decision.rule)
-      ? (REVIEW_REASONS[decision.rule] ?? decision.reason)
-      : decision.reason;
-    return `${label}: ${reason}`;
-  }
-  if (decision.rule === "survivor")
-    return "Jev assessed these as exploitable in the supplied code.";
-  if (decision.rule === "dismissed")
-    return decision.dismissalReason === null
-      ? decision.reason
-      : (DISMISSAL_REASONS[decision.dismissalReason] ?? decision.reason);
-  return decision.reason;
-};
-
-const categoryLabel = (category: string | null): string => {
-  if (category === "redos" || category === "redos-regex")
-    return "Regular expression denial of service";
-  const label = (category ?? "client-server-leak").replaceAll("-", " ");
-  return label.replace(/\b(ssrf|sql|nosql|xss|redos)\b/g, (word) =>
-    word === "redos" ? "ReDoS" : word === "nosql" ? "NoSQL" : word.toUpperCase(),
-  );
-};
-
-const estimate = (decision: SavedDecision): string => {
-  const p = decision.probabilities.exploitable;
-  return `Model estimate of exploitability: ${p !== undefined && Number.isFinite(p) ? `${(p * 100).toFixed(0)}%` : "unavailable"}.`;
-};
-
-const nextStep = (decision: SavedDecision): string | null => {
-  if (decision.fixDirection === null) return null;
-  const directions: Readonly<Partial<Record<string, string>>> = {
-    "delete-dead-code": "Remove unused code",
-    "validate-input": "Validate the input",
-    "escape-output": "Escape the output",
-    "avoid-shell": "Use an API that keeps input separate from commands or queries",
-    "restrict-url": "Restrict the destination URL",
-    "add-authz-check": "Check authorization",
-    "harden-config": "Review the security configuration",
-    "needs-design-review": "Review the design",
-  } satisfies Record<FixDirection, string>;
-  return `Suggested approach: ${directions[decision.fixDirection] ?? decision.fixDirection.replaceAll("-", " ")}.`;
-};
 
 const verdictColor = (verdict: VerdictStatus): "red" | "yellow" | "dim" =>
   verdict === "survivor" ? "red" : verdict === "needs-human-review" ? "yellow" : "dim";
@@ -153,7 +121,9 @@ const incomplete = (report: Report): FindingRecord[] =>
   report.findings.filter((record) => record.status === "pending" || record.status === "error");
 
 const location = (record: FindingRecord): string =>
-  `${record.path}:${record.line}${record.col == null ? "" : `:${record.col}`}`;
+  recordLocations(record)
+    .map(({ path, line, col }) => `${path}:${line}${col == null ? "" : `:${col}`}`)
+    .join(", ");
 
 const NEXT_ASSESSMENT =
   "No current assessment. Run fallow-verdict judge with the same config and question profile to continue.";
@@ -161,29 +131,40 @@ const NEXT_ASSESSMENT =
 const incompleteReason = (record: FindingRecord): string | null =>
   record.error === null ? null : `${record.error.code}: ${record.error.message}`;
 
-export const renderHuman = (report: Report, showDismissed: boolean): string => {
-  const lines: string[] = [styleText("bold", "Security review"), "", summaryLine(report), ""];
+export const renderHuman = (
+  report: Report,
+  presentation: KindPresentation,
+  showDismissed: boolean,
+): string => {
+  const lines: string[] = [
+    styleText("bold", presentation.title),
+    "",
+    summaryLine(report, presentation),
+    "",
+  ];
   if (report.summary.candidates === 0) lines.push("No active candidates in this report.", "");
   for (const verdict of VERDICT_ORDER) {
     const records = group(report, verdict);
     if (records.length === 0 || (verdict === "dismissed" && !showDismissed)) continue;
     lines.push(
-      styleText(["bold", verdictColor(verdict)], `${VERDICT_TITLE[verdict]} (${records.length})`),
+      styleText(
+        ["bold", verdictColor(verdict)],
+        `${verdictTitle(presentation, verdict)} (${records.length})`,
+      ),
     );
-    if (verdict === "survivor")
-      lines.push("Jev assessed these as exploitable in the supplied code.");
+    if (verdict === "survivor") lines.push(presentation.survivor.note);
     for (const record of records) {
       const decision = record.decision;
       if (decision === null) continue;
+      const text = presentation.describe(record, decision);
       lines.push(
         "",
         `  ${location(record)}`,
-        `  ${categoryLabel(record.category)} | Fallow severity: ${record.severity}`,
-        ...(decision.rule === "survivor" ? [] : [`  ${explanation(decision)}`]),
-        styleText("dim", `  ${estimate(decision)}`),
+        `  ${text.facts}`,
+        ...(text.explanation === null ? [] : [`  ${text.explanation}`]),
+        styleText("dim", `  ${text.estimate}`),
       );
-      const suggestion = nextStep(decision);
-      if (suggestion !== null) lines.push(`  ${suggestion}`);
+      if (text.suggestion !== null) lines.push(`  ${text.suggestion}`);
     }
     lines.push("");
   }
@@ -213,29 +194,35 @@ export const renderHuman = (report: Report, showDismissed: boolean): string => {
 const escapeText = (text: string): string =>
   text.replaceAll(/[\\`*_{}[\]<>#|!]/g, "\\$&").replaceAll(/[\r\n]/g, " ");
 
-export const renderMarkdown = (report: Report): string => {
-  const lines: string[] = ["# Security review", "", summaryLine(report), "", INTRO, ""];
+export const renderMarkdown = (report: Report, presentation: KindPresentation): string => {
+  const lines: string[] = [
+    `# ${presentation.title}`,
+    "",
+    summaryLine(report, presentation),
+    "",
+    presentation.intro,
+    "",
+  ];
   if (report.summary.candidates === 0) lines.push("No active candidates in this report.", "");
   for (const verdict of VERDICT_ORDER) {
     const records = group(report, verdict);
     if (records.length === 0) continue;
-    lines.push(`## ${VERDICT_TITLE[verdict]} (${records.length})`, "");
-    if (verdict === "survivor")
-      lines.push("Jev assessed these as exploitable in the supplied code.", "");
+    lines.push(`## ${verdictTitle(presentation, verdict)} (${records.length})`, "");
+    if (verdict === "survivor") lines.push(presentation.survivor.note, "");
     for (const record of records) {
       const decision = record.decision;
       if (decision === null) continue;
+      const text = presentation.describe(record, decision);
       lines.push(
         `### ${escapeText(location(record))}`,
         "",
-        `${escapeText(categoryLabel(record.category))} | Fallow severity: ${record.severity}`,
+        escapeText(text.facts),
         "",
-        ...(decision.rule === "survivor" ? [] : [escapeText(explanation(decision)), ""]),
-        estimate(decision),
+        ...(text.explanation === null ? [] : [escapeText(text.explanation), ""]),
+        escapeText(text.estimate),
         "",
       );
-      const suggestion = nextStep(decision);
-      if (suggestion !== null) lines.push(escapeText(suggestion), "");
+      if (text.suggestion !== null) lines.push(escapeText(text.suggestion), "");
       lines.push(
         "<details>",
         "<summary>Assessment details</summary>",

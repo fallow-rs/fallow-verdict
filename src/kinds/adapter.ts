@@ -1,10 +1,11 @@
 import type { LoadedConfig } from "../config/load.ts";
 import type { Answer, Question } from "../engine/types.ts";
-import type { FindingRecord, StoredDecision } from "../state/schema.ts";
+import type { KindPresentation } from "../report/render.ts";
+import type { FindingRecord, Location, StoredDecision } from "../state/schema.ts";
 import type { Store } from "../state/store.ts";
 import type { VerdictError } from "../util/errors.ts";
 import type { Result } from "../util/result.ts";
-import type { AnalysisKind } from "./names.ts";
+import type { KindName } from "./names.ts";
 
 export type ScanScope = {
   changedSince?: string | undefined;
@@ -12,10 +13,13 @@ export type ScanScope = {
 };
 
 /** The fields of a finding record that come from the candidate itself. */
-export type CandidateIdentity = Pick<
-  FindingRecord,
-  "finding_id" | "path" | "line" | "col" | "category" | "severity"
->;
+export type CandidateIdentity = Pick<FindingRecord, "finding_id" | "category" | "severity"> & {
+  /** Every location of the candidate, primary first. A similar-code pair has two. */
+  locations: readonly [Location, ...Location[]];
+};
+
+/** Kind-owned evidence summary. The pipeline reads only `truncated`. */
+export type EvidenceSummary = NonNullable<FindingRecord["evidence"]>;
 
 /** The part of a built packet that the shared pipeline reads. */
 export type BuiltEvidence = {
@@ -32,7 +36,7 @@ export type BuiltEvidence = {
  * staleness, budgets, retries and reports; an adapter supplies the six parts below.
  */
 export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
-  kind: AnalysisKind;
+  kind: KindName;
   /** Run the Fallow command, validate its schema version, and return candidates. */
   scan: {
     run: (loaded: LoadedConfig, scope: ScanScope) => Promise<Result<Output, VerdictError>>;
@@ -42,10 +46,12 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
+  /** Budget and report order: a lower value comes first, so a cap spends on what matters most. */
+  priority: (record: FindingRecord) => number;
   /** Build the evidence packet and its fingerprint. */
   packet: {
     build: (candidate: Candidate, output: Output, loaded: LoadedConfig) => Promise<Built>;
-    summary: (built: Built) => NonNullable<FindingRecord["evidence"]>;
+    summary: (built: Built) => EvidenceSummary;
   };
   /** The question catalog and its version. */
   questions: {
@@ -56,6 +62,15 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** A pure function from answers to a decision, with a named rule. */
   policy: (answers: Record<string, Answer>, built: Built, loaded: LoadedConfig) => StoredDecision;
+  /** Kind-specific words and evidence lines for the terminal and Markdown reports. */
+  report: KindPresentation;
+  /** Options that only some kinds support. An unsupported option is a usage error. */
+  supports: {
+    /** `--question-profile`. */
+    questionProfile: boolean;
+    /** `eval` with a `fallow-verdict-labels/v1` file. */
+    eval: boolean;
+  };
   /** Write the verdict contract and run the Fallow join command, if any. */
   export: {
     verdicts: (records: readonly FindingRecord[], candidateIds: ReadonlySet<string>) => unknown;

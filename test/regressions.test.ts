@@ -12,6 +12,7 @@ import { judge, type JudgeOptions } from "../src/pipeline/judge.ts";
 import { syncRecords } from "../src/pipeline/scan.ts";
 import { decide } from "../src/policy/decide.ts";
 import { buildReport } from "../src/report/render.ts";
+import { securityPriority } from "../src/report/security.ts";
 import { openStore, type Store } from "../src/state/store.ts";
 import { verdictError } from "../src/util/errors.ts";
 import { err, ok } from "../src/util/result.ts";
@@ -39,7 +40,7 @@ const dismissedProject = async (): Promise<{
 }> => {
   const root = await makeProject();
   const loaded = makeLoaded(root);
-  const store = openStore(loaded.dataDir);
+  const store = openStore(loaded.dataDir, "security");
   const finding = makeFinding();
   const output = makeOutput([finding]);
   await store.writeJson(store.candidatesPath, output);
@@ -74,7 +75,7 @@ describe("stale verdict safety", () => {
 
     const { records } = await store.readRecords();
     expect(toVerdictsFile(records, new Set([finding.finding_id])).verdicts).toEqual([]);
-    expect(buildReport(records).summary.dismissed).toBe(0);
+    expect(buildReport(records, securityPriority).summary.dismissed).toBe(0);
   });
 
   it("does not report a dismissal after a rescan changes candidate evidence", async () => {
@@ -84,7 +85,7 @@ describe("stale verdict safety", () => {
     await syncRecords(store, makeOutput([changed]), false);
 
     const { records } = await store.readRecords();
-    expect(buildReport(records).summary.dismissed).toBe(0);
+    expect(buildReport(records, securityPriority).summary.dismissed).toBe(0);
     expect(toVerdictsFile(records, new Set([finding.finding_id])).verdicts).toEqual([]);
   });
 });
@@ -152,7 +153,7 @@ describe("run accounting safety", () => {
   it("counts completed requests while their records are being persisted", async () => {
     const root = await makeProject();
     const loaded = makeLoaded(root, { engine: { concurrency: 2 } });
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const findings = ["one", "two", "three"].map((name) =>
       makeFinding({ finding_id: `security:${name}` }),
     );
@@ -232,7 +233,7 @@ describe("run accounting safety", () => {
 describe("store lock safety", () => {
   it("does not steal a fresh lock while its owner file is still being written", async () => {
     const root = await makeProject();
-    const store = openStore(path.join(root, ".fallow-verdict"));
+    const store = openStore(path.join(root, ".fallow-verdict"), "security");
     await mkdir(path.join(store.dataDir, ".lock"), { recursive: true });
 
     const result = await store.lock();
@@ -243,7 +244,7 @@ describe("store lock safety", () => {
 
   it("does not steal an old lock from a process that is still running", async () => {
     const root = await makeProject();
-    const store = openStore(path.join(root, ".fallow-verdict"));
+    const store = openStore(path.join(root, ".fallow-verdict"), "security");
     const first = await store.lock();
     if (!first.ok) throw new Error(first.error.message);
     const old = new Date(Date.now() - 2 * 60 * 60 * 1000);

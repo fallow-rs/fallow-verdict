@@ -69,7 +69,7 @@ describe("evaluation label integrity", () => {
   it("withholds aggregate rates for partial coverage while retaining known missed vulnerabilities", async () => {
     const root = await makeProject();
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const finding = makeFinding();
     const output = makeOutput([finding]);
     await store.writeJson(store.candidatesPath, output);

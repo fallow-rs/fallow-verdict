@@ -3,7 +3,7 @@ import type { DecisionEngine } from "../engine/types.ts";
 import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
 import { securityAdapter } from "../kinds/security.ts";
 import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
-import { newRunId, type Store } from "../state/store.ts";
+import { assertStoreKind, newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
@@ -84,9 +84,8 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
     if (!rejudge && isCurrent(adapter, record, built, loaded)) current.push({ record, built });
     else jobs.push({ record, built });
   }
-  // Highest severity first, so a budget cap spends on what matters most.
-  const rank = { high: 0, medium: 1, low: 2 } as const;
-  jobs.sort((a, b) => rank[a.record.severity] - rank[b.record.severity]);
+  // The kind decides what matters most, so a budget cap spends on that first.
+  jobs.sort((a, b) => adapter.priority(a.record) - adapter.priority(b.record));
   return { jobs, current };
 };
 
@@ -199,12 +198,13 @@ const loadState = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   store: Store,
 ): Promise<Result<{ output: Output; records: FindingRecord[] }, VerdictError>> => {
+  assertStoreKind(store, adapter.kind);
   const raw = await store.readJson(store.candidatesPath);
   if (!raw.ok) return raw;
   const output = adapter.scan.parse(raw.data);
   if (!output.ok) return output;
   const read = await store.readRecords();
-  const records = read.records.filter((record) => record.kind === adapter.kind);
+  const { records } = read;
   const recorded = new Set(
     records.filter((record) => record.status !== "resolved").map((record) => record.finding_id),
   );
@@ -293,6 +293,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   const run: RunRecord = {
     schema_version: RUN_SCHEMA,
     runId,
+    kind: adapter.kind,
     command: "judge",
     startedAt: new Date().toISOString(),
     completedAt: null,

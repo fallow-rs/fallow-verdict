@@ -9,6 +9,11 @@
     "runId": {
       "type": "string"
     },
+    "kind": {
+      "default": "security",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
     "command": {
       "type": "string"
     },

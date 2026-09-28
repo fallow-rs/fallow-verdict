@@ -5,6 +5,14 @@ import { err, ok, type Result } from "../util/result.ts";
 export const ANALYSIS_KINDS = ["security"] as const;
 export type AnalysisKind = (typeof ANALYSIS_KINDS)[number];
 
+/**
+ * The name of any analysis kind, registered or not. A kind name is also a directory name under
+ * `kinds/` in the state directory, so it must be a safe path segment.
+ */
+export type KindName = string;
+
+export const KIND_NAME_PATTERN = /^[a-z][a-z0-9-]*$/;
+
 /** Records without a `kind` field were written before kinds existed and are security records. */
 export const DEFAULT_KIND: AnalysisKind = "security";
 
