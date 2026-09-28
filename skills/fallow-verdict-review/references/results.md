@@ -14,8 +14,9 @@ To limit the cost of one run, add `--limit <n>` or `--max-cost-usd <usd>`. A cha
 
 ## Output of the dry run
 
-`npx fallow-verdict run --kind review --changed-since <base> --dry-run --format json --quiet`
-prints one object. Show `pending` (functions to assess) and `estimatedUsd` to the user.
+`npx fallow-verdict run --kind review --changed-since <base> --dry-run --fail-on off --format json --quiet`
+prints one object. Show `pending` (functions to assess) and `estimatedUsd` to the user. Its
+`actions` array has one `run` action: the same command without `--dry-run`.
 
 ## Fields of `report`
 

@@ -9,9 +9,10 @@
 
 ## Output of the dry run
 
-`npx fallow-verdict run --dry-run --format json --quiet` prints one object. Show `pending`,
+`npx fallow-verdict run --dry-run --fail-on off --format json --quiet` prints one object. Show `pending`,
 `estimatedUsd` and `maxConfirmationUsd` to the user. `maxConfirmationUsd` is the upper bound of
-the second calls that confirm a dismissal.
+the second calls that confirm a dismissal. Its `actions` array has one `run` action: the same
+command without `--dry-run`. Run that command after a yes from the user.
 
 ## Fields of `report`
 
@@ -27,6 +28,19 @@ the second calls that confirm a dismissal.
 | `decision.confidence`   | The decision confidence                                                   |
 | `decision.reason`       | Why. Show it with each finding.                                           |
 | `decision.fixDirection` | A fix hint, or null                                                       |
+
+## Actions of `run` and `report`
+
+The report output of `run` and `report` has an `actions` array. Each action has `type`,
+`auto_fixable` (always `false`), `description`, `command` and, for one finding, `finding_id`.
+
+| Type    | When                                         | Next step                         |
+| ------- | -------------------------------------------- | --------------------------------- |
+| `judge` | Findings are pending or failed               | Tell the user. Run it after a yes |
+| `check` | A survivor or a `needs-human-review` finding | Run it after a fix                |
+| `close` | A `needs-human-review` finding               | Send it to the user. Never run it |
+
+Dismissed and closed findings have no action.
 
 `pending` or `errors` above zero means an incomplete run. Tell the user. A run with incomplete
 assessments exits 2, also with `--fail-on off`.

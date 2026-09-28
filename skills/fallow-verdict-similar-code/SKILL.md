@@ -14,8 +14,9 @@ the pairs that Jev marks safe, and the tests prove each merge.
 
 1. Run `--dry-run` first. Show the estimated cost to the user and wait for a yes.
 2. Pass `--fail-on off` to each real run and to each `report`.
-3. Parse `--format json --quiet` output. Take commands and options only from
-   `npx fallow-verdict --help`. Do not invent options.
+3. Parse `--format json --quiet` output. Use the `actions` arrays of `run`, `report` and
+   `check`. Take commands and options only from `npx fallow-verdict <command> --help`. Do not
+   invent options.
 4. Config, suppressions, thresholds and `close` go to the user for a decision.
 5. Never run fallow-verdict in a hook that fires on each commit or each assistant turn.
 6. The Jev key is in `TYPESAFE_API_KEY`. Never ask the user to paste the key into the chat.
@@ -41,10 +42,11 @@ Report pairs and clones outside the scope to the user. Do not merge them.
 2. Estimate the cost. fallow-verdict runs the discovery itself:
 
    ```bash
-   npx fallow-verdict run --kind similar-code --dry-run --format json --quiet
+   npx fallow-verdict run --kind similar-code --dry-run --fail-on off --format json --quiet
    ```
 
-3. After a yes from the user, run the assessment and read the report:
+3. After a yes from the user, run the command of the `run` action of the dry run. It is the
+   same command without `--dry-run`. Then read the report:
 
    ```bash
    npx fallow-verdict run --kind similar-code --fail-on off --format json --quiet

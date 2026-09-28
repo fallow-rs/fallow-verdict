@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "running",
+        "done",
+        "error",
+        "interrupted",
+        "budget-exhausted"
+      ]
+    },
+    "judged": {
+      "type": "number"
+    },
+    "upToDate": {
+      "type": "number"
+    },
+    "errors": {
+      "type": "number"
+    },
+    "pending": {
+      "type": "number"
+    },
+    "inputTokens": {
+      "type": "number"
+    },
+    "costUsd": {
+      "type": "number"
+    },
+    "estimatedUsd": {
+      "type": "number"
+    },
+    "maxConfirmationUsd": {
+      "type": "number"
+    },
+    "fatal": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "hint": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "run",
+              "judge",
+              "check",
+              "close",
+              "report"
+            ]
+          },
+          "auto_fixable": {
+            "type": "boolean",
+            "const": false
+          },
+          "description": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "finding_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "auto_fixable",
+          "description",
+          "command"
+        ]
+      }
+    }
+  },
+  "required": [
+    "runId",
+    "outcome",
+    "judged",
+    "upToDate",
+    "errors",
+    "pending",
+    "inputTokens",
+    "costUsd",
+    "estimatedUsd",
+    "maxConfirmationUsd",
+    "fatal",
+    "actions"
+  ]
+}

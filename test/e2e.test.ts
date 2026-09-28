@@ -171,7 +171,15 @@ it("gives the same output and state for run --dry-run with and without --kind se
         JSON.stringify({ fallow: { binary: path.join(repo, "node_modules/.bin/fallow") } }),
       );
       const result = await runCli(root, args);
-      const { runId: _runId, ...output } = result.data as { runId: string };
+      // The actions repeat the arguments and the temporary directory, so they differ on purpose.
+      const {
+        runId: _runId,
+        actions,
+        ...output
+      } = result.data as { runId: string; actions: { command: string }[] };
+      expect(actions.map((action) => action.command)).toEqual([
+        `fallow-verdict ${args.filter((arg) => arg !== "--dry-run").join(" ")} --cwd ${root} --format json`,
+      ]);
       results.push({
         code: result.code,
         output,

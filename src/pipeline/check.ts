@@ -18,6 +18,7 @@ import type { FindingRecord } from "../state/schema.ts";
 import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
+import { quote } from "../util/shell.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
 import { confirmedVerdicts, FATAL_CODES, judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
@@ -149,10 +150,6 @@ const AMBIGUOUS_REASONS: Readonly<Record<AmbiguousReason, string>> = {
 
 /** Written into `judgeOne` history entries, which `check` never stores. */
 const CHECK_RUN_ID = "check";
-const SHELL_SAFE = /^[\w./:@=+,-]+$/;
-
-const quote = (value: string): string =>
-  SHELL_SAFE.test(value) ? value : `'${value.replaceAll("'", "'\\''")}'`;
 
 const toPosix = (file: string): string => file.split(path.sep).join("/");
 

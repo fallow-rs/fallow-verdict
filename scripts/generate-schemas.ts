@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { configSchema } from "../src/config/schema.ts";
 import { labelsSchema } from "../src/eval/metrics.ts";
+import { judgeOutputSchema, reportOutputSchema } from "../src/report/actions.ts";
 import { checkReportSchema } from "../src/report/check.ts";
 import { recordSchema, runSchema, securityEvidenceSchema } from "../src/state/schema.ts";
 
@@ -13,6 +14,8 @@ const SCHEMAS = {
   run: runSchema,
   labels: labelsSchema,
   check: checkReportSchema,
+  report: reportOutputSchema,
+  judge: judgeOutputSchema,
 } as const;
 
 const toJson = (schema: z.ZodType): Record<string, unknown> =>

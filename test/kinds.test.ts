@@ -62,7 +62,7 @@ describe("--kind", () => {
   });
 
   it.each(["scan", "judge", "run", "report", "status"])("accepts security for %s", (command) => {
-    const parsed = parseCli([command, "--kind", "security", "--dry-run"]);
+    const parsed = parseCli([command, "--kind", "security"]);
     expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.analysisKind).toBe(
       "security",
     );
