@@ -32,8 +32,8 @@ const runCli = (args: string[]): Promise<{ code: number; stdout: string; stderr:
   });
 
 describe("analysis kind registry", () => {
-  it("has security as the only and default kind", () => {
-    expect(ANALYSIS_KINDS).toEqual(["security"]);
+  it("has security as a kind and the default kind", () => {
+    expect(ANALYSIS_KINDS).toContain("security");
     expect(DEFAULT_KIND).toBe("security");
   });
 

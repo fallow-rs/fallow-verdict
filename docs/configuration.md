@@ -28,6 +28,14 @@ export default defineConfig({
     tamperingMax: 0.5,
     confirmDismissals: true, // a dismissal needs a second call that agrees
   },
+  review: {
+    maxUnits: 50, // functions per scan, highest risk first
+    bugFloor: 0.5, // minimum P(has_bug) for a likely problem
+    ruleFloor: 0.5, // minimum P(breach) for a rule without its own floor
+    rules: [], // project rules as sentences, see docs/review.md
+    confirmDismissals: false, // review dismissals are single calls by default
+    failOn: "off", // review mode is advisory
+  },
 });
 ```
 
@@ -51,6 +59,9 @@ The dry-run plan states an upper bound for these calls: one more call for every 
 cost cap also applies. Each candidate reserves the cost of both calls before its first call, and
 the unused share returns to the budget when the first answers do not dismiss. Thus a candidate
 starts only when the cap leaves room for both calls.
+
+The `review` section configures [review mode](review.md). The top-level `failOn` and `policy`
+apply to security; review mode has its own `failOn` and `confirmDismissals`.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.
 

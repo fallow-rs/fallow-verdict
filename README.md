@@ -183,6 +183,7 @@ visible in your own labeled examples.
 
 - [Configuration](docs/configuration.md): model settings and decision thresholds.
 - [Check and close](docs/check.md): the edit loop and its JSON contract.
+- [Review mode](docs/review.md): advisory review of risky functions and project rules.
 - [Responsibilities](docs/responsibilities.md): what belongs in Fallow and in this package.
 - [Architecture](docs/architecture.md): evidence collection and stored records.
 - [Roadmap](docs/roadmap.md): planned work and release requirements.

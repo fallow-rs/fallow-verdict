@@ -19,7 +19,7 @@ import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { FATAL_CODES, judgeOne } from "./judge.ts";
+import { confirmsDismissals, FATAL_CODES, judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
 
 /** A candidate reduced to what relocation compares. */
@@ -349,7 +349,10 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
   // One run for the whole project: a scoped run cannot see a renamed file or a moved helper.
   // For security a scoped run also analyzes the whole project, so this costs nothing more.
   // A failed run returns an error, never `resolved`.
-  const fresh = await adapter.scan.run(loaded, { signal: options.signal });
+  const fresh = await adapter.scan.run(loaded, {
+    signal: options.signal,
+    complete: target.data.paths,
+  });
   if (!fresh.ok) return fresh;
 
   const inScope = (candidate: Candidate): boolean =>
@@ -412,8 +415,7 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
     estimate.input_tokens += tokens;
     estimate.usd += tokensToUsd(tokens);
     // Each dismissal needs one more call of the same size, so this is an upper bound.
-    if (loaded.config.policy.confirmDismissals)
-      estimate.max_confirmation_usd += tokensToUsd(tokens);
+    if (confirmsDismissals(adapter, loaded)) estimate.max_confirmation_usd += tokensToUsd(tokens);
     if (options.dryRun) {
       results.push({ ...matched, status: "not-assessed", reason: "Dry run: not assessed." });
       continue;

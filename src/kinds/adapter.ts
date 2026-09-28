@@ -1,4 +1,5 @@
 import type { LoadedConfig } from "../config/load.ts";
+import type { FailOn } from "../config/schema.ts";
 import type { Answer, Question } from "../engine/types.ts";
 import type { KindPresentation } from "../report/render.ts";
 import type { FindingRecord, Location, StoredDecision } from "../state/schema.ts";
@@ -12,6 +13,13 @@ export type ScanScope = {
   paths?: readonly string[] | undefined;
   /** Stops the Fallow run, for example on an interruption. */
   signal?: AbortSignal | undefined;
+  /**
+   * Files in which the kind lists every candidate it can find, also outside its own selection
+   * and cap. `check` sets it to the target files, so a kind that selects candidates, such as
+   * review mode, cannot drop a candidate that still exists. A kind that lists everything can
+   * ignore it.
+   */
+  complete?: readonly string[] | undefined;
 };
 
 /** The fields of a finding record that come from the candidate itself. */
@@ -77,6 +85,13 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** A pure function from answers to a decision, with a named rule. */
   policy: (answers: Record<string, Answer>, built: Built, loaded: LoadedConfig) => StoredDecision;
+  /**
+   * Whether a dismissal needs a second call that agrees. Absent: `policy.confirmDismissals`.
+   * A kind sets this only when a dismissal of its kind hides nothing that Fallow reports.
+   */
+  confirmDismissals?: (loaded: LoadedConfig) => boolean;
+  /** The `failOn` level when `--fail-on` is absent. Absent: the top-level `failOn`. */
+  failOn?: (loaded: LoadedConfig) => FailOn;
   /** Kind-specific words and evidence lines for the terminal and Markdown reports. */
   report: KindPresentation;
   /** Options that only some kinds support. An unsupported option is a usage error. */

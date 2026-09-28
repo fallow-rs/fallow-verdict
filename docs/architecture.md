@@ -7,8 +7,8 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 
 ## Analysis kinds
 
-The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. Today
-`security` is the only kind and the default. The `--kind <name>` flag selects the kind for
+The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. The kinds are
+`security`, the default, and `review` (see [review mode](review.md)). The `--kind <name>` flag selects the kind for
 `scan`, `judge`, `run`, `report`, `status`, `eval`, `check` and `close`. An unknown kind is a usage error with exit
 code 2, and the message lists the known kinds.
 
@@ -26,6 +26,10 @@ An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kin
 | `report`    | The words and evidence lines of the terminal and Markdown reports      |
 | `supports`  | The options that the kind supports: `--question-profile` and `eval`    |
 | `export`    | Write the verdict contract and run the Fallow join command, if any     |
+
+Two optional parts let a kind differ from the security defaults. `confirmDismissals` says whether
+a dismissal needs a second call; without it, `policy.confirmDismissals` applies. `failOn` gives
+the `failOn` level when `--fail-on` is absent; without it, the top-level `failOn` applies.
 
 The shared pipeline owns state, staleness, budgets, retries, locking and reports. It never reads
 kind-specific fields.
@@ -52,6 +56,19 @@ An option that the selected kind does not support, such as `--question-profile` 
 usage error with exit code 2. The security adapter (`src/kinds/security.ts`) connects the existing
 modules under `src/fallow`, `src/packet`, `src/questions`, `src/policy` and `src/verdicts`.
 The registry (`src/kinds/registry.ts`) maps each name in `ANALYSIS_KINDS` to one adapter.
+
+`ScanScope.complete` lists files in which the kind must list every candidate it can find, also
+outside its own selection and cap. `check` sets it to the target files. Security lists every
+finding, so it ignores the field. Review mode lists every function in these files, so `check`
+always sees the edited function.
+
+The review adapter (`src/kinds/review.ts`) connects `src/fallow/health.ts` and the modules under
+`src/review`. It selects functions with `fallow health`, builds one packet per function, asks the
+built-in questions and the project rules in one request, and exports
+`fallow-verdict-review-verdicts/v1` with no Fallow join. Its dismissals are single calls unless
+`review.confirmDismissals` is set, and it fails a run only when `review.failOn` or `--fail-on`
+is set. Its match key is the path and the function name, and its rules block `resolved` for a
+function with the same path and name or with the same source.
 
 The stages below describe the security kind.
 
@@ -94,7 +111,8 @@ rule that fired. See [questions.md](questions.md).
 the policy gives `dismissed`, the pipeline sends the same request again. The verdict stays
 `dismissed` only when the second answers also map to `dismissed`. Otherwise the verdict is
 `needs-human-review` with the rule `dismissal-unconfirmed`. `policy.confirmDismissals: false`
-turns this off.
+turns this off. A kind can replace this setting with its own: review mode uses
+`review.confirmDismissals`, which is off by default. See [review mode](review.md#dismissal-confirmation).
 
 **verdicts** exports `fallow-security-verdicts/v1`. The `finding_id` always comes from the stored
 candidate, never from an engine response. `report` then runs `fallow security survivors`, which

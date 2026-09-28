@@ -33,7 +33,7 @@ const mergeSpans = (spans: Span[]): Span[] => {
   return merged;
 };
 
-const numberLines = (lines: readonly string[], start: number): string =>
+export const numberLines = (lines: readonly string[], start: number): string =>
   lines
     .map((line, index) => `${String(start + index).padStart(LINE_NUMBER_WIDTH)}| ${line}`)
     .join("\n");
@@ -42,7 +42,7 @@ const numberLines = (lines: readonly string[], start: number): string =>
  * Candidate paths come from a JSON file on disk. Resolving through realpath keeps a
  * crafted or symlinked path from pulling files outside the project into a request.
  */
-const readContained = async (root: string, relative: string): Promise<string[] | null> => {
+export const readContained = async (root: string, relative: string): Promise<string[] | null> => {
   try {
     const realRoot = await realpath(root);
     const resolved = await realpath(path.resolve(realRoot, relative));

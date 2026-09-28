@@ -89,6 +89,10 @@ fix one of two identical calls, the other call stays claimed, so the fixed one c
 For security, a scoped Fallow run also analyzes the whole project and filters the findings
 afterwards. Thus `check` runs Fallow once without a scope and filters the findings itself.
 
+The fresh run also names the target files. A kind that selects candidates lists every candidate
+in these files. Review mode lists every function in them, so an edited function is judged again
+and is never `resolved` while a function with the same path and name exists.
+
 ## `close <id> --reason "<text>"`
 
 ```bash
