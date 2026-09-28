@@ -450,5 +450,72 @@
     "usage",
     "error",
     "history"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {
+            "not": {
+              "required": [
+                "kind"
+              ]
+            }
+          },
+          {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "security"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "truncated": {
+                    "type": "boolean"
+                  },
+                  "windows": {
+                    "type": "number"
+                  },
+                  "hasSource": {
+                    "type": "boolean"
+                  },
+                  "hasTrace": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "truncated",
+                  "windows",
+                  "hasSource",
+                  "hasTrace"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
   ]
 }

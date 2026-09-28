@@ -1,22 +1,10 @@
-import { z } from "zod";
-
 import {
   VERDICT_SCHEMA,
   VERDICTS_SCHEMA,
   type FallowVerdict,
   type FallowVerdictsFile,
 } from "../fallow/types.ts";
-import type { FindingRecord } from "../state/schema.ts";
-
-/** The evidence summary that the security adapter stores on each record. */
-export const securityEvidenceSchema = z.object({
-  truncated: z.boolean(),
-  windows: z.number(),
-  hasSource: z.boolean(),
-  hasTrace: z.boolean(),
-});
-
-export type SecurityEvidence = z.infer<typeof securityEvidenceSchema>;
+import { securityEvidenceSchema, type FindingRecord } from "../state/schema.ts";
 
 const toVerdict = (record: FindingRecord): FallowVerdict | null => {
   const { decision } = record;

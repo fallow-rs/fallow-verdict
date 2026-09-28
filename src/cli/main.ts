@@ -23,7 +23,7 @@ import {
   type KindPresentation,
   type Report,
 } from "../report/render.ts";
-import { openStore, type Store } from "../state/store.ts";
+import { checkStoreKind, openStore, type Store } from "../state/store.ts";
 import { EXIT, verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { formatUsd } from "../util/tokens.ts";
@@ -283,6 +283,8 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
   const scanOptions = { changedSince: options.changedSince, paths: options.positionals };
   const unsupported = unsupportedOption(adapter, options);
   if (unsupported !== null) return err(unsupported);
+  const checked = checkStoreKind(store, adapter.kind);
+  if (!checked.ok) return checked;
 
   if (options.command === "status") {
     const { records } = await store.readRecords();

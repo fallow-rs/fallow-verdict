@@ -39,6 +39,9 @@ Each kind owns these parts of its records and reports:
   puts high severity first.
 - **Evidence summary.** The pipeline reads only `evidence.truncated`. The kind owns the other
   fields. Security stores `windows`, `hasSource` and `hasTrace`.
+- **Security contract.** A security record, which includes a record without `kind`, must have a
+  severity and the full security evidence summary. Otherwise it is corrupt. The record JSON schema
+  states this rule in an `allOf` with `if` and `then`.
 - **Verdict.** `survivor`, `dismissed` and `needs-human-review` are the shared vocabulary. A kind
   maps its own outcome onto them and can store its own data in `decision.kindData`.
 - **Report text.** The report layout is shared. The title, the name of a survivor and the lines
@@ -121,7 +124,8 @@ Three guards keep them apart:
 
 - A store writes only records of its own kind. Any other record is a programming error.
 - A store reads a record of another kind as corrupt, so judgment and reporting stop.
-- The scan and judge pipeline refuses a store of a different kind than its adapter.
+- The scan, judge, report and status paths refuse a store of a different kind than the adapter,
+  with the `state_corrupt` error code.
 
 ## Staleness
 

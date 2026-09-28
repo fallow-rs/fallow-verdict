@@ -3,7 +3,7 @@ import type { DecisionEngine } from "../engine/types.ts";
 import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
 import { securityAdapter } from "../kinds/security.ts";
 import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
-import { assertStoreKind, newRunId, type Store } from "../state/store.ts";
+import { checkStoreKind, newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
@@ -198,7 +198,8 @@ const loadState = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   store: Store,
 ): Promise<Result<{ output: Output; records: FindingRecord[] }, VerdictError>> => {
-  assertStoreKind(store, adapter.kind);
+  const checked = checkStoreKind(store, adapter.kind);
+  if (!checked.ok) return checked;
   const raw = await store.readJson(store.candidatesPath);
   if (!raw.ok) return raw;
   const output = adapter.scan.parse(raw.data);

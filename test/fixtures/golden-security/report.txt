@@ -1,0 +1,29 @@
+Security review
+
+3 candidates: 1 likely vulnerabilities, 1 need review, 1 dismissed
+
+Likely vulnerabilities (1)
+Jev assessed these as exploitable in the supplied code.
+
+  src/routes/user.ts:5:21
+  SQL injection | Fallow severity: high
+  Model estimate of exploitability: 94%.
+  Suggested approach: Use an API that keeps input separate from commands or queries.
+
+Needs review (1)
+
+  src/routes/user.ts:4:13
+  SSRF | Fallow severity: low
+  Review required: Jev detected text aimed at influencing the assessment. Review that text with the surrounding code.
+  Model estimate of exploitability: 94%.
+  Suggested approach: Use an API that keeps input separate from commands or queries.
+
+Dismissed (1)
+
+  src/routes/user.ts:5:40
+  SQL injection | Fallow severity: medium
+  Jev considers the protection in the supplied code effective.
+  Model estimate of exploitability: 2%.
+
+Review suggested approaches against the code before making changes.
+Recorded assessment cost: $0.0001

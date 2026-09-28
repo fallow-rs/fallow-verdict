@@ -11,8 +11,11 @@ const VERDICT_ORDER: readonly VerdictStatus[] = ["survivor", "needs-human-review
 
 /** The kind-specific lines for one judged finding. */
 export type FindingText = {
-  /** What Fallow reported, for example the category and severity. */
-  facts: string;
+  /**
+   * What Fallow reported, for example the category and the severity. The reports join the parts
+   * with ` | ` and escape each part on its own, so the separator stays plain Markdown.
+   */
+  facts: readonly string[];
   /** Why the policy chose the verdict, or null when the group heading says enough. */
   explanation: string | null;
   /** The model estimate behind the verdict. */
@@ -41,6 +44,8 @@ export type KindPresentation = {
   };
   describe: (record: FindingRecord, decision: StoredDecision) => FindingText;
 };
+
+const FACT_SEPARATOR = " | ";
 
 const verdictTitle = (presentation: KindPresentation, verdict: VerdictStatus): string =>
   verdict === "survivor"
@@ -160,7 +165,7 @@ export const renderHuman = (
       lines.push(
         "",
         `  ${location(record)}`,
-        `  ${text.facts}`,
+        `  ${text.facts.join(FACT_SEPARATOR)}`,
         ...(text.explanation === null ? [] : [`  ${text.explanation}`]),
         styleText("dim", `  ${text.estimate}`),
       );
@@ -216,7 +221,7 @@ export const renderMarkdown = (report: Report, presentation: KindPresentation): 
       lines.push(
         `### ${escapeText(location(record))}`,
         "",
-        escapeText(text.facts),
+        text.facts.map(escapeText).join(FACT_SEPARATOR),
         "",
         ...(text.explanation === null ? [] : [escapeText(text.explanation), ""]),
         escapeText(text.estimate),

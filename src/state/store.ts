@@ -26,10 +26,15 @@ export type Store = {
 };
 
 /** Guards the pipeline entry points: an adapter reads and writes only the state of its own kind. */
-export const assertStoreKind = (store: Store, kind: KindName): void => {
-  if (store.kind !== kind)
-    throw new Error(`The ${kind} pipeline cannot use the ${store.kind} state.`);
-};
+export const checkStoreKind = (store: Store, kind: KindName): Result<void, VerdictError> =>
+  store.kind === kind
+    ? ok(undefined)
+    : err(
+        verdictError(
+          "state_corrupt",
+          `The ${kind} analysis cannot use the ${store.kind} state in ${store.dataDir}.`,
+        ),
+      );
 
 /** Temp file plus rename: a crash mid-write leaves the old record, never a torn one. */
 const writeAtomic = async (file: string, content: string): Promise<void> => {

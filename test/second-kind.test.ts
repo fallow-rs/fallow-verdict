@@ -67,7 +67,7 @@ const pairPresentation: KindPresentation = {
     note: "Jev considers these functions different.",
   },
   describe: (_record, decision) => ({
-    facts: `Outcome: ${String(decision.kindData?.["outcome"] ?? "none")}`,
+    facts: [`Outcome: ${String(decision.kindData?.["outcome"] ?? "none")}`],
     explanation: null,
     estimate: `Model estimate of equivalence: ${decision.probabilities["same"] ?? 0}.`,
     suggestion: null,
@@ -281,7 +281,23 @@ describe("a second analysis kind", () => {
 
     const security = openStore(loaded.dataDir, "security");
     await expect(security.writeRecord(record)).rejects.toThrow(/test-pairs record/);
-    await expect(scanWith(pairAdapter, loaded, security, {})).rejects.toThrow(/test-pairs/);
+    const mismatch = { ok: false, error: { code: "state_corrupt" } };
+    expect(await scanWith(pairAdapter, loaded, security, {})).toMatchObject(mismatch);
+    expect(
+      await judgeWith(pairAdapter, loaded, security, pairEngine(0.5), {
+        rejudge: false,
+        dryRun: true,
+      }),
+    ).toMatchObject(mismatch);
+    for (const command of ["status", "report"]) {
+      const outcome = await dispatchKind(pairAdapter, {
+        options: optionsFor([command, "--quiet"]),
+        loaded,
+        store: security,
+        signal: new AbortController().signal,
+      });
+      expect(outcome).toMatchObject(mismatch);
+    }
 
     const findingsDir = path.join(store.dataDir, "findings");
     const [name] = await readdir(findingsDir);
@@ -319,6 +335,22 @@ describe("state compatibility", () => {
       stats: { judged: 0, skipped: 0, errors: 0, inputTokens: 0, costUsd: 0 },
     };
     expect(runSchema.parse(legacy).kind).toBe("security");
+  });
+
+  it.each([
+    ["a null severity", { severity: null }],
+    ["evidence without the security fields", { evidence: { truncated: false } }],
+  ])("reads a security record with %s as corrupt", async (_case, change) => {
+    const { loaded, store } = await securityState();
+    const findingsDir = path.join(loaded.dataDir, "findings");
+    const [name] = await readdir(findingsDir);
+    if (name === undefined) throw new Error("Missing record file");
+    const file = path.join(findingsDir, name);
+    const { kind: _kind, ...legacy } = JSON.parse(await readFile(file, "utf8")) as FindingRecord;
+    for (const record of [legacy, { ...legacy, kind: "security" }]) {
+      await writeFile(file, JSON.stringify({ ...record, ...change }));
+      expect(await store.readRecords()).toMatchObject({ records: [], corrupt: [name] });
+    }
   });
 
   it("keeps the security record layout: one location and a severity", async () => {

@@ -5,7 +5,8 @@ import { decide } from "../policy/decide.ts";
 import { QUESTION_SET_VERSION } from "../questions/catalog.ts";
 import { questionHash, questionsForProfile } from "../questions/category.ts";
 import { securityPresentation, securityPriority } from "../report/security.ts";
-import { toVerdictsFile, type SecurityEvidence } from "../verdicts/export.ts";
+import type { SecurityEvidence } from "../state/schema.ts";
+import { toVerdictsFile } from "../verdicts/export.ts";
 import type { AnalysisAdapter } from "./adapter.ts";
 
 /** `fallow security` candidates, judged per sink and joined by `fallow security survivors`. */

@@ -92,7 +92,7 @@ export const securityPresentation: KindPresentation = {
     note: SURVIVOR_NOTE,
   },
   describe: (record, decision) => ({
-    facts: `${categoryLabel(record.category)} | Fallow severity: ${record.severity ?? "none"}`,
+    facts: [categoryLabel(record.category), `Fallow severity: ${record.severity ?? "none"}`],
     explanation: decision.rule === "survivor" ? null : explanation(decision),
     estimate: estimate(decision),
     suggestion: nextStep(decision),

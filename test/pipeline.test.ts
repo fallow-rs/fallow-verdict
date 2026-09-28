@@ -128,15 +128,19 @@ describe("judge", () => {
 describe("syncRecords", () => {
   it("resolves candidates fallow stopped reporting and reopens them when they return", async () => {
     const { store } = await setup();
-    expect(await syncRecords(store, makeOutput([]), false)).toMatchObject({ resolved: 1 });
+    expect(await syncRecords(store, makeOutput([]), false)).toMatchObject({
+      data: { resolved: 1 },
+    });
     expect(await syncRecords(store, makeOutput([makeFinding()]), false)).toMatchObject({
-      reopened: 1,
+      data: { reopened: 1 },
     });
   });
 
   it("does not resolve anything from a scoped scan", async () => {
     const { store } = await setup();
-    expect(await syncRecords(store, makeOutput([]), true)).toMatchObject({ resolved: 0 });
+    expect(await syncRecords(store, makeOutput([]), true)).toMatchObject({
+      data: { resolved: 0 },
+    });
   });
 });
 

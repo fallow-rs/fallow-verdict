@@ -9,7 +9,7 @@ import type {
 import { securityAdapter } from "../kinds/security.ts";
 import { invalidate, isCurrent } from "./freshness.ts";
 import { RECORD_SCHEMA, type FindingRecord } from "../state/schema.ts";
-import { assertStoreKind, type Store } from "../state/store.ts";
+import { checkStoreKind, type Store } from "../state/store.ts";
 import { ok, type Result } from "../util/result.ts";
 import type { VerdictError } from "../util/errors.ts";
 
@@ -72,8 +72,9 @@ export const syncRecordsWith = async <Output, Candidate, Built extends BuiltEvid
   output: Output,
   scoped: boolean,
   loaded?: LoadedConfig,
-): Promise<ScanSummary> => {
-  assertStoreKind(store, adapter.kind);
+): Promise<Result<ScanSummary, VerdictError>> => {
+  const checked = checkStoreKind(store, adapter.kind);
+  if (!checked.ok) return checked;
   const now = new Date().toISOString();
   const { records } = await store.readRecords();
   const known = new Map(records.map((record) => [record.finding_id, record]));
@@ -115,7 +116,7 @@ export const syncRecordsWith = async <Output, Candidate, Built extends BuiltEvid
       await store.writeRecord({ ...gone, status: "resolved" });
     }
   }
-  return summary;
+  return ok(summary);
 };
 
 export const syncRecords = (
@@ -123,7 +124,8 @@ export const syncRecords = (
   output: SecurityOutput,
   scoped: boolean,
   loaded?: LoadedConfig,
-): Promise<ScanSummary> => syncRecordsWith(securityAdapter, store, output, scoped, loaded);
+): Promise<Result<ScanSummary, VerdictError>> =>
+  syncRecordsWith(securityAdapter, store, output, scoped, loaded);
 
 export const scanWith = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: AnalysisAdapter<Output, Candidate, Built>,
@@ -131,13 +133,14 @@ export const scanWith = async <Output, Candidate, Built extends BuiltEvidence>(
   store: Store,
   options: ScanOptions,
 ): Promise<Result<ScanSummary, VerdictError>> => {
-  assertStoreKind(store, adapter.kind);
+  const checked = checkStoreKind(store, adapter.kind);
+  if (!checked.ok) return checked;
   const output = await adapter.scan.run(loaded, options);
   if (!output.ok) return output;
 
   const scoped = options.changedSince !== undefined || (options.paths?.length ?? 0) > 0;
   await store.writeJson(store.candidatesPath, output.data);
-  return ok(await syncRecordsWith(adapter, store, output.data, scoped, loaded));
+  return syncRecordsWith(adapter, store, output.data, scoped, loaded);
 };
 
 export const scan = (

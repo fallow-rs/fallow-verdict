@@ -1,0 +1,56 @@
+{
+  "schema_version": "fallow-security-verdicts/v1",
+  "verdicts": [
+    {
+      "schema_version": "fallow-security-verdict/v1",
+      "finding_id": "security:tainted-sink:src/routes/user.ts:4",
+      "verdict": "needs-human-review",
+      "reason": "Needs review (the code contains text that argues for its own assessment, P=0.90): exploitable 0.94, attacker-controlled 0.95, reaches sink 0.93, mitigated 0.04.",
+      "confidence": "0.94",
+      "impact": "critical (2.8/3)",
+      "fix_direction": "avoid-shell",
+      "dismissal_reason": null,
+      "evidence_checked": {
+        "source": true,
+        "sink": true,
+        "boundary": true,
+        "trace": true,
+        "source_window": true
+      }
+    },
+    {
+      "schema_version": "fallow-security-verdict/v1",
+      "finding_id": "security:tainted-sink:src/routes/user.ts:5",
+      "verdict": "survivor",
+      "reason": "Survivor: exploitable 0.94, attacker-controlled 0.95, reaches sink 0.93, mitigated 0.04.",
+      "confidence": "0.94",
+      "impact": "critical (2.8/3)",
+      "fix_direction": "avoid-shell",
+      "dismissal_reason": null,
+      "evidence_checked": {
+        "source": true,
+        "sink": true,
+        "boundary": true,
+        "trace": true,
+        "source_window": true
+      }
+    },
+    {
+      "schema_version": "fallow-security-verdict/v1",
+      "finding_id": "security:tainted-sink:src/routes/user.ts:5:40",
+      "verdict": "dismissed",
+      "reason": "Dismissed (mitigated 0.96): exploitable 0.02, attacker-controlled 0.90, reaches sink 0.85, mitigated 0.96.",
+      "confidence": "0.96",
+      "impact": null,
+      "fix_direction": null,
+      "dismissal_reason": "mitigated",
+      "evidence_checked": {
+        "source": true,
+        "sink": true,
+        "boundary": true,
+        "trace": true,
+        "source_window": true
+      }
+    }
+  ]
+}
