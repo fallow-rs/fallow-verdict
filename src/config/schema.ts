@@ -152,6 +152,11 @@ export const configSchema = z
          * answers also map to a survivor. Set to false only to compare with one call.
          */
         confirmSurvivors: z.boolean().default(true),
+        /**
+         * A safe merge is a chance, not a defect, so similar-code fails a run only when this is
+         * set. `--fail-on` overrides it.
+         */
+        failOn: z.enum(FAIL_ON).default("off"),
       })
       .strict()
       .prefault({}),

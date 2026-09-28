@@ -1,3 +1,4 @@
+import { execFile } from "node:child_process";
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -123,10 +124,13 @@ export const pairFromInspect = (
   candidate: SimilarCodeCandidate,
   inspect: SimilarCodeInspectOutput | null,
   failure: string | null = null,
+  /** Digests of the context that inspect read, from `contextDigests`. They enter the fingerprint. */
+  context: Readonly<Record<string, string>> = {},
 ): BuiltPair => {
   const packet = toPacket(candidate, inspect, failure);
+  const fingerprinted = Object.keys(context).length === 0 ? packet : { packet, context };
   return {
-    fingerprint: digest(canonicalJson(packet)).slice(0, 32),
+    fingerprint: digest(canonicalJson(fingerprinted)).slice(0, 32),
     stateTokens: estimateTokens(packet),
     packet,
     truncated: packet.omissions.length > 0,
@@ -146,7 +150,12 @@ export type InspectCache = {
 /** Holds the digest of the snapshot that the cache entries belong to. */
 const SNAPSHOT_MARKER = "snapshot";
 
-type CacheEntry = { key: string; inspect: SimilarCodeInspectOutput };
+type CacheEntry = {
+  key: string;
+  inspect: SimilarCodeInspectOutput;
+  /** Context digests at the time of the write. A changed digest makes the entry invalid. */
+  context: Record<string, string>;
+};
 
 const outputDigests = new WeakMap<object, string>();
 
@@ -182,12 +191,14 @@ const readText = async (file: string): Promise<string | null> => {
   }
 };
 
-const readEntry = async (file: string, key: string): Promise<SimilarCodeInspectOutput | null> => {
+const readEntry = async (file: string, key: string): Promise<CacheEntry | null> => {
   const text = await readText(file);
   if (text === null) return null;
   try {
     const entry = JSON.parse(text) as Partial<CacheEntry>;
-    return entry.key === key && entry.inspect !== undefined ? entry.inspect : null;
+    return entry.key === key && entry.inspect !== undefined && entry.context !== undefined
+      ? (entry as CacheEntry)
+      : null;
   } catch {
     return null;
   }
@@ -233,17 +244,74 @@ const sourceDigest = async (root: string, file: string): Promise<string> => {
   }
 };
 
+/** The files that Fallow reads for inspect ownership. */
+const CODEOWNERS_PATHS = [
+  "CODEOWNERS",
+  ".github/CODEOWNERS",
+  ".gitlab/CODEOWNERS",
+  "docs/CODEOWNERS",
+];
+
+/** Pseudo path for the Git commit that churn counts come from. */
+const GIT_HEAD = ":git-head";
+
+const gitHeads = new Map<string, Promise<string>>();
+
+/** The commit is read once for each root in one process: a run does not commit. */
+const gitHead = (root: string): Promise<string> => {
+  const known = gitHeads.get(root);
+  if (known !== undefined) return known;
+  const head = new Promise<string>((resolve) => {
+    execFile("git", ["rev-parse", "HEAD"], { cwd: root, timeout: 10_000 }, (error, stdout) =>
+      resolve(error === null ? stdout.trim() : "none"),
+    );
+  });
+  gitHeads.set(root, head);
+  return head;
+};
+
+/**
+ * The context that inspect output depends on beyond the two endpoint files: the files of the
+ * callers, the callees and the related tests, the CODEOWNERS files, and the Git commit that the
+ * churn counts come from.
+ */
+export const contextFiles = (inspect: SimilarCodeInspectOutput): string[] => {
+  const files = new Set<string>(CODEOWNERS_PATHS);
+  for (const evidence of [inspect.packet.left, inspect.packet.right]) {
+    for (const reference of [...evidence.callers, ...evidence.callees]) files.add(reference.path);
+    for (const test of evidence.tests) files.add(test);
+  }
+  return [...files].toSorted();
+};
+
+/** A digest for each context entry of `files`, and the current Git commit. */
+export const contextDigests = async (
+  root: string,
+  files: readonly string[],
+): Promise<Record<string, string>> => {
+  const digests: Record<string, string> = { [GIT_HEAD]: await gitHead(root) };
+  for (const file of files) if (file !== GIT_HEAD) digests[file] = await sourceDigest(root, file);
+  return digests;
+};
+
+const sameDigests = (a: Readonly<Record<string, string>>, b: Readonly<Record<string, string>>) =>
+  canonicalJson(a) === canonicalJson(b);
+
 /**
  * Builds the packet for one pair. `packet.build` runs for every record on `scan`, `judge` and
- * `report`, so inspect output is cached on disk. The key holds the discovery generation, the
- * candidate id and the digest of both source files, so an edit after the scan never reuses old
- * evidence. A failed inspect is not cached.
+ * `report`, so inspect output is cached on disk. An entry holds when these are unchanged: the
+ * discovery generation, the candidate id, the digest of both endpoint files, and the digest of
+ * each context file (callers, callees, related tests, CODEOWNERS) plus the Git commit behind the
+ * churn counts. The same context digests enter the evidence fingerprint, so a changed context
+ * also makes a stored verdict stale. A churn window that moves with time alone is not covered.
+ * A failed inspect is not cached. `readOnly` reads the cache but never writes it.
  */
 export const buildPairPacket = async (
   candidate: SimilarCodeCandidate,
   output: SimilarCodeOutput,
   invocation: FallowInvocation,
   cache: InspectCache,
+  readOnly = false,
 ): Promise<BuiltPair> => {
   const key = digest(
     canonicalJson([
@@ -255,7 +323,11 @@ export const buildPairPacket = async (
   );
   const file = path.join(cache.dir, `${key.slice(0, 32)}.json`);
   const cached = await readEntry(file, key);
-  if (cached !== null) return pairFromInspect(candidate, cached);
+  if (cached !== null) {
+    const context = await contextDigests(invocation.root, Object.keys(cached.context));
+    if (sameDigests(context, cached.context))
+      return pairFromInspect(candidate, cached.inspect, null, context);
+  }
   const inspect = await runSimilarCodeInspect({
     ...invocation,
     candidateId: candidate.candidate_id,
@@ -263,6 +335,7 @@ export const buildPairPacket = async (
   });
   // The message can hold a temporary path, so only the stable code enters the fingerprint.
   if (!inspect.ok) return pairFromInspect(candidate, null, inspect.error.code);
-  await writeEntry(cache, output, file, { key, inspect: inspect.data });
-  return pairFromInspect(candidate, inspect.data);
+  const context = await contextDigests(invocation.root, contextFiles(inspect.data));
+  if (!readOnly) await writeEntry(cache, output, file, { key, inspect: inspect.data, context });
+  return pairFromInspect(candidate, inspect.data, null, context);
 };

@@ -109,8 +109,12 @@ packet), `src/questions/similar-code.ts`, `src/policy/similar-code.ts`,
 
 The packet builder needs inspect output for each record on `scan`, `judge` and `report`. It
 caches the output on disk in `kinds/similar-code/inspect/`, keyed by the discovery generation,
-the candidate id and the digest of both source files. Only a packet for the stored snapshot
-writes an entry, so `check` writes no state. The `snapshot` marker file holds the digest of the
+the candidate id and the digest of both endpoint files. An entry also stores the digests of its
+context (the caller, callee and test files that inspect names, the CODEOWNERS files and the Git
+commit), and a changed digest makes it invalid. The same context digests enter the evidence
+fingerprint. `packet.build` takes an optional `readOnly` flag: `check` and `close` set it for a
+fresh Fallow run, so they never write the cache. A packet for another snapshot does not write
+either. The `snapshot` marker file holds the digest of the
 snapshot; the first write after a new scan removes the old entries. A failed inspect is not
 cached. It gives a truncated packet with a stable fingerprint, so the policy sends the pair to a
 person.
@@ -124,6 +128,11 @@ true (absent: false). Security and review do not change. Similar-code confirms a
 that is not confirmed. The cost reservation, the dry-run bound, the fatal-error stop and the new
 request after a failed second call apply to each confirmed verdict. The
 evidence summary stores `reviewKey`, `leftName`, `rightName`, `windows` and `omissions`.
+
+The optional `export.notes(output)` gives lines that `report` adds to the terminal and Markdown
+reports. Similar-code uses it when candidates share a review key; then it also runs the join
+without `--require-verdict-for-each-candidate`. Similar-code has `failOn: "off"` by default
+(`similarCode.failOn`), through the adapter `failOn`.
 
 `export.verdicts` gets the stored Fallow output as a third argument, because the Fallow
 verdict document needs the `review_key` of every candidate, also of a pending one.

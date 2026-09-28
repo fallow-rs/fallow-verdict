@@ -18,7 +18,11 @@ import {
 import { similarCodePresentation, similarCodePriority } from "../report/similar-code.ts";
 import type { Location } from "../state/schema.ts";
 import { openStore } from "../state/store.ts";
-import { toSimilarCodeVerdicts } from "../verdicts/similar-code.ts";
+import {
+  sharedKeyNotes,
+  sharedReviewKeys,
+  toSimilarCodeVerdicts,
+} from "../verdicts/similar-code.ts";
 import type { AnalysisAdapter, MatchKeys } from "./adapter.ts";
 
 const KIND = "similar-code";
@@ -84,7 +88,7 @@ export const similarCodeAdapter: AnalysisAdapter<
   match: similarCodeMatch,
   priority: similarCodePriority,
   packet: {
-    build: (candidate, output, loaded) => {
+    build: (candidate, output, loaded, options) => {
       const store = openStore(loaded.dataDir, KIND);
       return buildPairPacket(
         candidate,
@@ -95,6 +99,7 @@ export const similarCodeAdapter: AnalysisAdapter<
           timeoutMs: loaded.config.fallow.timeoutMs,
         },
         { dir: path.join(store.dataDir, INSPECT_CACHE_DIR), snapshotPath: store.candidatesPath },
+        options?.readOnly ?? false,
       );
     },
     summary: (built) => ({
@@ -115,19 +120,28 @@ export const similarCodeAdapter: AnalysisAdapter<
   },
   confirmDismissals: (loaded) => loaded.config.policy.confirmDismissals,
   confirmSurvivors: (loaded) => loaded.config.similarCode.confirmSurvivors,
+  failOn: (loaded) => loaded.config.similarCode.failOn,
   policy: (answers, built, loaded) =>
     decideSimilarCode(answers, built.truncated, loaded.config.similarCode.policy),
   report: similarCodePresentation,
   supports: { questionProfile: false, eval: false },
   export: {
     verdicts: toSimilarCodeVerdicts,
-    validate: (loaded, store) =>
-      runSimilarCodeReview({
+    notes: sharedKeyNotes,
+    validate: async (loaded, store) => {
+      const raw = await store.readJson(store.candidatesPath);
+      if (!raw.ok) return raw;
+      const output = parseSimilarCodeOutput(raw.data);
+      if (!output.ok) return output;
+      return runSimilarCodeReview({
         root: loaded.root,
         binary: loaded.config.fallow.binary,
         timeoutMs: loaded.config.fallow.timeoutMs,
         candidatesPath: store.candidatesPath,
         verdictsPath: store.verdictsPath,
-      }),
+        // Candidates that share a review key get one verdict, so "each candidate" cannot hold.
+        requireEach: sharedReviewKeys(output.data).size === 0,
+      });
+    },
   },
 };

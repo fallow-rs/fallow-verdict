@@ -429,7 +429,8 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       continue;
     }
     const matched = { ...base, matches: [identity.finding_id] };
-    const built = await adapter.packet.build(step.fresh, fresh.data, loaded);
+    // `check` writes no state, also no kind cache.
+    const built = await adapter.packet.build(step.fresh, fresh.data, loaded, { readOnly: true });
     const closure = storedId === null ? undefined : recordFor.get(storedId)?.closed;
     if (closure !== undefined && closure.fingerprint === built.fingerprint) {
       results.push({ ...matched, status: "closed", reason: closure.reason });

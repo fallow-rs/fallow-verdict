@@ -253,7 +253,12 @@ export const runSimilarCodeInspect = async (
 
 /** Lets Fallow join the verdict document with the unchanged discovery document. */
 export const runSimilarCodeReview = async (
-  options: FallowInvocation & { candidatesPath: string; verdictsPath: string },
+  options: FallowInvocation & {
+    candidatesPath: string;
+    verdictsPath: string;
+    /** Pass `--require-verdict-for-each-candidate`. */
+    requireEach: boolean;
+  },
 ): Promise<Result<SimilarCodeReviewOutput, VerdictError>> => {
   const binary = resolveFallowBinary(options.root, options.binary);
   const captured = await capture(
@@ -265,7 +270,7 @@ export const runSimilarCodeReview = async (
       options.candidatesPath,
       "--verdicts",
       options.verdictsPath,
-      "--require-verdict-for-each-candidate",
+      ...(options.requireEach ? ["--require-verdict-for-each-candidate"] : []),
       "--format",
       "json",
       "--quiet",

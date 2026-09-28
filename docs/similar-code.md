@@ -22,8 +22,11 @@ When the model is not ready, `scan` and `run` stop with exit code 2 and show thi
 
 ```bash
 npx fallow-verdict run --kind similar-code --dry-run
-npx fallow-verdict run --kind similar-code --fail-on off
+npx fallow-verdict run --kind similar-code
 ```
+
+A safe merge is a chance, not a defect, so this kind does not fail a run by default
+(`similarCode.failOn: "off"`). `--fail-on survivor` or the config makes survivors exit 1.
 
 The state of the kind is in `.fallow-verdict/kinds/similar-code/`. `report`, `status`, `check`
 and `close` take the same `--kind similar-code` option. `--question-profile` and `eval` are not
@@ -38,14 +41,31 @@ available for this kind.
    `fallow similar-code inspect <candidate_id> --candidates <snapshot> --format json --quiet`.
    Jev gets only the pair, both source windows and the inspect evidence. The inspect output is
    cached in `.fallow-verdict/kinds/similar-code/inspect/`, so `judge` and `report` reuse it.
-   The key holds the discovery generation, the candidate id and the digest of both source files.
-   The first packet after a new scan clears the cache. `check` reads the cache but never writes.
+   An entry holds only while these stay the same: the discovery generation, the candidate id,
+   both endpoint files, each file that inspect names as a caller, a callee or a related test,
+   the CODEOWNERS files, and the Git commit behind the churn counts. The same digests enter the
+   evidence fingerprint, so a change in this context also makes a stored verdict stale. A churn
+   window that moves with time alone is not covered. The first packet after a new scan clears
+   the cache. `check` reads the cache but never writes.
 3. Jev answers four questions. A fixed policy maps the answers to the Fallow verdict axes and to
    a shared verdict.
 4. `report` writes the Fallow verdict document to `verdicts.json` with one verdict for each
    candidate. Then it runs `fallow similar-code review --candidates <snapshot> --verdicts
 verdicts.json --require-verdict-for-each-candidate`. An error from Fallow stops the report
    with exit code 2. Use `--no-validate` to skip the join.
+
+A Fallow upgrade without a new scan keeps the old discovery snapshot. Until the next `scan`,
+`judge` and `report` reuse packets that the older Fallow built. Run `scan` after an upgrade.
+
+### Shared review keys
+
+Fallow computes a review key from the digests of the two functions only. When a function has a
+verbatim copy in another file, two candidates can share one review key. Fallow accepts only one
+verdict for each review key, so the document then has one verdict for each key, under the id of
+its first candidate. When the candidates of a key have different verdicts, the verdict abstains:
+all axes `null` and outcome `needs-human-review`. For such a snapshot the join runs without
+`--require-verdict-for-each-candidate`. The report adds a note with the number of candidates and
+keys, and Fallow reports the other candidates of each key as `unverified`.
 
 ## Questions
 

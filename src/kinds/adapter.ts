@@ -83,7 +83,13 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   priority: (record: FindingRecord) => number;
   /** Build the evidence packet and its fingerprint. */
   packet: {
-    build: (candidate: Candidate, output: Output, loaded: LoadedConfig) => Promise<Built>;
+    /** `readOnly`: the caller writes no state, so a kind cache must not be written either. */
+    build: (
+      candidate: Candidate,
+      output: Output,
+      loaded: LoadedConfig,
+      options?: { readOnly?: boolean },
+    ) => Promise<Built>;
     summary: (built: Built) => EvidenceSummary;
   };
   /** The question catalog and its version. */
@@ -124,6 +130,8 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
       candidateIds: ReadonlySet<string>,
       output: Output,
     ) => unknown;
+    /** Lines that the report adds after its summary, for example about the export. */
+    notes?: ((output: Output) => readonly string[]) | undefined;
     validate:
       | ((loaded: LoadedConfig, store: Store) => Promise<Result<unknown, VerdictError>>)
       | null;

@@ -288,6 +288,15 @@
         "confirmSurvivors": {
           "default": true,
           "type": "boolean"
+        },
+        "failOn": {
+          "default": "off",
+          "type": "string",
+          "enum": [
+            "off",
+            "survivor",
+            "needs-human-review"
+          ]
         }
       },
       "additionalProperties": false

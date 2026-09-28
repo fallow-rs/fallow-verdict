@@ -45,6 +45,7 @@ export default defineConfig({
       outcomeMinConfidence: 0.7,
     },
     confirmSurvivors: true, // a similar-code survivor needs a second call that agrees
+    failOn: "off", // a safe merge is a chance, not a CI failure
   },
 });
 ```
@@ -82,7 +83,8 @@ its floor, `false` at or below 1 minus the floor, and `null` between the two. Ea
 least 0.5. Below `outcomeMinConfidence`, the outcome is `needs-human-review`. The `policy`
 section above applies only to security, except `confirmDismissals`, which applies to every kind.
 `similarCode.confirmSurvivors` (default `true`) also sends a second call for a survivor, because a
-survivor gates a code change. See [similar-code.md](similar-code.md).
+survivor gates a code change. `similarCode.failOn` (default `"off"`) is the `failOn` level of the
+kind; `--fail-on` overrides it. See [similar-code.md](similar-code.md).
 
 ## Question profiles
 

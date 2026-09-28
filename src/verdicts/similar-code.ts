@@ -71,10 +71,31 @@ const toVerdict = (
   };
 };
 
+/** The review keys that more than one candidate of the discovery shares, with their counts. */
+export const sharedReviewKeys = (output: SimilarCodeOutput): Map<string, number> => {
+  const counts = new Map<string, number>();
+  for (const candidate of output.candidates)
+    counts.set(candidate.review_key, (counts.get(candidate.review_key) ?? 0) + 1);
+  return new Map([...counts].filter(([, count]) => count > 1));
+};
+
+const SHARED_KEY_CONFLICT =
+  "Candidates that share this review key have different assessments, so none of them applies.";
+
+const sameJudgment = (a: Verdict, b: Verdict): boolean =>
+  a.candidate_worthy === b.candidate_worthy &&
+  a.behaviorally_equivalent === b.behaviorally_equivalent &&
+  a.refactor_safe === b.refactor_safe &&
+  a.outcome === b.outcome;
+
 /**
- * Builds the `fallow similar-code review` input: one verdict for each candidate of the stored
- * discovery document, so `--require-verdict-for-each-candidate` holds. The ids and review keys
- * come from the discovery document, never from an engine response.
+ * Builds the `fallow similar-code review` input. The ids and review keys come from the discovery
+ * document, never from an engine response.
+ *
+ * Fallow hashes only the two function digests into a review key, so a verbatim copy of a
+ * function gives two candidates with one key. Fallow rejects duplicate review identities, so
+ * the document has one verdict for each review key, under the id of its first candidate. When
+ * the candidates of a key have different verdicts, the verdict abstains: all axes unknown.
  */
 export const toSimilarCodeVerdicts = (
   records: readonly FindingRecord[],
@@ -82,15 +103,33 @@ export const toSimilarCodeVerdicts = (
   output: SimilarCodeOutput,
 ): SimilarCodeVerdictInput => {
   const byId = new Map(records.map((record) => [record.finding_id, record]));
-  return {
-    schema_version: SIMILAR_CODE_VERDICT_SCHEMA,
-    verdicts: output.candidates
-      .filter((candidate) => candidateIds.has(candidate.candidate_id))
-      .map((candidate) =>
-        toVerdict(
-          { candidate_id: candidate.candidate_id, review_key: candidate.review_key },
-          byId.get(candidate.candidate_id),
+  const byKey = new Map<string, Verdict>();
+  for (const candidate of output.candidates) {
+    if (!candidateIds.has(candidate.candidate_id)) continue;
+    const verdict = toVerdict(
+      { candidate_id: candidate.candidate_id, review_key: candidate.review_key },
+      byId.get(candidate.candidate_id),
+    );
+    const first = byKey.get(candidate.review_key);
+    if (first === undefined) byKey.set(candidate.review_key, verdict);
+    else if (!sameJudgment(first, verdict))
+      byKey.set(
+        candidate.review_key,
+        abstain(
+          { candidate_id: first.candidate_id, review_key: first.review_key },
+          SHARED_KEY_CONFLICT,
         ),
-      ),
-  };
+      );
+  }
+  return { schema_version: SIMILAR_CODE_VERDICT_SCHEMA, verdicts: [...byKey.values()] };
+};
+
+/** The report line for a discovery whose candidates share review keys, or none. */
+export const sharedKeyNotes = (output: SimilarCodeOutput): string[] => {
+  const shared = sharedReviewKeys(output);
+  if (shared.size === 0) return [];
+  const candidates = [...shared.values()].reduce((sum, count) => sum + count, 0);
+  return [
+    `Note: ${candidates} candidates share ${shared.size} review keys, because a function has a verbatim copy. Fallow accepts one verdict for each review key, so the Fallow join ran without --require-verdict-for-each-candidate, and Fallow reports the other candidates of each key as unverified.`,
+  ];
 };

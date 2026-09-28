@@ -23,15 +23,15 @@ import { pairFromInspect, type PairPacket } from "../src/packet/similar-code.ts"
 import { checkWith, type CheckOptions } from "../src/pipeline/check.ts";
 import { closeWith } from "../src/pipeline/close.ts";
 import { confirmedVerdicts, judgeWith } from "../src/pipeline/judge.ts";
-import { scanWith } from "../src/pipeline/scan.ts";
+import { newRecord, scanWith } from "../src/pipeline/scan.ts";
 import { decideSimilarCode, orderAxes } from "../src/policy/similar-code.ts";
-import type { StoredDecision } from "../src/state/schema.ts";
+import type { FindingRecord, StoredDecision } from "../src/state/schema.ts";
 import { openStore, type Store } from "../src/state/store.ts";
 import { verdictError } from "../src/util/errors.ts";
 import { err, ok } from "../src/util/result.ts";
 import { renderCheckHuman } from "../src/report/check.ts";
 import { confirmationBoundLine } from "../src/report/render.ts";
-import { toSimilarCodeVerdicts } from "../src/verdicts/similar-code.ts";
+import { sharedReviewKeys, toSimilarCodeVerdicts } from "../src/verdicts/similar-code.ts";
 
 /** Tests that run the real `fallow similar-code inspect` once for each pair. */
 const INSPECT_TIMEOUT = { timeout: 60_000 };
@@ -517,8 +517,15 @@ describe("similar-code pipeline", INSPECT_TIMEOUT, () => {
     expect(report.data.human).toContain("Safe merge candidate");
     expect(report.data.human).toContain("Functions: ");
     expect(report.data.human).toContain("Not worth merging");
-    // Survivors make the report exit 1 under the default failOn.
-    expect(report.data.exitCode).toBe(1);
+    // A safe merge is a chance, not a CI failure: the kind default is `failOn: "off"`.
+    expect(report.data.exitCode).toBe(0);
+    const failing = await dispatchKind(similarCodeAdapter, {
+      options: optionsFor(["report", "--quiet", "--kind", KIND, "--fail-on", "survivor"]),
+      loaded,
+      store,
+      signal: new AbortController().signal,
+    });
+    expect(failing).toMatchObject({ ok: true, data: { exitCode: 1 } });
 
     const verdicts = (await readJson(store.verdictsPath)) as ReturnType<
       typeof toSimilarCodeVerdicts
@@ -1056,5 +1063,126 @@ describe("confirmation bound wording", INSPECT_TIMEOUT, () => {
       "Confirmation calls (dismissals and merge recommendations) can add up to",
     );
     expect(human).not.toContain("Dismissal confirmation calls");
+  });
+});
+
+describe("shared review keys", INSPECT_TIMEOUT, () => {
+  const sharedDiscovery = async (): Promise<SimilarCodeOutput> => {
+    const parsed = parseSimilarCodeOutput(
+      await readJson(path.join(repo, "test/fixtures/similar-code/shared-key-discovery.json")),
+    );
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    return parsed.data;
+  };
+
+  it("exports one verdict for each review key and passes the Fallow join with a note", async () => {
+    const output = await sharedDiscovery();
+    const shared = sharedReviewKeys(output);
+    expect(shared.size).toBeGreaterThan(0);
+    const { loaded, store, root } = await corpus(output);
+    // The recorded discovery ran on the corpus with a verbatim copy of src/cart.ts.
+    await cp(path.join(root, "src/cart.ts"), path.join(root, "src/cart2.ts"));
+    await scanWith(similarCodeAdapter, loaded, store, {});
+    await judgeWith(similarCodeAdapter, loaded, store, await corpusEngine(), {
+      rejudge: false,
+      dryRun: false,
+    });
+    const report = await dispatchKind(similarCodeAdapter, {
+      options: optionsFor(["report", "--quiet", "--kind", KIND]),
+      loaded,
+      store,
+      signal: new AbortController().signal,
+    });
+    expect(report).toMatchObject({ ok: true, data: { exitCode: 0 } });
+    if (!report.ok) return;
+    const sharing = [...shared.values()].reduce((sum, count) => sum + count, 0);
+    expect(report.data.human).toContain(
+      `Note: ${sharing} candidates share ${shared.size} review keys`,
+    );
+    expect(await readFile(store.reportPath, "utf8")).toContain("share");
+    const verdicts = (await readJson(store.verdictsPath)) as ReturnType<
+      typeof toSimilarCodeVerdicts
+    >;
+    const keys = verdicts.verdicts.map((verdict) => verdict.review_key);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toHaveLength(new Set(output.candidates.map((c) => c.review_key)).size);
+  });
+
+  it("abstains for a review key whose candidates have different verdicts", async () => {
+    const output = await sharedDiscovery();
+    const [key] = sharedReviewKeys(output).keys();
+    const pair = output.candidates.filter((candidate) => candidate.review_key === key);
+    const [first, second] = pair;
+    if (first === undefined || second === undefined) throw new Error("No shared key");
+    const judged = (id: string, decision: StoredDecision): FindingRecord => ({
+      ...newRecord(
+        KIND,
+        similarCodeAdapter.identity(pair.find((c) => c.candidate_id === id) ?? first),
+        "2026-09-28T00:00:00.000Z",
+      ),
+      status: "judged",
+      decision,
+    });
+    const records = [
+      judged(
+        first.candidate_id,
+        decideSimilarCode(answers(0.97, 0.96, 0.97, "same-responsibility"), false, POLICY),
+      ),
+      judged(
+        second.candidate_id,
+        decideSimilarCode(answers(0.05, 0.02, 0.02, "unrelated"), false, POLICY),
+      ),
+    ];
+    const document = toSimilarCodeVerdicts(
+      records,
+      new Set([first.candidate_id, second.candidate_id]),
+      output,
+    );
+    expect(document.verdicts).toEqual([
+      expect.objectContaining({
+        candidate_id: first.candidate_id,
+        review_key: key,
+        candidate_worthy: null,
+        behaviorally_equivalent: null,
+        refactor_safe: null,
+        outcome: "needs-human-review",
+      }),
+    ]);
+  });
+});
+
+describe("inspect context", INSPECT_TIMEOUT, () => {
+  it("rebuilds and changes the fingerprint when a context file changes", async () => {
+    const output = await survivorOnly();
+    const { loaded, store, root, inspectLog } = await corpus(output);
+    await scanWith(similarCodeAdapter, loaded, store, {});
+    const pair = output.candidates[0] ?? never();
+    const first = await similarCodeAdapter.packet.build(pair, output, loaded);
+    const again = await similarCodeAdapter.packet.build(pair, output, loaded);
+    expect(again.fingerprint).toBe(first.fingerprint);
+    expect(await lines(inspectLog)).toHaveLength(1);
+    // src/index.ts imports both functions, so inspect lists it as a caller.
+    expect(first.packet.evidence?.left.callers.map((caller) => caller.path)).toContain(
+      "src/index.ts",
+    );
+    const caller = path.join(root, "src/index.ts");
+    await writeFile(caller, `${await readFile(caller, "utf8")}// changed\n`);
+    const changed = await similarCodeAdapter.packet.build(pair, output, loaded);
+    expect(await lines(inspectLog)).toHaveLength(2);
+    expect(changed.fingerprint).not.toBe(first.fingerprint);
+    // A new CODEOWNERS file changes the context too.
+    await writeFile(path.join(root, "CODEOWNERS"), "* @team\n");
+    const owned = await similarCodeAdapter.packet.build(pair, output, loaded);
+    expect(owned.fingerprint).not.toBe(changed.fingerprint);
+  });
+
+  it("never writes the cache for a read-only build", async () => {
+    const output = await survivorOnly();
+    const { loaded, store } = await corpus(output);
+    await store.writeJson(store.candidatesPath, output);
+    await similarCodeAdapter.packet.build(output.candidates[0] ?? never(), output, loaded, {
+      readOnly: true,
+    });
+    await expect(readdir(path.join(store.dataDir, "inspect"))).rejects.toThrow(/ENOENT/);
   });
 });
