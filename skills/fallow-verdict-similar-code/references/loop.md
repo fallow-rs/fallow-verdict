@@ -17,6 +17,9 @@ user to run `fallow similar-code setup --local`, and stop.
 
 To limit the cost, add `--limit <n>` or `--max-cost-usd <usd>` to the real run.
 
+The default `similarCode.failOn` is `off`, but the project config can change it. Thus always pass
+`--fail-on off` in this skill, as for every kind.
+
 ## Fields of `report`
 
 `npx fallow-verdict report --kind similar-code --format json --quiet` prints
@@ -41,6 +44,18 @@ To limit the cost, add `--limit <n>` or `--max-cost-usd <usd>` to the real run.
 - A `survivor` already needs two calls that agree. Do not skip that rule.
 - A pair with `needs-human-review` goes to the user with its `decision.reason`.
 - A `dismissed` pair is "not worth merging". Do not merge it, and do not suppress it.
+
+## Shared review keys
+
+Two candidates can share one Fallow review key, for example when a function has a verbatim copy
+in another file. Fallow accepts one verdict for each review key. The report then adds a note with
+the number of candidates and keys.
+
+- Treat the candidates of a shared key as one decision. Merge them only when the verdict of the
+  key has `refactor_safe: true`.
+- When the candidates of a key have different verdicts, the verdict has all axes `null` and the
+  outcome `needs-human-review`. Send it to the user.
+- Fallow reports the other candidates of the key as `unverified`. That is expected.
 
 ## How to merge
 
