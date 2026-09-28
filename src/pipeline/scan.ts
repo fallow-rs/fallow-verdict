@@ -35,7 +35,8 @@ const locationFields = ({ locations }: CandidateIdentity): LocationFields => {
   };
 };
 
-const newRecord = (
+/** A pending record for a candidate that has no stored record. */
+export const newRecord = (
   kind: FindingRecord["kind"],
   identity: CandidateIdentity,
   now: string,

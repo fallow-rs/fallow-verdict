@@ -33,7 +33,7 @@ export type BuiltEvidence = {
 
 /**
  * Everything that is specific to one Fallow analysis. The shared pipeline handles state,
- * staleness, budgets, retries and reports; an adapter supplies the six parts below.
+ * staleness, budgets, retries and reports; an adapter supplies the parts below.
  */
 export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   kind: KindName;
@@ -46,6 +46,11 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
+  /**
+   * A key that identifies the candidate without the parts of its location that an edit moves.
+   * `check` uses it to find a stored candidate again after an edit changed its id.
+   */
+  match: (candidate: Candidate) => string;
   /** Budget and report order: a lower value comes first, so a cap spends on what matters most. */
   priority: (record: FindingRecord) => number;
   /** Build the evidence packet and its fingerprint. */

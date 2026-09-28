@@ -15,7 +15,10 @@ import {
   type JudgeProgress,
   type JudgeSummary,
 } from "../pipeline/judge.ts";
+import { checkWith } from "../pipeline/check.ts";
+import { closeWith, reopenChangedClosures } from "../pipeline/close.ts";
 import { scanWith } from "../pipeline/scan.ts";
+import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
   renderHuman,
@@ -162,6 +165,8 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   const { options, loaded, store } = context;
   const refreshed = await refreshVerdictsWith(adapter, loaded, store);
   if (!refreshed.ok) return refreshed;
+  const reopened = await reopenChangedClosures(adapter, loaded, store);
+  if (!reopened.ok) return reopened;
   const { records, corrupt } = await store.readRecords();
   for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
 
@@ -199,6 +204,42 @@ const runInit = async (options: CliOptions): Promise<Outcome> => {
   return ok({
     exitCode: EXIT.ok,
     human: `Created ${configPath}.\nThe .fallow-verdict/ state directory is excluded from Git.`,
+  });
+};
+
+/** `check` writes no state, so it takes no lock. */
+const runCheck = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Outcome> => {
+  const { options, loaded, store, signal } = context;
+  const checked = await checkWith(adapter, loaded, store, {
+    target: options.positionals[0] ?? "",
+    cwd: options.cwd,
+    dryRun: options.dryRun,
+    engine: () => createEngine(loaded),
+    signal,
+  });
+  if (!checked.ok) return checked;
+  return ok({
+    exitCode: checked.data.report.exit_code,
+    json: checked.data.report,
+    human: renderCheckHuman(checked.data, adapter.report),
+  });
+};
+
+const runClose = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Outcome> => {
+  const { options, loaded, store } = context;
+  const id = options.positionals[0] ?? "";
+  const closed = await closeWith(adapter, loaded, store, id, options.reason ?? "");
+  if (!closed.ok) return closed;
+  return ok({
+    exitCode: EXIT.ok,
+    json: { finding_id: closed.data.finding_id, closed: closed.data.closed },
+    human: `Closed ${id}. It stays closed until its evidence changes.`,
   });
 };
 
@@ -295,9 +336,11 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
       human: renderHuman(report, adapter.report, options.showDismissed),
     });
   }
+  if (options.command === "check") return runCheck(adapter, context);
   const release = await store.lock();
   if (!release.ok) return release;
   try {
+    if (options.command === "close") return await runClose(adapter, context);
     if (options.command === "eval") {
       const refreshed = await refreshVerdictsWith(adapter, loaded, store);
       if (!refreshed.ok) return refreshed;

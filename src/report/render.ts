@@ -63,6 +63,8 @@ export type ReportSummary = {
   errors: number;
   resolved: number;
   costUsd: number;
+  /** Findings that a person closed. Present only when there is at least one. */
+  closed?: number;
 };
 
 export type Report = {
@@ -70,6 +72,8 @@ export type Report = {
   generatedAt: string;
   summary: ReportSummary;
   findings: FindingRecord[];
+  /** Findings that a person closed, apart from `findings`. Present only when there is one. */
+  closed?: FindingRecord[];
 };
 
 const byPriority =
@@ -87,10 +91,13 @@ export const buildReport = (
   priority: (record: FindingRecord) => number,
 ): Report => {
   const live = records.filter((record) => record.status !== "resolved");
+  // A person closed these, so they leave the verdict groups and the exit code.
+  const closed = live.filter((record) => record.closed !== undefined);
+  const open = live.filter((record) => record.closed === undefined);
   const count = (verdict: VerdictStatus): number =>
-    live.filter((record) => record.status === "judged" && record.decision?.verdict === verdict)
+    open.filter((record) => record.status === "judged" && record.decision?.verdict === verdict)
       .length;
-  return {
+  const report: Report = {
     schema_version: REPORT_SCHEMA,
     generatedAt: new Date().toISOString(),
     summary: {
@@ -98,14 +105,22 @@ export const buildReport = (
       survivors: count("survivor"),
       needsHumanReview: count("needs-human-review"),
       dismissed: count("dismissed"),
-      pending: live.filter((record) => record.status === "pending").length,
-      errors: live.filter((record) => record.status === "error").length,
+      pending: open.filter((record) => record.status === "pending").length,
+      errors: open.filter((record) => record.status === "error").length,
       resolved: records.length - live.length,
       costUsd: records.reduce((sum, record) => sum + (record.usage?.costUsd ?? 0), 0),
     },
-    findings: live.toSorted(byPriority(priority)),
+    findings: open.toSorted(byPriority(priority)),
+  };
+  if (closed.length === 0) return report;
+  return {
+    ...report,
+    summary: { ...report.summary, closed: closed.length },
+    closed: closed.toSorted(byPriority(priority)),
   };
 };
+
+const CLOSED_TITLE = "Closed by a person";
 
 const group = (report: Report, verdict: VerdictStatus): FindingRecord[] =>
   report.findings.filter(
@@ -117,6 +132,7 @@ const summaryLine = ({ summary }: Report, presentation: KindPresentation): strin
   `${summary.needsHumanReview} need review, ${summary.dismissed} dismissed` +
   (summary.pending > 0 ? `, ${summary.pending} pending` : "") +
   (summary.errors > 0 ? `, ${summary.errors} errors` : "") +
+  (summary.closed === undefined ? "" : `, ${summary.closed} closed by a person`) +
   (summary.resolved > 0 ? `, ${summary.resolved} no longer reported by Fallow` : "");
 
 const verdictColor = (verdict: VerdictStatus): "red" | "yellow" | "dim" =>
@@ -183,6 +199,19 @@ export const renderHuman = (
         ...(record.error === null ? [] : [`  ${incompleteReason(record)}`]),
         "",
       );
+    lines.push("");
+  }
+  const closed = report.closed ?? [];
+  if (closed.length > 0) {
+    lines.push(styleText(["bold", "dim"], `${CLOSED_TITLE} (${closed.length})`));
+    for (const record of closed) {
+      lines.push(
+        "",
+        `  ${location(record)}`,
+        `  Reason: ${record.closed?.reason ?? ""}`,
+        styleText("dim", `  Closed at ${record.closed?.at ?? ""}.`),
+      );
+    }
     lines.push("");
   }
   if (!showDismissed && report.summary.dismissed > 0) {
@@ -258,6 +287,20 @@ export const renderMarkdown = (report: Report, presentation: KindPresentation): 
         "",
       );
     lines.push("");
+  }
+  const closed = report.closed ?? [];
+  if (closed.length > 0) {
+    lines.push(`## ${CLOSED_TITLE} (${closed.length})`, "");
+    for (const record of closed) {
+      lines.push(
+        `### ${escapeText(location(record))}`,
+        "",
+        `Reason: ${escapeText(record.closed?.reason ?? "")}`,
+        "",
+        `Closed at ${escapeText(record.closed?.at ?? "")}.`,
+        "",
+      );
+    }
   }
   if (report.summary.candidates > 0)
     lines.push("Review suggested approaches against the code before making changes.", "");

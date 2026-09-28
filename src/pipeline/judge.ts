@@ -56,7 +56,7 @@ export type JudgeSummary = {
   fatal: VerdictError | null;
 };
 
-type Job<Built> = { record: FindingRecord; built: Built };
+export type Job<Built> = { record: FindingRecord; built: Built };
 
 type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
   Output,
@@ -152,7 +152,8 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   return { jobs, current };
 };
 
-const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
+/** Judges one candidate and returns the new record. It writes no state. `check` uses it too. */
+export const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   job: Job<Built>,
   engine: DecisionEngine,

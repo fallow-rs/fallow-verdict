@@ -30,6 +30,16 @@ export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, B
     category: finding.category ?? null,
     severity: finding.severity,
   }),
+  // The id holds the line and the column. Rule, path, sink and evidence text do not move.
+  match: (finding) =>
+    JSON.stringify([
+      finding.kind,
+      finding.category ?? null,
+      finding.path,
+      finding.candidate.sink.category ?? null,
+      finding.candidate.sink.callee ?? null,
+      finding.evidence.trim(),
+    ]),
   priority: securityPriority,
   packet: {
     build: (finding, output, loaded) =>

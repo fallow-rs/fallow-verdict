@@ -18,6 +18,11 @@
 - Stop the run when the confirmation call fails with a rejected key or an open circuit, as for the first call.
 - A policy remap of a record without a confirming answer set, for example a record from before this change, gives `needs-human-review` instead of `dismissed`. `judge` treats a stored dismissal without a second answer set as pending and asks again, also after a failed second call; `report` alone shows the review verdict. Only a disagreement is final for the current evidence.
 - Report `dismissalsUnconfirmed` in `eval` output, split into `disagreed` and `notConfirmed`.
+- Add `check <target>` for an edit loop. It reruns Fallow for one finding id or one file, reports `resolved` with no Jev call when the finding is gone, and otherwise judges the current source with the normal policy. It writes no state. It exits 0 when cleared, 1 when a finding stands, 2 on an error and 3 when a finding needs a person. `--dry-run` prints the estimate and sends nothing.
+- `check` follows a finding that an edit moved. It matches the finding by rule, path, sink and evidence text, and reports an ambiguous match as "needs a person", never as `resolved`.
+- Add the `fallow-verdict-check/v1` JSON schema with Fallow-style `actions`.
+- Add `close <id> --reason "<text>"` to record a judgment by a person. A closed finding stays closed until its evidence fingerprint changes. `report` shows closed findings in a separate section, and they do not count toward `--fail-on`.
+- Add the optional `closed` field to finding records, and the optional `by` and `reason` fields to history entries.
 
 ## 0.1.0 (2026-09-23)
 

@@ -9,22 +9,23 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 
 The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. Today
 `security` is the only kind and the default. The `--kind <name>` flag selects the kind for
-`scan`, `judge`, `run`, `report`, `status` and `eval`. An unknown kind is a usage error with exit
+`scan`, `judge`, `run`, `report`, `status`, `eval`, `check` and `close`. An unknown kind is a usage error with exit
 code 2, and the message lists the known kinds.
 
 An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kind:
 
-| Part        | Responsibility                                                         |
-| ----------- | ---------------------------------------------------------------------- |
-| `scan`      | Run the Fallow command, validate its schema version, return candidates |
-| `identity`  | Give each candidate a stable, unique id, its locations and severity    |
-| `priority`  | Order candidates for the budget and the report                         |
-| `packet`    | Build the evidence packet, its fingerprint and its evidence summary    |
-| `questions` | The question catalog, its version and its content hash                 |
-| `policy`    | A pure function from answers to a decision, with a named rule          |
-| `report`    | The words and evidence lines of the terminal and Markdown reports      |
-| `supports`  | The options that the kind supports: `--question-profile` and `eval`    |
-| `export`    | Write the verdict contract and run the Fallow join command, if any     |
+| Part        | Responsibility                                                          |
+| ----------- | ----------------------------------------------------------------------- |
+| `scan`      | Run the Fallow command, validate its schema version, return candidates  |
+| `identity`  | Give each candidate a stable, unique id, its locations and severity     |
+| `match`     | A key without the parts of the location that an edit moves, for `check` |
+| `priority`  | Order candidates for the budget and the report                          |
+| `packet`    | Build the evidence packet, its fingerprint and its evidence summary     |
+| `questions` | The question catalog, its version and its content hash                  |
+| `policy`    | A pure function from answers to a decision, with a named rule           |
+| `report`    | The words and evidence lines of the terminal and Markdown reports       |
+| `supports`  | The options that the kind supports: `--question-profile` and `eval`     |
+| `export`    | Write the verdict contract and run the Fallow join command, if any      |
 
 The shared pipeline owns state, staleness, budgets, retries, locking and reports. It never reads
 kind-specific fields.
@@ -111,6 +112,10 @@ rejects unknown or duplicate ids and malformed verdicts.
   .lock/                 held while a mutating command runs
   kinds/<kind>/          the same layout for each kind other than security
 ```
+
+A record can also hold `closed`: a judgment by a person from `close`, with the reason and the
+evidence fingerprint at that time. `report` removes the closure when the fingerprint changes.
+The history keeps the judgment as an entry with `by: "person"`.
 
 A finding record holds its analysis kind, the current decision, the evidence fingerprint it was made on, the
 question set version and content hash, usage, and an append-only `history`. Records are written with a temp file
