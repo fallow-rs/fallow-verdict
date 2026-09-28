@@ -148,10 +148,11 @@ answer set, a remap gives `needs-human-review` with the rule `dismissal-unconfir
 With `policy.confirmDismissals: true`, `judge` also treats an unconfirmed stored dismissal as
 pending: the first answers map to `dismissed`, and `confirmationAnswers` is absent. This covers a
 record from before the confirmation rule, a record judged with `confirmDismissals: false`, and a
-record whose second call a budget or time limit stopped. `judge` asks again with a first call and a
-confirmation call, and the dry-run plan counts the record as "to assess". A confirmation that
-disagreed, or that failed (`confirmationAnswers: null`), is final for the current evidence, so
-`judge` does not ask again on every run. `report` without `judge` makes no calls and shows the
+record whose second call failed with an engine error or was stopped by a budget or time limit.
+`judge` asks again with a first call and a confirmation call, and the dry-run plan counts the
+record as "to assess". Only a confirmation that disagreed is final for the current evidence,
+because only a disagreement is a signal about the finding. The history keeps each failed attempt
+with the rule `dismissal-unconfirmed`. `report` without `judge` makes no calls and shows the
 review verdict with the rule `dismissal-unconfirmed`.
 
 Older records without a question content hash load with `questionHash: null`. They require a

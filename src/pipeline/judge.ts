@@ -80,7 +80,7 @@ const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
 const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   answers: Record<string, Answer>,
-  confirmationAnswers: Record<string, Answer> | null | undefined,
+  confirmationAnswers: Record<string, Answer> | undefined,
   built: Built,
   loaded: LoadedConfig,
   missing?: string,
@@ -88,16 +88,15 @@ const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   const first = adapter.policy(answers, built, loaded);
   if (!loaded.config.policy.confirmDismissals) return first;
   const second =
-    confirmationAnswers === undefined || confirmationAnswers === null
-      ? null
-      : adapter.policy(confirmationAnswers, built, loaded);
+    confirmationAnswers === undefined ? null : adapter.policy(confirmationAnswers, built, loaded);
   return confirmDismissal(first, second, missing);
 };
 
 /**
- * A stored dismissal that was never confirmed: a record from before the confirmation rule, or
- * one judged with `confirmDismissals: false`. `judge` asks again for these. A confirmation that
- * disagreed or failed (`confirmationAnswers: null`) is final for the current evidence.
+ * A stored dismissal without a confirming answer set: a record from before the confirmation
+ * rule, one judged with `confirmDismissals: false`, or one whose second call failed or was
+ * stopped. `judge` asks again for these. Only a disagreement is final for the current evidence,
+ * because only a disagreement says something about the finding.
  */
 const needsConfirmation = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -172,14 +171,11 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   const first = adapter.policy(response.data.answers, job.built, loaded);
   let confirmation: EvaluateResponse | null = null;
   let missing: string | undefined;
-  let confirmationAnswers: Record<string, Answer> | null | undefined;
   if (loaded.config.policy.confirmDismissals && first.verdict === "dismissed") {
     if (mayConfirm()) {
       const second = await engine.evaluate(request);
       if (second.ok) confirmation = second.data;
       else missing = `the second assessment failed (${second.error.code})`;
-      // Asked but not answered: final for this evidence, so `judge` does not ask on every run.
-      confirmationAnswers = confirmation?.answers ?? null;
     } else {
       missing = "the budget, the time limit or an interruption stopped the second assessment";
     }
@@ -202,7 +198,7 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
     questionHash: adapter.questions.hash(job.built, loaded),
     engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
-    confirmationAnswers,
+    confirmationAnswers: confirmation?.answers,
     decision,
     evidence: adapter.packet.summary(job.built),
     usage: {

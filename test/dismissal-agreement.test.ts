@@ -137,7 +137,7 @@ describe("dismissal agreement", () => {
       evaluate: () => {
         calls += 1;
         return Promise.resolve(
-          calls === 1
+          calls !== 2
             ? ok({
                 model: "m",
                 answers: answersFor(SAFE_MITIGATED),
@@ -158,12 +158,19 @@ describe("dismissal agreement", () => {
       usage: { inputTokens: 1000 },
     });
     expect(result).toMatchObject({ ok: true, data: { judged: 1, errors: 0, inputTokens: 1000 } });
-    expect(record.confirmationAnswers).toBeNull();
+    expect(record).not.toHaveProperty("confirmationAnswers");
+    expect(record.history.map((entry) => entry.rule)).toEqual(["dismissal-unconfirmed"]);
 
-    // The failed confirmation is final for this evidence: judge does not ask on every run.
+    // An engine error says nothing about the finding, so the next judge asks again.
     const again = await judge(loaded, store, engine, judgeOptions);
-    expect(calls).toBe(2);
-    expect(again).toMatchObject({ ok: true, data: { judged: 0, upToDate: 1 } });
+    expect(calls).toBe(4);
+    expect(again).toMatchObject({ ok: true, data: { judged: 1, upToDate: 0 } });
+    const retried = await onlyRecord(store);
+    expect(retried.decision?.verdict).toBe("dismissed");
+    expect(retried.history.map((entry) => entry.rule)).toEqual([
+      "dismissal-unconfirmed",
+      "dismissed",
+    ]);
   });
 });
 
