@@ -4,7 +4,12 @@ import { z } from "zod";
 
 import { locationSchema } from "../state/schema.ts";
 import { formatUsd } from "../util/tokens.ts";
-import { dismissedWords, type FindingText, type KindPresentation } from "./render.ts";
+import {
+  confirmationBoundLine,
+  dismissedWords,
+  type FindingText,
+  type KindPresentation,
+} from "./render.ts";
 
 export const CHECK_SCHEMA = "fallow-verdict-check/v1";
 
@@ -138,11 +143,9 @@ export const renderCheckHuman = (
   if (report.dry_run)
     lines.push(
       `Estimated request cost: ${formatUsd(report.estimate.usd)} (about ${report.estimate.input_tokens} input tokens).`,
-      ...(report.estimate.max_confirmation_usd > 0
-        ? [
-            `Dismissal confirmation calls can add up to ${formatUsd(report.estimate.max_confirmation_usd)}.`,
-          ]
-        : []),
+      ...[confirmationBoundLine(presentation, report.estimate.max_confirmation_usd)].filter(
+        (line) => line !== null,
+      ),
       "Dry run: no requests were sent to Jev.",
     );
   else

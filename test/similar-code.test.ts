@@ -29,6 +29,8 @@ import type { StoredDecision } from "../src/state/schema.ts";
 import { openStore, type Store } from "../src/state/store.ts";
 import { verdictError } from "../src/util/errors.ts";
 import { err, ok } from "../src/util/result.ts";
+import { renderCheckHuman } from "../src/report/check.ts";
+import { confirmationBoundLine } from "../src/report/render.ts";
 import { toSimilarCodeVerdicts } from "../src/verdicts/similar-code.ts";
 
 /** Tests that run the real `fallow similar-code inspect` once for each pair. */
@@ -1021,5 +1023,38 @@ describe("confirmed verdicts for each kind", () => {
       "dismissed",
     ]);
     expect(verdicts("review", { review: { confirmDismissals: true } })).toEqual(["dismissed"]);
+  });
+});
+
+const boundLine = (kind: "security" | "review" | "similar-code", usd: number): string | null =>
+  kindFor(kind).use((adapter) => confirmationBoundLine(adapter.report, usd));
+
+describe("confirmation bound wording", INSPECT_TIMEOUT, () => {
+  it("names the confirmation calls of each kind, and review shows no line", () => {
+    expect(boundLine("security", 0.001)).toBe(
+      "Dismissal confirmation calls can add up to $0.0010.",
+    );
+    expect(boundLine("similar-code", 0.001)).toBe(
+      "Confirmation calls (dismissals and merge recommendations) can add up to $0.0010.",
+    );
+    // Review confirms nothing by default, so its bound is zero and no line appears.
+    expect(kindFor("review").use((adapter) => confirmedVerdicts(adapter, configured()).size)).toBe(
+      0,
+    );
+    expect(boundLine("review", 0)).toBeNull();
+  });
+
+  it("uses the similar-code words in a check dry run", async () => {
+    const output = await survivorOnly();
+    const { loaded, store, root } = await corpus(output);
+    await scanWith(similarCodeAdapter, loaded, store, {});
+    const target = output.candidates[0]?.candidate_id ?? never();
+    const checked = await checkWith(similarCodeAdapter, loaded, store, checkOptions(target, root));
+    if (!checked.ok) throw new Error(checked.error.message);
+    const human = renderCheckHuman(checked.data, similarCodeAdapter.report);
+    expect(human).toContain(
+      "Confirmation calls (dismissals and merge recommendations) can add up to",
+    );
+    expect(human).not.toContain("Dismissal confirmation calls");
   });
 });

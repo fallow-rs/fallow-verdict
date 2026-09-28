@@ -21,6 +21,7 @@ import { scanWith } from "../pipeline/scan.ts";
 import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
+  confirmationBoundLine,
   dismissedWords,
   renderHuman,
   renderMarkdown,
@@ -79,9 +80,10 @@ const onJudgeProgress =
   (options: CliOptions, presentation: KindPresentation) =>
   (event: JudgeProgress): void => {
     if (event.type === "plan") {
+      const bound = confirmationBoundLine(presentation, event.maxConfirmationUsd);
       progress(
         options,
-        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${event.maxConfirmationUsd > 0 ? `\nDismissal confirmation calls can add up to ${formatUsd(event.maxConfirmationUsd)}.` : ""}${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
+        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${bound === null ? "" : `\n${bound}`}${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
       );
     } else if (event.type === "judged") {
       const decision = event.record.decision;

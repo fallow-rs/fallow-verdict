@@ -57,6 +57,7 @@ export const similarCodePresentation: KindPresentation = {
     count: "safe merge candidates",
     note: SURVIVOR_NOTE,
   },
+  confirmationBound: "Confirmation calls (dismissals and merge recommendations) can add up to",
   dismissed: {
     heading: "Not worth merging",
     label: "Not worth merging",

@@ -35,6 +35,7 @@
 - Let a kind state that Fallow did not finish a scan (`scan.complete`). Then `scan` resolves no stored findings. Similar-code uses it and `scan.conclusive` for an incomplete discovery, so neither `scan` nor `check` resolves a pair after it. Security and review do not change.
 - Let a kind ask for a second call that agrees before a survivor stands (`confirmSurvivors`), next to its dismissal confirmation. Security and review do not change.
 - Similar-code reports name `dismissed` "Not worth merging". The JSON value stays `dismissed`.
+- Let a kind word the upper bound for confirmation calls in the plan and in `check --dry-run`. Security keeps "Dismissal confirmation calls can add up to". Similar-code says "Confirmation calls (dismissals and merge recommendations) can add up to". A kind that confirms nothing shows no line.
 
 ## 0.1.0 (2026-09-23)
 
