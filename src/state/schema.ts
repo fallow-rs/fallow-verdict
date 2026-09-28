@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ANALYSIS_KINDS, DEFAULT_KIND } from "../kinds/adapter.ts";
+
 export const RECORD_SCHEMA = "fallow-verdict-record/v1";
 export const RUN_SCHEMA = "fallow-verdict-run/v1";
 
@@ -45,6 +47,8 @@ const historyEntrySchema = z.object({
 
 export const recordSchema = z.object({
   schema_version: z.literal(RECORD_SCHEMA),
+  /** Fallow analysis that reported the candidate. Records from before kinds existed are security records. */
+  kind: z.enum(ANALYSIS_KINDS).default(DEFAULT_KIND),
   finding_id: z.string().min(1),
   path: z.string(),
   line: z.number(),

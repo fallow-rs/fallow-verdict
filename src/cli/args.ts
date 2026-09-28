@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 
+import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind, type AnalysisKind } from "../kinds/adapter.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 
@@ -8,6 +9,7 @@ export type CommandName = (typeof COMMANDS)[number];
 
 export type CliOptions = {
   command: CommandName;
+  kind: AnalysisKind;
   positionals: string[];
   config?: string | undefined;
   cwd: string;
@@ -42,6 +44,8 @@ Commands
 
 Options
   --config <path>            Config file (default: nearest fallow-verdict.config.*)
+  --kind <name>              Fallow analysis to assess (default: security)
+                             Known kinds: ${ANALYSIS_KINDS.join(", ")}
   --question-profile <name>  generic | category (default: generic)
                              category uses experimental SSRF and open-redirect questions
   --cwd <path>               Directory to start from
@@ -92,6 +96,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
       allowPositionals: true,
       options: {
         config: { type: "string" },
+        kind: { type: "string" },
         "question-profile": { type: "string" },
         cwd: { type: "string" },
         format: { type: "string" },
@@ -153,6 +158,9 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
   const maxDuration = positiveNumber("max-duration", values["max-duration"]);
   if (!maxDuration.ok) return maxDuration;
 
+  const kind = parseKind(values.kind ?? DEFAULT_KIND);
+  if (!kind.ok) return kind;
+
   const questionProfile = values["question-profile"];
   if (
     questionProfile !== undefined &&
@@ -165,6 +173,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
     kind: "command",
     options: {
       command: command as CommandName,
+      kind: kind.data,
       positionals: rest,
       config: values.config,
       cwd: values.cwd ?? process.cwd(),

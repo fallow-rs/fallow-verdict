@@ -5,6 +5,31 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
    (candidates)    (state)  (evidence)  (answers)  (decision)  (contract)      (post-validation)
 ```
 
+## Analysis kinds
+
+The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. Today
+`security` is the only kind and the default. The `--kind <name>` flag selects the kind for
+`scan`, `judge`, `run`, `report`, `status` and `eval`. An unknown kind is a usage error with exit
+code 2, and the message lists the known kinds.
+
+An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kind:
+
+| Part        | Responsibility                                                         |
+| ----------- | ---------------------------------------------------------------------- |
+| `scan`      | Run the Fallow command, validate its schema version, return candidates |
+| `identity`  | Give each candidate a stable, unique id and its record fields          |
+| `packet`    | Build the evidence packet and its fingerprint                          |
+| `questions` | The question catalog, its version and its content hash                 |
+| `policy`    | A pure function from answers to a decision, with a named rule          |
+| `export`    | Write the verdict contract and run the Fallow join command, if any     |
+
+The shared pipeline owns state, staleness, budgets, retries, locking and reports. It never reads
+kind-specific fields. The security adapter (`src/kinds/security.ts`) connects the existing
+modules under `src/fallow`, `src/packet`, `src/questions`, `src/policy` and `src/verdicts`.
+The registry (`src/kinds/registry.ts`) maps each name in `ANALYSIS_KINDS` to one adapter.
+
+The stages below describe the security kind.
+
 ## Stages
 
 **scan** runs `fallow security --format json --surface --quiet`, stores the output as
@@ -55,10 +80,16 @@ rejects unknown or duplicate ids and malformed verdicts.
   .lock/                 held while a mutating command runs
 ```
 
-A finding record holds the current decision, the evidence fingerprint it was made on, the
+A finding record holds its analysis kind, the current decision, the evidence fingerprint it was made on, the
 question set version and content hash, usage, and an append-only `history`. Records are written with a temp file
 and rename, so a crash leaves the previous record intact. Unreadable records fail judgment, reporting, and evaluation closed. A fresh scan can reconstruct
 current candidates.
+
+Security state stays at the root of the state directory, so existing state needs no migration.
+A later kind gets its own directory, `.fallow-verdict/kinds/<kind>/`, with the same layout. Each
+kind then has its own candidates, verdict contract, report and lock. The pipeline also reads only
+the records of its own kind, so a record of another kind can never be resolved or judged by
+mistake.
 
 ## Staleness
 
@@ -80,7 +111,8 @@ Fallow candidate output and exported `fallow-security-verdicts/v1` contract are 
 ## State compatibility
 
 Version 0.1.0 reads `fallow-verdict-record/v1` records from the source preview.
-Missing optional fields receive defaults. Older evidence or engine settings can
+Missing optional fields receive defaults. A record without a `kind` field loads as a
+`security` record. Older evidence or engine settings can
 make a stored decision stale, so the next assessment may require a Jev call.
 Existing history is retained when those decisions are invalidated.
 

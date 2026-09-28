@@ -6,6 +6,13 @@
       "type": "string",
       "const": "fallow-verdict-record/v1"
     },
+    "kind": {
+      "default": "security",
+      "type": "string",
+      "enum": [
+        "security"
+      ]
+    },
     "finding_id": {
       "type": "string",
       "minLength": 1

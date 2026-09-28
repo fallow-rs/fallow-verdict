@@ -6,6 +6,8 @@
 - Space Jev requests under `engine.requestsPerMinute` (default 1,000) across all workers, so large runs stay below the documented limit of 1,200 requests per minute.
 - Default `engine.model` to the versioned `jev-1.13.0` instead of the `jev-latest` alias. Stored decisions made with the alias need one fresh assessment.
 - Add staged npm releases with OIDC, artifact verification, and checks before creating release tags.
+- Add `--kind <name>` to select the Fallow analysis. `security` is the only kind and the default, so behavior does not change.
+- Store the analysis kind on each finding record. Records without it load as `security` records.
 
 ## 0.1.0 (2026-09-23)
 

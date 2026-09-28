@@ -5,6 +5,7 @@ import type { FindingRecord, StoredDecision } from "../src/state/schema.ts";
 
 const reviewRecord = (overrides: Partial<StoredDecision> = {}): FindingRecord => ({
   schema_version: "fallow-verdict-record/v1",
+  kind: "security",
   finding_id: "review-candidate",
   path: "src/proxy.ts",
   line: 4,
