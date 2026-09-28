@@ -24,6 +24,9 @@ Steps:
    result, Fallow runs once more for the whole project. See [relocation](#relocation).
 4. A finding that a person closed stays `closed` while its evidence fingerprint is the same.
 5. Build the packet from the current source on disk and judge it with the normal policy.
+   The two-call rule applies: a dismissal needs a second call that agrees. `check` has no
+   cost cap, so a dismissal always gets its second call. A disagreed or failed second call
+   gives `needs-human-review` with the rule `dismissal-unconfirmed`, so exit code `3`.
 
 `check` writes no state. It does not change records, candidates, reports or runs, and it takes
 no lock. Run `scan` or `run` to save the new state.
@@ -32,7 +35,8 @@ A Jev API key is necessary only when a finding needs an assessment. A check that
 resolved or closed findings works without a key.
 
 With `--dry-run`, the command prints the estimate and sends nothing to Jev. Each finding that
-needs an assessment has the status `not-assessed`.
+needs an assessment has the status `not-assessed`. The estimate also states an upper bound for
+the confirmation calls, as `judge` does: one more call for each finding.
 
 ### Exit codes
 
@@ -119,18 +123,18 @@ The verdict export (`fallow-security-verdicts/v1`) gives a closed finding the ve
 `check --format json` prints one object. The JSON schema is
 [`schemas/check.schema.json`](../schemas/check.schema.json).
 
-| Field            | Meaning                                                                 |
-| ---------------- | ----------------------------------------------------------------------- |
-| `schema_version` | `fallow-verdict-check/v1`                                               |
-| `kind`           | The analysis kind                                                       |
-| `target`         | `{ type: "finding" \| "path", value }`. A path is project-relative.     |
-| `dry_run`        | True for `--dry-run`                                                    |
-| `outcome`        | `cleared`, `stands`, `needs-person`, `error` or `estimated`             |
-| `exit_code`      | `0`, `1`, `2` or `3`                                                    |
-| `estimate`       | Estimated `input_tokens` and `usd` for the findings that need a request |
-| `usage`          | Recorded `input_tokens` and `cost_usd` of the requests that were sent   |
-| `results`        | One entry for each finding. See below.                                  |
-| `actions`        | Next steps in Fallow style. See below.                                  |
+| Field            | Meaning                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| `schema_version` | `fallow-verdict-check/v1`                                                                              |
+| `kind`           | The analysis kind                                                                                      |
+| `target`         | `{ type: "finding" \| "path", value }`. A path is project-relative.                                    |
+| `dry_run`        | True for `--dry-run`                                                                                   |
+| `outcome`        | `cleared`, `stands`, `needs-person`, `error` or `estimated`                                            |
+| `exit_code`      | `0`, `1`, `2` or `3`                                                                                   |
+| `estimate`       | Estimated `input_tokens` and `usd`, and `max_confirmation_usd`: the upper bound for confirmation calls |
+| `usage`          | Recorded `input_tokens` and `cost_usd` of the requests that were sent                                  |
+| `results`        | One entry for each finding. See below.                                                                 |
+| `actions`        | Next steps in Fallow style. See below.                                                                 |
 
 Each result has:
 

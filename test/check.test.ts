@@ -403,7 +403,8 @@ describe("check", () => {
         { status: "judged", stored_id: null, finding_id: added.finding_id },
       ],
     });
-    expect(engine.engine.calls).toBe(2);
+    // Each dismissal needs a second call that agrees.
+    expect(engine.engine.calls).toBe(4);
   });
 
   it("prints the estimate and sends nothing in a dry run", async () => {
@@ -422,9 +423,13 @@ describe("check", () => {
       results: [{ status: "not-assessed" }],
     });
     expect(result.ok && result.data.report.estimate.input_tokens).toBeGreaterThan(0);
+    expect(result.ok && result.data.report.estimate.max_confirmation_usd).toBe(
+      result.ok ? result.data.report.estimate.usd : -1,
+    );
     expect(engine.engine.calls).toBe(0);
     const human = result.ok ? renderCheckHuman(result.data, securityPresentation) : "";
     expect(human).toContain("Dry run: no requests were sent to Jev.");
+    expect(human).toContain("Dismissal confirmation calls can add up to");
   });
 
   it("gives Fallow-style actions and matches the JSON schema", async () => {
@@ -556,6 +561,50 @@ describe("check exit priority", () => {
       outcome: "stands",
       exit_code: 1,
       results: [{ verdict: "survivor" }, { verdict: "needs-human-review" }],
+    });
+  });
+});
+
+describe("check dismissal confirmation", () => {
+  it("exits 3 when the confirmation call disagrees with a dismissal", async () => {
+    const state = await scanned();
+    const responses = [SAFE_MITIGATED, VULNERABLE];
+    let call = 0;
+    const engine = mockEngine(() => responses[call++] ?? VULNERABLE);
+    const result = await checkWith(
+      withFreshScan([makeFinding({ finding_id: OLD_ID })]),
+      state.loaded,
+      state.store,
+      options(state, OLD_ID, () => ok<DecisionEngine>(engine)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      outcome: "needs-person",
+      exit_code: 3,
+      results: [{ verdict: "needs-human-review", rule: "dismissal-unconfirmed" }],
+    });
+    expect(engine.calls).toBe(2);
+  });
+
+  it("exits 3 when the confirmation call fails", async () => {
+    const state = await scanned();
+    let call = 0;
+    const safe = mockEngine(() => SAFE_MITIGATED);
+    const engine: DecisionEngine = {
+      id: "flaky",
+      evaluate: (request) =>
+        call++ === 0
+          ? safe.evaluate(request)
+          : Promise.resolve(err(verdictError("engine_unavailable", "down"))),
+    };
+    const result = await checkWith(
+      withFreshScan([makeFinding({ finding_id: OLD_ID })]),
+      state.loaded,
+      state.store,
+      options(state, OLD_ID, () => ok(engine)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      exit_code: 3,
+      results: [{ rule: "dismissal-unconfirmed" }],
     });
   });
 });

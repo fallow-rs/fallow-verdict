@@ -341,7 +341,7 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
 
   const results: CheckResult[] = [];
   const texts: (FindingText | null)[] = [];
-  const estimate = { input_tokens: 0, usd: 0 };
+  const estimate = { input_tokens: 0, usd: 0, max_confirmation_usd: 0 };
   const usage = { input_tokens: 0, cost_usd: 0 };
   let engine: Result<DecisionEngine, VerdictError> | null = null;
 
@@ -387,6 +387,9 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
     const tokens = built.stateTokens + estimateTokens(adapter.questions.for(built, loaded));
     estimate.input_tokens += tokens;
     estimate.usd += tokensToUsd(tokens);
+    // Each dismissal needs one more call of the same size, so this is an upper bound.
+    if (loaded.config.policy.confirmDismissals)
+      estimate.max_confirmation_usd += tokensToUsd(tokens);
     if (options.dryRun) {
       results.push({ ...matched, status: "not-assessed", reason: "Dry run: not assessed." });
       continue;
@@ -400,6 +403,8 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
           loaded,
           CHECK_RUN_ID,
           options.signal,
+          // `check` has no cost cap, so a dismissal always gets its second call.
+          () => options.signal?.aborted !== true,
         )
       : engine;
     if (!judged.ok) {
@@ -408,7 +413,8 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       results.push({ ...matched, status: "error", reason: message, error: { code, message } });
       continue;
     }
-    const record: FindingRecord = judged.data;
+    // A disagreed or failed confirmation gives `needs-human-review`, so exit code 3.
+    const record: FindingRecord = judged.data.record;
     const decision = record.decision;
     if (decision === null) {
       results.push({

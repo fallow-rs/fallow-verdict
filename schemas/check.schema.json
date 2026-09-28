@@ -69,11 +69,15 @@
         },
         "usd": {
           "type": "number"
+        },
+        "max_confirmation_usd": {
+          "type": "number"
         }
       },
       "required": [
         "input_tokens",
-        "usd"
+        "usd",
+        "max_confirmation_usd"
       ]
     },
     "usage": {

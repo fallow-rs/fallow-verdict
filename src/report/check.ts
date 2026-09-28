@@ -56,7 +56,12 @@ export const checkReportSchema = z.object({
   outcome: z.enum(["cleared", "stands", "needs-person", "error", "estimated"]),
   exit_code: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   /** Estimated input for the findings that need an assessment. */
-  estimate: z.object({ input_tokens: z.number(), usd: z.number() }),
+  estimate: z.object({
+    input_tokens: z.number(),
+    usd: z.number(),
+    /** Upper bound for dismissal confirmation calls, on top of `usd`. Zero when disabled. */
+    max_confirmation_usd: z.number(),
+  }),
   /** Recorded input of the requests that this check sent. */
   usage: z.object({ input_tokens: z.number(), cost_usd: z.number() }),
   results: z.array(resultSchema),
@@ -133,6 +138,11 @@ export const renderCheckHuman = (
   if (report.dry_run)
     lines.push(
       `Estimated request cost: ${formatUsd(report.estimate.usd)} (about ${report.estimate.input_tokens} input tokens).`,
+      ...(report.estimate.max_confirmation_usd > 0
+        ? [
+            `Dismissal confirmation calls can add up to ${formatUsd(report.estimate.max_confirmation_usd)}.`,
+          ]
+        : []),
       "Dry run: no requests were sent to Jev.",
     );
   else
