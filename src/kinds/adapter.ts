@@ -68,6 +68,12 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
      * `resolved` only for conclusive output. Absent: true.
      */
     conclusive?: (output: Output, paths: readonly string[]) => boolean;
+    /**
+     * False when Fallow did not finish the analysis for the whole scan. Then `scan` resolves no
+     * records. `conclusive` answers for the target files of one `check`; this answers for a
+     * whole scan. Absent: true.
+     */
+    complete?: (output: Output) => boolean;
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
@@ -94,6 +100,11 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
    * A kind sets this only when a dismissal of its kind hides nothing that Fallow reports.
    */
   confirmDismissals?: (loaded: LoadedConfig) => boolean;
+  /**
+   * Whether a survivor needs a second call that agrees. Absent: false. A kind sets this when a
+   * survivor gates a code change.
+   */
+  confirmSurvivors?: (loaded: LoadedConfig) => boolean;
   /** The `failOn` level when `--fail-on` is absent. Absent: the top-level `failOn`. */
   failOn?: (loaded: LoadedConfig) => FailOn;
   /** Kind-specific words and evidence lines for the terminal and Markdown reports. */
@@ -107,7 +118,12 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** Write the verdict contract and run the Fallow join command, if any. */
   export: {
-    verdicts: (records: readonly FindingRecord[], candidateIds: ReadonlySet<string>) => unknown;
+    /** `output` is the stored Fallow output, for a contract that needs more than the id. */
+    verdicts: (
+      records: readonly FindingRecord[],
+      candidateIds: ReadonlySet<string>,
+      output: Output,
+    ) => unknown;
     validate:
       | ((loaded: LoadedConfig, store: Store) => Promise<Result<unknown, VerdictError>>)
       | null;

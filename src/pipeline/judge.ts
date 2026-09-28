@@ -2,7 +2,7 @@ import type { LoadedConfig } from "../config/load.ts";
 import type { Answer, DecisionEngine, EvaluateResponse } from "../engine/types.ts";
 import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
 import { securityAdapter } from "../kinds/security.ts";
-import { confirmDismissal } from "../policy/confirm.ts";
+import { confirmDecision, type ConfirmedVerdict } from "../policy/confirm.ts";
 import {
   RUN_SCHEMA,
   type FindingRecord,
@@ -83,6 +83,19 @@ export const confirmsDismissals = <Output, Candidate, Built extends BuiltEvidenc
   loaded: LoadedConfig,
 ): boolean => adapter.confirmDismissals?.(loaded) ?? loaded.config.policy.confirmDismissals;
 
+/**
+ * The verdicts of this kind that stand only when a second, identical call maps to the same
+ * verdict: a dismissal per `confirmsDismissals`, and a survivor when the adapter asks for it.
+ */
+export const confirmedVerdicts = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  loaded: LoadedConfig,
+): ReadonlySet<ConfirmedVerdict> =>
+  new Set<ConfirmedVerdict>([
+    ...(confirmsDismissals(adapter, loaded) ? (["dismissed"] as const) : []),
+    ...((adapter.confirmSurvivors?.(loaded) ?? false) ? (["survivor"] as const) : []),
+  ]);
+
 const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   job: Job<Built>,
@@ -90,8 +103,9 @@ const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
 ): number => estimateTokens(adapter.questions.for(job.built, loaded));
 
 /**
- * Maps the stored answers to a decision. With dismissal confirmation, a dismissal also needs
- * a confirming answer set that maps to a dismissal; without one it goes to a person.
+ * Maps the stored answers to a decision. A verdict that needs confirmation (a dismissal with
+ * `policy.confirmDismissals`, or what the adapter states) also needs a confirming answer set
+ * that maps to the same verdict; without one it goes to a person.
  */
 const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -102,14 +116,18 @@ const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
   missing?: string,
 ): StoredDecision => {
   const first = adapter.policy(answers, built, loaded);
-  if (!confirmsDismissals(adapter, loaded)) return first;
+  const confirmed = confirmedVerdicts(adapter, loaded);
+  if (!needsSecond(confirmed, first)) return first;
   const second =
     confirmationAnswers === undefined ? null : adapter.policy(confirmationAnswers, built, loaded);
-  return confirmDismissal(first, second, missing);
+  return confirmDecision(first, second, confirmed, missing);
 };
 
+const needsSecond = (confirmed: ReadonlySet<ConfirmedVerdict>, decision: StoredDecision): boolean =>
+  decision.verdict !== "needs-human-review" && confirmed.has(decision.verdict);
+
 /**
- * A stored dismissal without a confirming answer set: a record from before the confirmation
+ * A stored dismissal (or another verdict that needs confirmation) without a confirming answer set: a record from before the confirmation
  * rule, one judged with `confirmDismissals: false`, or one whose second call failed or was
  * stopped. `judge` asks again for these. Only a disagreement is final for the current evidence,
  * because only a disagreement says something about the finding.
@@ -120,10 +138,9 @@ const needsConfirmation = <Output, Candidate, Built extends BuiltEvidence>(
   built: Built,
   loaded: LoadedConfig,
 ): boolean =>
-  confirmsDismissals(adapter, loaded) &&
   record.answers !== null &&
   record.confirmationAnswers === undefined &&
-  adapter.policy(record.answers, built, loaded).verdict === "dismissed";
+  needsSecond(confirmedVerdicts(adapter, loaded), adapter.policy(record.answers, built, loaded));
 
 const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -193,7 +210,7 @@ export const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   let confirmation: EvaluateResponse | null = null;
   let missing: string | undefined;
   let fatal: VerdictError | null = null;
-  if (confirmsDismissals(adapter, loaded) && first.verdict === "dismissed") {
+  if (needsSecond(confirmedVerdicts(adapter, loaded), first)) {
     if (mayConfirm()) {
       const second = await engine.evaluate(request);
       if (second.ok) confirmation = second.data;
@@ -376,7 +393,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   const estimatedUsd = tokensToUsd(estimatedTokens);
   // Each candidate can need one confirmation call of the same size, so this is an upper bound.
-  const maxConfirmationUsd = confirmsDismissals(adapter, loaded) ? estimatedUsd : 0;
+  const maxConfirmationUsd = confirmedVerdicts(adapter, loaded).size > 0 ? estimatedUsd : 0;
   options.onProgress?.({
     type: "plan",
     toJudge: jobs.length,
@@ -438,7 +455,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   const estimateUsd = (job: Job<Built>): number =>
     tokensToUsd(job.built.stateTokens + questionTokens(adapter, job, loaded));
   // A dismissal needs a confirmation call, so a job reserves both calls before the first one.
-  const callsPerJob = confirmsDismissals(adapter, loaded) ? 2 : 1;
+  const callsPerJob = confirmedVerdicts(adapter, loaded).size > 0 ? 2 : 1;
   const reserveUsd = (job: Job<Built>): number => estimateUsd(job) * callsPerJob;
   const timeStop = (): RunRecord["outcome"] | null => {
     if (options.signal?.aborted) return "interrupted";

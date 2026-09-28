@@ -2,6 +2,7 @@ import type { AnalysisAdapter, BuiltEvidence } from "./adapter.ts";
 import type { AnalysisKind, KindName } from "./names.ts";
 import { reviewAdapter } from "./review.ts";
 import { securityAdapter } from "./security.ts";
+import { similarCodeAdapter } from "./similar-code.ts";
 
 /** Receives an adapter without knowing its output, candidate and packet types. */
 export type AdapterUser<R> = <Output, Candidate, Built extends BuiltEvidence>(
@@ -24,6 +25,7 @@ const register = <Output, Candidate, Built extends BuiltEvidence>(
 const REGISTRY: Readonly<Record<AnalysisKind, RegisteredKind>> = {
   security: register(securityAdapter),
   review: register(reviewAdapter),
+  "similar-code": register(similarCodeAdapter),
 };
 
 export const kindFor = (kind: AnalysisKind): RegisteredKind => REGISTRY[kind];

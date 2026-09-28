@@ -2,7 +2,7 @@ import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 
 /** Add-only. Each name has exactly one adapter in `src/kinds/registry.ts`. */
-export const ANALYSIS_KINDS = ["security", "review"] as const;
+export const ANALYSIS_KINDS = ["security", "review", "similar-code"] as const;
 export type AnalysisKind = (typeof ANALYSIS_KINDS)[number];
 
 /**

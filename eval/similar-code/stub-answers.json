@@ -1,0 +1,160 @@
+{
+  "schema_version": "fallow-verdict-stub-answers/v1",
+  "note": "Hand-written stand-in answers for the offline tests. They are not Jev output. Replace them with recorded Jev answers after a live run.",
+  "answers": {
+    "sumPrices~totalCost": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.97
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.96
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.97
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "same-responsibility",
+        "probabilities": {
+          "same-responsibility": 0.9
+        },
+        "confidence": 0.9
+      }
+    },
+    "isBlankText~isEmptyString": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.96
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.95
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.96
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "same-responsibility",
+        "probabilities": {
+          "same-responsibility": 0.88
+        },
+        "confidence": 0.88
+      }
+    },
+    "normalizeTags~tidyNames": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.9
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.08
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.04
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "related-but-distinct",
+        "probabilities": {
+          "related-but-distinct": 0.82
+        },
+        "confidence": 0.82
+      }
+    },
+    "withinRange~insideBounds": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.95
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.92
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.93
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "same-responsibility",
+        "probabilities": {
+          "same-responsibility": 0.8
+        },
+        "confidence": 0.8
+      }
+    },
+    "formatOrderDate~formatOrderTotal": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.06
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.02
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.02
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "unrelated",
+        "probabilities": {
+          "unrelated": 0.9
+        },
+        "confidence": 0.9
+      }
+    },
+    "parseUserId~parseUserAgent": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.04
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.01
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.01
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "unrelated",
+        "probabilities": {
+          "unrelated": 0.93
+        },
+        "confidence": 0.93
+      }
+    },
+    "parseUserId~isBlankText": {
+      "candidate_worthy": {
+        "type": "noul",
+        "probability": 0.08
+      },
+      "behaviorally_equivalent": {
+        "type": "noul",
+        "probability": 0.03
+      },
+      "refactor_safe": {
+        "type": "noul",
+        "probability": 0.02
+      },
+      "outcome": {
+        "type": "choice",
+        "choice": "unrelated",
+        "probabilities": {
+          "unrelated": 0.86
+        },
+        "confidence": 0.86
+      }
+    }
+  }
+}

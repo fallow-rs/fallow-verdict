@@ -141,22 +141,31 @@ const exitCodeFor = (report: Report, failOn: LoadedConfig["config"]["failOn"]): 
   return failing > 0 ? EXIT.findings : EXIT.ok;
 };
 
+/** The stored Fallow output. */
+const storedOutput = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  store: Store,
+): Promise<Result<Output, VerdictError>> => {
+  const raw = await store.readJson(store.candidatesPath);
+  if (!raw.ok) return raw;
+  return adapter.scan.parse(raw.data);
+};
+
 /** Finding ids of the stored candidate set, taken from the adapter, never from an engine response. */
+const idsOf = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  output: Output,
+): Set<string> =>
+  new Set(
+    adapter.scan.candidates(output).map((candidate) => adapter.identity(candidate).finding_id),
+  );
+
 const candidateIds = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   store: Store,
 ): Promise<Result<Set<string>, VerdictError>> => {
-  const raw = await store.readJson(store.candidatesPath);
-  if (!raw.ok) return raw;
-  const output = adapter.scan.parse(raw.data);
-  if (!output.ok) return output;
-  return ok(
-    new Set(
-      adapter.scan
-        .candidates(output.data)
-        .map((candidate) => adapter.identity(candidate).finding_id),
-    ),
-  );
+  const output = await storedOutput(adapter, store);
+  return output.ok ? ok(idsOf(adapter, output.data)) : output;
 };
 
 const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
@@ -171,11 +180,11 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   const { records, corrupt } = await store.readRecords();
   for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
 
-  const candidates = await candidateIds(adapter, store);
-  if (!candidates.ok) return candidates;
-  const ids = candidates.data;
+  const output = await storedOutput(adapter, store);
+  if (!output.ok) return output;
+  const ids = idsOf(adapter, output.data);
 
-  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids));
+  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids, output.data));
   if (options.validate && adapter.export.validate !== null) {
     const validated = await adapter.export.validate(loaded, store);
     if (!validated.ok) return validated;

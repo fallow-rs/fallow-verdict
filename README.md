@@ -160,6 +160,9 @@ Set `--fail-on needs-human-review` to also fail when review is needed.
 Incomplete reports exit with `2`, even with `--fail-on off`. The `scan` and
 `status` commands do not fail because of findings. See the [CI guide](docs/ci.md).
 
+`--kind similar-code` assesses pairs from `fallow similar-code` instead of security findings.
+It is a preview. See [similar-code pairs](docs/similar-code.md).
+
 `check` is for an edit loop. It exits `0` when the findings are resolved, dismissed or
 closed, and `1` when a finding stands. See [check and close](docs/check.md).
 
@@ -184,6 +187,7 @@ visible in your own labeled examples.
 - [Configuration](docs/configuration.md): model settings and decision thresholds.
 - [Check and close](docs/check.md): the edit loop and its JSON contract.
 - [Review mode](docs/review.md): advisory review of risky functions and project rules.
+- [Similar-code pairs](docs/similar-code.md): the `similar-code` kind, its policy and its Fallow join.
 - [Responsibilities](docs/responsibilities.md): what belongs in Fallow and in this package.
 - [Architecture](docs/architecture.md): evidence collection and stored records.
 - [Roadmap](docs/roadmap.md): planned work and release requirements.
