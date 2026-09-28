@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+import {
+  acceptsOption,
+  type ActionContext,
+  type CommandName,
+  type OptionName,
+} from "../cli/args.ts";
 import { DEFAULT_KIND } from "../kinds/names.ts";
 import type { JudgeSummary } from "../pipeline/judge.ts";
 import { recordSchema, runSchema, type FindingRecord } from "../state/schema.ts";
@@ -69,27 +75,53 @@ export const judgeOutputSchema = z.object({
   actions: z.array(nextActionSchema),
 });
 
-const kindSuffix = (kind: string): string => (kind === DEFAULT_KIND ? "" : ` --kind ${kind}`);
+/**
+ * A command line for a next step: the invocation, the command, its arguments, then the context
+ * options that the command accepts. `raw` follows the arguments without quotes, for a
+ * placeholder such as `--reason "<reason>"`.
+ */
+export const actionCommand = (
+  context: ActionContext,
+  command: CommandName,
+  args: readonly string[] = [],
+  raw?: string,
+): string => {
+  const flags: string[] = [];
+  const add = (option: OptionName, value: string | undefined): void => {
+    if (value !== undefined && acceptsOption(command, option)) flags.push(`--${option}`, value);
+  };
+  add("kind", context.kind === DEFAULT_KIND ? undefined : context.kind);
+  add("question-profile", context.questionProfile);
+  add("config", context.config);
+  add("cwd", context.cwd);
+  return [
+    context.invocation,
+    command,
+    ...args.map(quote),
+    ...(raw === undefined ? [] : [raw]),
+    ...flags.map(quote),
+  ].join(" ");
+};
 
-const findingActions = (record: FindingRecord, suffix: string): NextAction[] => {
+const CLOSE_DESCRIPTION =
+  "Only a person can close this finding. Send this action to the user. Replace <reason> with the reason of the user.";
+
+const findingActions = (record: FindingRecord, context: ActionContext): NextAction[] => {
   const verdict = record.status === "judged" ? record.decision?.verdict : undefined;
   if (verdict !== "survivor" && verdict !== "needs-human-review") return [];
-  const id = quote(record.finding_id);
-  const check: NextAction = {
-    type: "check",
-    auto_fixable: false,
-    description: "Check this finding again after you change the code.",
-    command: `fallow-verdict check ${id}${suffix}`,
-    finding_id: record.finding_id,
-  };
   return [
-    check,
+    {
+      type: "check",
+      auto_fixable: false,
+      description: "Check this finding again after you change the code.",
+      command: actionCommand(context, "check", [record.finding_id]),
+      finding_id: record.finding_id,
+    },
     {
       type: "close",
       auto_fixable: false,
-      description:
-        "Only a person can close this finding. Send this action to the user. Replace <reason> with the reason of the user.",
-      command: `fallow-verdict close ${id} --reason "<reason>"${suffix}`,
+      description: CLOSE_DESCRIPTION,
+      command: actionCommand(context, "close", [record.finding_id], '--reason "<reason>"'),
       finding_id: record.finding_id,
     },
   ];
@@ -100,32 +132,35 @@ const findingActions = (record: FindingRecord, suffix: string): NextAction[] => 
  * finding a `check` and a `close`, as `check` gives them. Only a person can close a finding.
  * Dismissed and closed findings have no action.
  */
-export const reportActions = (report: Report, kind: string): NextAction[] => {
-  const suffix = kindSuffix(kind);
+export const reportActions = (report: Report, context: ActionContext): NextAction[] => {
   const judge: NextAction[] =
     report.summary.pending + report.summary.errors > 0
       ? [
           {
             type: "judge",
             auto_fixable: false,
-            description:
-              "Assess the findings that have no current assessment. Use the same config and question profile.",
-            command: `fallow-verdict judge${suffix}`,
+            description: "Assess the findings that have no current assessment.",
+            command: actionCommand(context, "judge"),
           },
         ]
       : [];
-  return [...judge, ...report.findings.flatMap((record) => findingActions(record, suffix))];
+  return [...judge, ...report.findings.flatMap((record) => findingActions(record, context))];
 };
 
 /**
- * Next steps after `judge` or `run --dry-run`. A dry run offers the same command without
+ * Next steps after `judge` or `run --dry-run`. A dry run offers the same arguments without
  * `--dry-run`. A real `judge` offers `judge` again while findings are pending, then `report`.
  */
 export const judgeActions = (
   summary: JudgeSummary,
-  run: { command: "judge" | "run"; kind: string; dryRun: boolean; argv: readonly string[] },
+  run: {
+    command: "judge" | "run";
+    dryRun: boolean;
+    argv: readonly string[];
+    context: ActionContext;
+  },
 ): NextAction[] => {
-  const suffix = kindSuffix(run.kind);
+  const { context } = run;
   if (run.dryRun) {
     if (run.command === "judge" && summary.pending === 0) return [];
     return [
@@ -134,10 +169,10 @@ export const judgeActions = (
         auto_fixable: false,
         description:
           "Run the same command without --dry-run. It sends requests to Jev. Show the estimated cost to the user first.",
-        command: `fallow-verdict ${run.argv
-          .filter((arg) => arg !== "--dry-run")
-          .map(quote)
-          .join(" ")}`,
+        command: [
+          context.invocation,
+          ...run.argv.filter((arg) => arg !== "--dry-run").map(quote),
+        ].join(" "),
       },
     ];
   }
@@ -147,13 +182,13 @@ export const judgeActions = (
       type: "judge",
       auto_fixable: false,
       description: "Assess the remaining pending findings.",
-      command: `fallow-verdict judge${suffix}`,
+      command: actionCommand(context, "judge"),
     });
   actions.push({
     type: "report",
     auto_fixable: false,
     description: "Show the verdicts and write the reports.",
-    command: `fallow-verdict report${suffix}`,
+    command: actionCommand(context, "report"),
   });
   return actions;
 };

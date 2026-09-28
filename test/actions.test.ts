@@ -35,7 +35,7 @@ const repo = fileURLToPath(new URL("../", import.meta.url));
 const cli = path.join(repo, "bin/fallow-verdict.js");
 
 const optionsFor = (argv: string[]): CliOptions => {
-  const parsed = parseCli(argv);
+  const parsed = parseCli(argv, {});
   if (!parsed.ok || parsed.data.kind !== "command") throw new Error("Invalid test arguments");
   return parsed.data.options;
 };
@@ -118,17 +118,21 @@ describe("actions in the report output", () => {
     expect(
       report.actions.map(({ type, command, finding_id }) => ({ type, command, finding_id })),
     ).toEqual([
-      { type: "judge", command: "fallow-verdict judge", finding_id: undefined },
-      { type: "check", command: `fallow-verdict check ${ID.survivor}`, finding_id: ID.survivor },
+      { type: "judge", command: "npx fallow-verdict judge", finding_id: undefined },
       {
-        type: "close",
-        command: `fallow-verdict close ${ID.survivor} --reason "<reason>"`,
+        type: "check",
+        command: `npx fallow-verdict check ${ID.survivor}`,
         finding_id: ID.survivor,
       },
-      { type: "check", command: `fallow-verdict check ${ID.review}`, finding_id: ID.review },
       {
         type: "close",
-        command: `fallow-verdict close ${ID.review} --reason "<reason>"`,
+        command: `npx fallow-verdict close ${ID.survivor} --reason "<reason>"`,
+        finding_id: ID.survivor,
+      },
+      { type: "check", command: `npx fallow-verdict check ${ID.review}`, finding_id: ID.review },
+      {
+        type: "close",
+        command: `npx fallow-verdict close ${ID.review} --reason "<reason>"`,
         finding_id: ID.review,
       },
     ]);
@@ -160,9 +164,35 @@ describe("actions in the report output", () => {
   it("names the kind in each command for a kind that is not the default", async () => {
     const { store } = await mixedState();
     const report = buildReport((await store.readRecords()).records, securityPriority);
-    const actions = reportActions(report, "review");
+    const actions = reportActions(report, { invocation: "npx fallow-verdict", kind: "review" });
     expect(actions.length).toBeGreaterThan(0);
     for (const action of actions) expect(action.command).toMatch(/ --kind review$/);
+  });
+
+  it("repeat --cwd and --question-profile of the command that made the report", async () => {
+    const { loaded, store } = await mixedState();
+    const report = buildReport((await store.readRecords()).records, securityPriority);
+    const { actions: context } = optionsFor([
+      "run",
+      "--cwd",
+      loaded.root,
+      "--question-profile",
+      "category",
+    ]);
+    const actions = reportActions(report, context);
+    const check = actions.find((action) => action.type === "check");
+    expect(check?.command).toBe(
+      `npx fallow-verdict check ${ID.survivor} --question-profile category --cwd ${loaded.root}`,
+    );
+    // close takes no question profile, but it needs the same state directory.
+    const close = actions.find((action) => action.type === "close");
+    expect(close?.command).toBe(
+      `npx fallow-verdict close ${ID.survivor} --reason "<reason>" --cwd ${loaded.root}`,
+    );
+    const judgeStep = actions.find((action) => action.type === "judge");
+    expect(judgeStep?.command).toBe(
+      `npx fallow-verdict judge --question-profile category --cwd ${loaded.root}`,
+    );
   });
 
   it("is empty when every finding is dismissed or closed", async () => {
@@ -201,7 +231,10 @@ describe("actions in the judge output", () => {
     if (!outcome.ok) return;
     const summary = judgeOutputSchema.parse(outcome.data.json);
     expect(summary.actions).toEqual([
-      expect.objectContaining({ type: "judge", command: "fallow-verdict judge --quiet --limit 5" }),
+      expect.objectContaining({
+        type: "judge",
+        command: "npx fallow-verdict judge --quiet --limit 5",
+      }),
     ]);
   });
 });
@@ -209,7 +242,8 @@ describe("actions in the judge output", () => {
 /** Runs the built CLI with no API key, so any Jev request fails. */
 const runCli = (args: string[]): Promise<{ code: number; data: unknown }> =>
   new Promise((resolve, reject) => {
-    const { TYPESAFE_API_KEY: _key, ...env } = process.env;
+    // Without a package manager agent, the invocation is always `npx fallow-verdict`.
+    const { TYPESAFE_API_KEY: _key, npm_config_user_agent: _agent, ...env } = process.env;
     execFile(process.execPath, [cli, ...args], { env }, (error, stdout) => {
       if (error !== null && typeof error.code !== "number") return reject(error);
       let data: unknown;
@@ -240,7 +274,7 @@ it("run --dry-run offers the same run without --dry-run", async () => {
       expect.objectContaining({
         type: "run",
         auto_fixable: false,
-        command: `fallow-verdict run --cwd ${root} --format json --limit 2 src`,
+        command: `npx fallow-verdict run --cwd ${root} --format json --limit 2 src`,
       }),
     ]);
   } finally {

@@ -207,7 +207,7 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
       report,
       options.failOn ?? adapter.failOn?.(loaded) ?? loaded.config.failOn,
     ),
-    json: { ...report, actions: reportActions(report, adapter.kind) },
+    json: { ...report, actions: reportActions(report, options.actions) },
     human: withNotes(renderHuman(report, adapter.report, options.showDismissed)),
   });
 };
@@ -239,6 +239,7 @@ const runCheck = async <Output, Candidate, Built extends BuiltEvidence>(
     dryRun: options.dryRun,
     engine: () => createEngine(loaded),
     signal,
+    actions: options.actions,
   });
   if (!checked.ok) return checked;
   return ok({
@@ -352,7 +353,7 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
     const report = buildReport(records, adapter.priority);
     return ok({
       exitCode: EXIT.ok,
-      json: { ...report, actions: reportActions(report, adapter.kind) },
+      json: { ...report, actions: reportActions(report, options.actions) },
       human: renderHuman(report, adapter.report, options.showDismissed),
     });
   }
@@ -400,9 +401,9 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
             ...judged.data,
             actions: judgeActions(judged.data, {
               command: options.command,
-              kind: adapter.kind,
               dryRun: options.dryRun,
               argv: options.argv,
+              context: options.actions,
             }),
           },
         });
@@ -426,10 +427,21 @@ const printError = (error: VerdictError, format: CliOptions["format"]): void => 
   if (error.hint !== undefined) process.stderr.write(`${error.hint}\n`);
 };
 
+/**
+ * The output format of a usage error. The parser stops at the first error, so this reads
+ * `--format json` from the raw arguments.
+ */
+const requestedFormat = (argv: readonly string[]): CliOptions["format"] =>
+  argv.some(
+    (arg, index) => arg === "--format=json" || (arg === "--format" && argv[index + 1] === "json"),
+  )
+    ? "json"
+    : "human";
+
 export const main = async (argv: readonly string[]): Promise<number> => {
   const parsed = parseCli(argv);
   if (!parsed.ok) {
-    printError(parsed.error, "human");
+    printError(parsed.error, requestedFormat(argv));
     return EXIT.error;
   }
   if (parsed.data.kind === "help") {

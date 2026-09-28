@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { COMMANDS, parseCli } from "../src/cli/args.ts";
+import { COMMANDS, invocationFor, parseCli } from "../src/cli/args.ts";
 
 const repo = fileURLToPath(new URL("../", import.meta.url));
 const cli = path.join(repo, "bin/fallow-verdict.js");
@@ -103,9 +103,13 @@ describe("help for each command", () => {
     expect(optionsOf(result.stdout).toSorted()).toEqual([...all, "--help", "--version"].toSorted());
   });
 
-  it("rejects help for an unknown command", async () => {
-    const result = await runCli(["help", "deploy"]);
+  it.each([
+    ["help", "deploy"],
+    ["deploy", "--help"],
+  ])("rejects help for an unknown command: %s %s", async (...args) => {
+    const result = await runCli(args);
     expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
     expect(result.stderr).toContain("Unknown command `deploy`.");
   });
 
@@ -147,10 +151,46 @@ describe("options that a command does not accept", () => {
     }
   });
 
+  it("print a JSON error on stdout with --format json", async () => {
+    for (const args of [
+      ["status", "--dry-run", "--format", "json"],
+      ["status", "--format=json", "--no-such-option"],
+    ]) {
+      const result = await runCli(args);
+      expect(result.code).toBe(2);
+      expect(result.stderr).toBe("");
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        error: true,
+        code: "config_invalid",
+        exit_code: 2,
+      });
+    }
+  });
+
   it("do not block help", () => {
     expect(parseCli(["status", "--dry-run", "--help"])).toEqual({
       ok: true,
       data: { kind: "help", command: "status" },
+    });
+  });
+});
+
+describe("invocation in actions", () => {
+  it.each([
+    [{}, "npx fallow-verdict"],
+    [{ npm_config_user_agent: "npm/10.9.0 node/v22.12.0 darwin arm64" }, "npx fallow-verdict"],
+    [{ npm_config_user_agent: "pnpm/9.15.0 npm/? node/v22.12.0" }, "pnpm exec fallow-verdict"],
+    [{ npm_config_user_agent: "yarn/4.5.0 npm/? node/v22.12.0" }, "yarn fallow-verdict"],
+    [{ npm_config_user_agent: "bun/1.1.0 npm/? node/v22.12.0" }, "bunx fallow-verdict"],
+  ])("follows the package manager agent %j", (env, invocation) => {
+    expect(invocationFor(env)).toBe(invocation);
+    const parsed = parseCli(["report"], env);
+    expect(parsed.ok && parsed.data.kind === "command" && parsed.data.options.actions).toEqual({
+      invocation,
+      kind: "security",
+      cwd: undefined,
+      config: undefined,
+      questionProfile: undefined,
     });
   });
 });

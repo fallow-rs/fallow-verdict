@@ -40,6 +40,36 @@ export type CliOptions = {
   questionProfile?: "generic" | "category" | undefined;
   /** The reason that a person gives with `close`. */
   reason?: string | undefined;
+  /** The invocation and the options that the commands of `actions` repeat. */
+  actions: ActionContext;
+};
+
+/**
+ * What a printed next step needs to reach the same state and the same questions: the command
+ * that starts fallow-verdict, and the options that select the store and the question profile.
+ */
+export type ActionContext = {
+  invocation: string;
+  kind: string;
+  cwd?: string | undefined;
+  config?: string | undefined;
+  questionProfile?: "generic" | "category" | undefined;
+};
+
+/** The invocation when no package manager is detected. It also works for a global install. */
+export const DEFAULT_INVOCATION = "npx fallow-verdict";
+
+/**
+ * The command that starts fallow-verdict through the package manager that ran it, from
+ * `npm_config_user_agent`. npm, npx, `npm exec`, a direct call and an unknown agent give
+ * `npx fallow-verdict`, because a dev dependency is not on the PATH.
+ */
+export const invocationFor = (env: Readonly<Record<string, string | undefined>>): string => {
+  const agent = env["npm_config_user_agent"] ?? "";
+  if (agent.startsWith("pnpm/")) return "pnpm exec fallow-verdict";
+  if (agent.startsWith("yarn/")) return "yarn fallow-verdict";
+  if (agent.startsWith("bun/")) return "bunx fallow-verdict";
+  return DEFAULT_INVOCATION;
 };
 
 type OptionSpec = {
@@ -112,7 +142,7 @@ const OPTIONS = {
   version: { type: "boolean", help: ["Show the version"] },
 } as const satisfies Record<string, OptionSpec>;
 
-type OptionName = keyof typeof OPTIONS;
+export type OptionName = keyof typeof OPTIONS;
 
 /** Options that every command accepts. They never appear in a command table. */
 const GLOBAL_OPTIONS: readonly OptionName[] = ["help", "version"];
@@ -330,7 +360,14 @@ const rejectedOption = (command: CommandName, present: readonly string[]): Verdi
       );
 };
 
-export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictError> => {
+/** True when the command accepts the option. */
+export const acceptsOption = (command: CommandName, option: OptionName): boolean =>
+  COMMAND_SPECS[command].options.includes(option);
+
+export const parseCli = (
+  argv: readonly string[],
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): Result<ParsedCli, VerdictError> => {
   let parsed;
   try {
     parsed = parseArgs({ args: [...argv], allowPositionals: true, options: PARSE_OPTIONS });
@@ -349,8 +386,8 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
     return isCommand(target) ? ok({ kind: "help", command: target }) : err(unknownCommand(target));
   }
   if (command === undefined) return ok({ kind: "help", command: null });
-  if (values.help) return ok({ kind: "help", command: isCommand(command) ? command : null });
   if (!isCommand(command)) return err(unknownCommand(command));
+  if (values.help) return ok({ kind: "help", command });
   const rejected = rejectedOption(command, Object.keys(values));
   if (rejected !== null) return err(rejected);
 
@@ -431,6 +468,13 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
       labels: values.labels,
       questionProfile,
       reason,
+      actions: {
+        invocation: invocationFor(env),
+        kind: analysisKind.data,
+        cwd: values.cwd,
+        config: values.config,
+        questionProfile,
+      },
     },
   });
 };

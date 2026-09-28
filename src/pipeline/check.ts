@@ -4,7 +4,7 @@ import path from "node:path";
 import type { LoadedConfig } from "../config/load.ts";
 import type { DecisionEngine } from "../engine/types.ts";
 import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
-import { DEFAULT_KIND } from "../kinds/names.ts";
+import { DEFAULT_INVOCATION, type ActionContext } from "../cli/args.ts";
 import {
   CHECK_EXIT,
   CHECK_SCHEMA,
@@ -13,12 +13,12 @@ import {
   type CheckReport,
   type CheckResult,
 } from "../report/check.ts";
+import { actionCommand } from "../report/actions.ts";
 import type { FindingText } from "../report/render.ts";
 import type { FindingRecord } from "../state/schema.ts";
 import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
-import { quote } from "../util/shell.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
 import { confirmedVerdicts, FATAL_CODES, judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
@@ -115,6 +115,8 @@ export type CheckOptions = {
   /** Called only when a finding needs an assessment, so a resolved check needs no API key. */
   engine: () => Result<DecisionEngine, VerdictError>;
   signal?: AbortSignal | undefined;
+  /** The invocation and the context options for the commands of `actions`. */
+  actions?: ActionContext | undefined;
 };
 
 type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
@@ -301,19 +303,18 @@ const EXIT_FOR: Readonly<Record<CheckReport["outcome"], CheckReport["exit_code"]
 };
 
 const actionsFor = (
-  kind: string,
+  context: ActionContext,
   target: string,
   outcome: CheckReport["outcome"],
   results: readonly CheckResult[],
 ): CheckAction[] => {
-  const suffix = kind === DEFAULT_KIND ? "" : ` --kind ${kind}`;
   const actions: CheckAction[] = [];
   if (outcome !== "cleared")
     actions.push({
       type: "rerun-check",
       auto_fixable: false,
       description: "Run the check again after you change the code.",
-      command: `fallow-verdict check ${quote(target)}${suffix}`,
+      command: actionCommand(context, "check", [target]),
     });
   let rescan = false;
   for (const result of results) {
@@ -327,7 +328,7 @@ const actionsFor = (
         auto_fixable: false,
         description:
           "A person accepts this finding. Replace <reason> with the reason. It stays closed until its evidence changes.",
-        command: `fallow-verdict close ${quote(result.stored_id)} --reason "<reason>"${suffix}`,
+        command: actionCommand(context, "close", [result.stored_id], '--reason "<reason>"'),
         finding_id: result.stored_id,
       });
     else rescan = true;
@@ -337,7 +338,7 @@ const actionsFor = (
       type: "scan",
       auto_fixable: false,
       description: "Save a new scan, so that close can use the current finding ids.",
-      command: `fallow-verdict scan${suffix}`,
+      command: actionCommand(context, "scan"),
     });
   return actions;
 };
@@ -509,7 +510,12 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       estimate,
       usage,
       results,
-      actions: actionsFor(adapter.kind, options.target, outcome, results),
+      actions: actionsFor(
+        options.actions ?? { invocation: DEFAULT_INVOCATION, kind: adapter.kind },
+        options.target,
+        outcome,
+        results,
+      ),
     },
     texts,
   });

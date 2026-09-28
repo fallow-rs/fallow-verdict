@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import { expect, it } from "vitest";
 
+import { invocationFor } from "../src/cli/args.ts";
 import { recordSchema } from "../src/state/schema.ts";
 import { openStore } from "../src/state/store.ts";
 
@@ -178,7 +179,7 @@ it("gives the same output and state for run --dry-run with and without --kind se
         ...output
       } = result.data as { runId: string; actions: { command: string }[] };
       expect(actions.map((action) => action.command)).toEqual([
-        `fallow-verdict ${args.filter((arg) => arg !== "--dry-run").join(" ")} --cwd ${root} --format json`,
+        `${invocationFor(process.env)} ${args.filter((arg) => arg !== "--dry-run").join(" ")} --cwd ${root} --format json`,
       ]);
       results.push({
         code: result.code,
