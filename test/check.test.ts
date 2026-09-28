@@ -19,6 +19,7 @@ import { syncRecords } from "../src/pipeline/scan.ts";
 import { checkReportSchema, renderCheckHuman } from "../src/report/check.ts";
 import { buildReport, renderHuman, renderMarkdown } from "../src/report/render.ts";
 import { securityPresentation, securityPriority } from "../src/report/security.ts";
+import { toVerdictsFile } from "../src/verdicts/export.ts";
 import { openStore, type Store } from "../src/state/store.ts";
 import { verdictError } from "../src/util/errors.ts";
 import { err, ok } from "../src/util/result.ts";
@@ -452,6 +453,36 @@ describe("check", () => {
   });
 });
 
+describe("check exit priority", () => {
+  it("exits 1, not 3, when one finding stands and another needs a person", async () => {
+    const state = await scanned();
+    const added = makeFinding({
+      finding_id: "security:tainted-sink:src/routes/user.ts:6:3",
+      line: 6,
+      col: 3,
+      evidence: "res.json receives a non-literal argument",
+      candidate: {
+        ...makeFinding().candidate,
+        sink: { ...makeFinding().candidate.sink, line: 6, col: 3, callee: "res.json" },
+      },
+    });
+    const responses = [VULNERABLE, { ...VULNERABLE, tampering: 0.9 }];
+    let call = 0;
+    const engine = mockEngine(() => responses[call++] ?? VULNERABLE);
+    const result = await checkWith(
+      withFreshScan([makeFinding({ finding_id: OLD_ID }), added]),
+      state.loaded,
+      state.store,
+      options(state, SINK_FILE, () => ok<DecisionEngine>(engine)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      outcome: "stands",
+      exit_code: 1,
+      results: [{ verdict: "survivor" }, { verdict: "needs-human-review" }],
+    });
+  });
+});
+
 describe("close", () => {
   it("records a judgment by a person that holds until the evidence changes", async () => {
     const state = await scanned();
@@ -542,5 +573,44 @@ describe("close", () => {
     expect(human).toContain("Closed by a person (1)");
     expect(human).toContain("Accepted risk.");
     expect(renderMarkdown(report, securityPresentation)).toContain("## Closed by a person (1)");
+  });
+
+  it("keeps a closed finding out of judge until its evidence changes", async () => {
+    const state = await scanned();
+    await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Test code.");
+    const engine = mockEngine(() => VULNERABLE);
+    const plans: number[] = [];
+    const dry = await judge(state.loaded, state.store, engine, {
+      rejudge: false,
+      dryRun: true,
+      onProgress: (event) => {
+        if (event.type === "plan") plans.push(event.toJudge);
+      },
+    });
+    expect(dry.ok && dry.data).toMatchObject({ pending: 0, estimatedUsd: 0 });
+    await judge(state.loaded, state.store, engine, { rejudge: true, dryRun: false });
+    expect(plans).toEqual([0]);
+    expect(engine.calls).toBe(0);
+
+    await writeFile(
+      path.join(state.root, SINK_FILE),
+      SINK_SOURCE.replace("res.json(rows);", "res.json(rows ?? []);"),
+    );
+    await judge(state.loaded, state.store, engine, { rejudge: false, dryRun: false });
+    expect(engine.calls).toBe(1);
+  });
+
+  it("exports a closed finding to Fallow as dismissed with the reason of the person", async () => {
+    const state = await scanned();
+    await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Accepted risk.");
+    const { records } = await state.store.readRecords();
+    expect(toVerdictsFile(records, new Set([OLD_ID])).verdicts).toEqual([
+      expect.objectContaining({
+        finding_id: OLD_ID,
+        verdict: "dismissed",
+        reason: "Closed by a person: Accepted risk.",
+        dismissal_reason: "closed-by-person",
+      }),
+    ]);
   });
 });

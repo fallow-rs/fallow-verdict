@@ -139,6 +139,8 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
     const candidate = candidates.get(record.finding_id);
     if (candidate === undefined || record.status === "resolved") continue;
     const built = await adapter.packet.build(candidate, output, loaded);
+    // A person closed it and the evidence is the same: no request and no plan entry.
+    if (record.closed?.fingerprint === built.fingerprint) continue;
     if (
       !rejudge &&
       isCurrent(adapter, record, built, loaded) &&

@@ -188,6 +188,8 @@ const plan = <Output, Candidate, Built extends BuiltEvidence>(
 const outcomeOf = (results: readonly CheckResult[]): CheckReport["outcome"] => {
   const has = (predicate: (result: CheckResult) => boolean): boolean => results.some(predicate);
   if (has((result) => result.status === "error")) return "error";
+  // A finding that stands is certain work for the loop, so it comes before a review by a person.
+  if (has((result) => result.status === "judged" && result.verdict === "survivor")) return "stands";
   if (
     has(
       (result) =>
@@ -196,7 +198,6 @@ const outcomeOf = (results: readonly CheckResult[]): CheckReport["outcome"] => {
     )
   )
     return "needs-person";
-  if (has((result) => result.status === "judged" && result.verdict === "survivor")) return "stands";
   if (has((result) => result.status === "not-assessed")) return "estimated";
   return "cleared";
 };

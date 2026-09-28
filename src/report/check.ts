@@ -52,7 +52,7 @@ export const checkReportSchema = z.object({
   kind: z.string(),
   target: z.object({ type: z.enum(["finding", "path"]), value: z.string() }),
   dry_run: z.boolean(),
-  /** The most severe result: `error`, then `needs-person`, `stands`, `estimated`, `cleared`. */
+  /** The most severe result: `error`, then `stands`, `needs-person`, `estimated`, `cleared`. */
   outcome: z.enum(["cleared", "stands", "needs-person", "error", "estimated"]),
   exit_code: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   /** Estimated input for the findings that need an assessment. */

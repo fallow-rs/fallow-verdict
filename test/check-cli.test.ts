@@ -83,6 +83,20 @@ it("checks and closes findings with the built CLI and real fallow", async () => 
       code: 0,
       data: { results: [{ status: "closed", reason: "Fixed origin." }] },
     });
+    // `fallow security survivors` validates the export; the other findings are still pending.
+    const report = await runCli(root, ["report"]);
+    expect(report).toMatchObject({ code: 2, data: { summary: { closed: 1 } } });
+    expect(report.data).not.toHaveProperty("error");
+    const verdicts = JSON.parse(
+      await readFile(path.join(root, ".fallow-verdict/verdicts.json"), "utf8"),
+    ) as { verdicts: unknown[] };
+    expect(verdicts.verdicts).toEqual([
+      expect.objectContaining({
+        finding_id: id,
+        verdict: "dismissed",
+        reason: "Closed by a person: Fixed origin.",
+      }),
+    ]);
     expect(await runCli(root, ["check", "missing-id"])).toMatchObject({
       code: 2,
       data: { error: true, code: "config_invalid" },

@@ -43,9 +43,9 @@ needs an assessment has the status `not-assessed`.
 | `3`       | A finding needs a person: `needs-human-review`, or an ambiguous relocation. |
 | `130`     | The command was interrupted.                                                |
 
-When the results differ, the most severe result sets the exit code, in this order: `2`, `3`,
-`1`, `0`. A result that needs a person comes before a finding that stands, because the loop
-must stop until a person looks at it.
+When the results differ, the most severe result sets the exit code, in this order: `2`, `1`,
+`3`, `0`. A finding that stands comes before a result that needs a person, because the code
+must change in either case. Read `results` to find the findings that need a person.
 
 A dry run exits `0` when no result is an error or needs a person. The findings that need an
 assessment are still open. Read `outcome`, which is `estimated` in that case.
@@ -86,7 +86,16 @@ is back in its verdict group. `check` compares the fingerprint of the current so
 
 `report` shows closed findings in a separate section, "Closed by a person". They do not count
 toward `--fail-on`. The JSON report has `summary.closed` and `closed` only when a finding is
-closed. The verdict export for Fallow does not change.
+closed.
+
+`judge` and `run` skip a closed finding while its evidence fingerprint is the same. There is no
+Jev request, and the plan and the dry-run estimate do not count it, also with `--rejudge`.
+When the fingerprint changes, the finding is judged again, and `report` removes the closure.
+
+The verdict export (`fallow-security-verdicts/v1`) gives a closed finding the verdict
+`dismissed`. Fallow accepts free text in `reason`, so `reason` is
+`Closed by a person: <reason>`. `dismissal_reason` is `closed-by-person`, and `confidence` is
+`1.00`. Fallow accepts `dismissal_reason` but does not validate or render it.
 
 ## JSON contract: `fallow-verdict-check/v1`
 
