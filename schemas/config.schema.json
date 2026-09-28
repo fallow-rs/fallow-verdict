@@ -38,7 +38,7 @@
       "type": "object",
       "properties": {
         "model": {
-          "default": "jev-latest",
+          "default": "jev-1.13.0",
           "type": "string"
         },
         "baseUrl": {
@@ -60,6 +60,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 64
+        },
+        "requestsPerMinute": {
+          "default": 1000,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
         }
       },
       "additionalProperties": false

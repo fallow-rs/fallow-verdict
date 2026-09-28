@@ -76,7 +76,7 @@ describe("createJevEngine", () => {
     expect(requests[0]?.url).toBe("https://api.typesafe.ai/v1/systemone");
     expect(new Headers(requests[0]?.init.headers).get("authorization")).toBe("Bearer test-key");
     expect(JSON.parse(String(requests[0]?.init.body))).toMatchObject({
-      model: "jev-latest",
+      model: "jev-1.13.0",
       state: { code: "x" },
     });
     expect(result).toMatchObject({
@@ -110,6 +110,46 @@ describe("createJevEngine", () => {
     expect(requests).toHaveLength(1);
   });
 
+  it("does not retry an account that is out of credits", async () => {
+    const { engine, requests } = engineWith([
+      json(402, { error: "no credits" }),
+      json(200, okBody()),
+    ]);
+    expect(await engine.evaluate(request)).toMatchObject({
+      ok: false,
+      error: { code: "engine_out_of_credits" },
+    });
+    expect(requests).toHaveLength(1);
+  });
+
+  it("requests a versioned model by default so an alias update cannot reuse stale verdicts", async () => {
+    const { engine, requests } = engineWith([json(200, okBody())]);
+    await engine.evaluate(request);
+    expect(JSON.parse(String(requests[0]?.init.body)).model).toMatch(/^jev-\d+\.\d+\.\d+$/);
+  });
+
+  it("spaces requests that start together to stay under the configured rate limit", async () => {
+    const waits: number[] = [];
+    const engine = createJevEngine({
+      apiKey: "test-key",
+      requestsPerMinute: 60,
+      clock: {
+        now: () => 0,
+        sleep: (ms) => {
+          waits.push(ms);
+          return Promise.resolve();
+        },
+      },
+      fetch: () => Promise.resolve(json(200, okBody())),
+    });
+    await Promise.all([
+      engine.evaluate(request),
+      engine.evaluate(request),
+      engine.evaluate(request),
+    ]);
+    expect(waits).toEqual([1_000, 2_000]);
+  });
+
   it("rejects a response that skips a question instead of guessing", async () => {
     const { exploitable: _dropped, ...partial } = wireAnswers;
     const { engine } = engineWith([json(200, okBody(partial))]);
@@ -133,7 +173,7 @@ describe("createJevEngine", () => {
 });
 
 const failing = (
-  code: "engine_auth_failed" | "engine_unavailable",
+  code: "engine_auth_failed" | "engine_out_of_credits" | "engine_unavailable",
 ): DecisionEngine & { calls: number } => {
   const engine = {
     id: "failing",
@@ -149,6 +189,17 @@ const failing = (
 describe("withCircuitBreaker", () => {
   it("opens immediately on an auth failure", async () => {
     const inner = failing("engine_auth_failed");
+    const engine = withCircuitBreaker(inner);
+    await engine.evaluate(request);
+    expect(await engine.evaluate(request)).toMatchObject({
+      ok: false,
+      error: { code: "engine_circuit_open" },
+    });
+    expect(inner.calls).toBe(1);
+  });
+
+  it("opens immediately when the account is out of credits", async () => {
+    const inner = failing("engine_out_of_credits");
     const engine = withCircuitBreaker(inner);
     await engine.evaluate(request);
     expect(await engine.evaluate(request)).toMatchObject({

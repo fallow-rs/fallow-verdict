@@ -384,7 +384,8 @@ export const judge = async (
       });
       if (
         result.error.code === "engine_circuit_open" ||
-        result.error.code === "engine_auth_failed"
+        result.error.code === "engine_auth_failed" ||
+        result.error.code === "engine_out_of_credits"
       ) {
         summary.outcome = "error";
         summary.fatal ??= result.error;

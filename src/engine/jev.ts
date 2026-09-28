@@ -11,8 +11,15 @@ import type {
 } from "./types.ts";
 
 const DEFAULT_BASE_URL = "https://api.typesafe.ai/v1";
-const DEFAULT_MODEL = "jev-latest";
+/**
+ * A versioned id, not the `jev-latest` alias. Stored verdicts are keyed on the requested model,
+ * so an alias that moves to a new version would keep answers from the old one marked current.
+ */
+export const DEFAULT_MODEL = "jev-1.13.0";
+/** Below the documented 1,200 requests per minute, which TypeSafe may change without notice. */
+export const DEFAULT_REQUESTS_PER_MINUTE = 1_000;
 const DEFAULT_TIMEOUT_MS = 10_000;
+const MS_PER_MINUTE = 60_000;
 const MAX_ATTEMPTS = 3;
 const BACKOFF_INITIAL_MS = 500;
 const BACKOFF_MAX_MS = 5_000;
@@ -24,8 +31,17 @@ export type JevOptions = {
   baseUrl?: string | undefined;
   model?: string | undefined;
   timeoutMs?: number | undefined;
+  /** Upper bound on requests sent by this engine, retries included. */
+  requestsPerMinute?: number | undefined;
   /** Transport override for tests and proxies. */
   fetch?: typeof globalThis.fetch | undefined;
+  /** Time source override for tests. */
+  clock?: Clock | undefined;
+};
+
+export type Clock = {
+  now: () => number;
+  sleep: (ms: number, signal: AbortSignal | undefined) => Promise<void>;
 };
 
 const probability = z.number().min(0).max(1);
@@ -106,6 +122,13 @@ const classifyStatus = (status: number, body: string): VerdictError => {
       "Set TYPESAFE_API_KEY to a valid key.",
     );
   }
+  if (status === 402) {
+    return verdictError(
+      "engine_out_of_credits",
+      `Jev reports that the account is out of credits (HTTP 402): ${detail}`,
+      "Add credits to the TypeSafe account, then run again.",
+    );
+  }
   if (status === 429) return verdictError("engine_rate_limited", `Jev rate limit hit: ${detail}`);
   if (status === 400 || status === 404 || status === 413 || status === 422) {
     return verdictError("engine_rejected", `Jev rejected the request (HTTP ${status}): ${detail}`);
@@ -138,8 +161,30 @@ const sleep = (ms: number, signal: AbortSignal | undefined): Promise<void> =>
     signal?.addEventListener("abort", finish, { once: true });
   });
 
+const systemClock: Clock = { now: () => performance.now(), sleep };
+
+/**
+ * Reserves evenly spaced send slots. Workers share one engine, so the spacing holds across
+ * concurrent evaluations and keeps a large run under the provider's request limit.
+ */
+const createPacer = (
+  requestsPerMinute: number,
+  clock: Clock,
+): ((signal: AbortSignal | undefined) => Promise<void>) => {
+  const interval = MS_PER_MINUTE / requestsPerMinute;
+  let nextSlot = Number.NEGATIVE_INFINITY;
+  return async (signal) => {
+    const now = clock.now();
+    const slot = Math.max(now, nextSlot);
+    nextSlot = slot + interval;
+    if (slot > now) await clock.sleep(slot - now, signal);
+  };
+};
+
 export const createJevEngine = (options: JevOptions): DecisionEngine => {
   const send = options.fetch ?? globalThis.fetch;
+  const clock = options.clock ?? systemClock;
+  const pace = createPacer(options.requestsPerMinute ?? DEFAULT_REQUESTS_PER_MINUTE, clock);
   const url = `${(options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "")}/systemone`;
   const model = options.model ?? DEFAULT_MODEL;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
@@ -204,11 +249,13 @@ export const createJevEngine = (options: JevOptions): DecisionEngine => {
     evaluate: async (request) => {
       for (let attempt = 1; ; attempt += 1) {
         if (request.signal?.aborted) return err(verdictError("interrupted", "Interrupted."));
+        await pace(request.signal);
+        if (request.signal?.aborted) return err(verdictError("interrupted", "Interrupted."));
         const { result, retryAfter } = await attemptOnce(request);
         if (result.ok || !RETRYABLE.has(result.error.code) || attempt === MAX_ATTEMPTS) {
           return result;
         }
-        await sleep(backoffMs(attempt, retryAfter), request.signal);
+        await clock.sleep(backoffMs(attempt, retryAfter), request.signal);
       }
     },
   };
