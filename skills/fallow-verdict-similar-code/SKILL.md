@@ -13,24 +13,31 @@ the pairs that Jev marks safe, and the tests prove each merge.
 ## Rules
 
 1. Run `--dry-run` first. Show the estimated cost to the user and wait for a yes.
-2. Pass `--fail-on off` to each real run.
+2. Pass `--fail-on off` to each real run and to each `report`.
 3. Parse `--format json --quiet` output. Take commands and options only from
    `npx fallow-verdict --help`. Do not invent options.
 4. Config, suppressions, thresholds and `close` go to the user for a decision.
 5. Never run fallow-verdict in a hook that fires on each commit or each assistant turn.
 6. The Jev key is in `TYPESAFE_API_KEY`. Never ask the user to paste the key into the chat.
+   The dry run works without a key. When the real run fails with `engine_auth_failed`, tell the
+   user to set `TYPESAFE_API_KEY` in their environment, and stop.
 
 ## Prerequisites
 
 - `fallow` and `fallow-verdict` are in the project: `npm install --save-dev fallow-verdict fallow`.
 - `fallow similar-code` needs a local model. The download needs a decision by a person. Run
-  `fallow similar-code status --format json --quiet`. When the model is not ready, tell the user
-  to run `fallow similar-code setup --local` and stop. Never run the setup yourself.
+  `fallow similar-code status --format json --quiet`. When `model_ready` is `false`, tell the
+  user to run `fallow similar-code setup --local` and stop. Never run the setup yourself.
+
+## Scope
+
+The task scope is the set of paths that the user named. Change code only inside that scope.
+Report pairs and clones outside the scope to the user. Do not merge them.
 
 ## Loop
 
-1. Exact clones need no verdict. Run `fallow dupes --format json --quiet` and merge those
-   clones with the normal tests.
+1. Exact clones need no verdict. Run `fallow dupes --format json --quiet`. Merge only the clone
+   groups where each instance is inside the task scope, and run the tests after each merge.
 2. Estimate the cost. fallow-verdict runs the discovery itself:
 
    ```bash
@@ -41,12 +48,13 @@ the pairs that Jev marks safe, and the tests prove each merge.
 
    ```bash
    npx fallow-verdict run --kind similar-code --fail-on off --format json --quiet
-   npx fallow-verdict report --kind similar-code --format json --quiet
+   npx fallow-verdict report --kind similar-code --fail-on off --format json --quiet
    ```
 
-4. Select the findings where `decision.kindData.refactor_safe` is `true`. Sort them by
-   `decision.probabilities.refactor_safe`, highest first. Do not merge any other pair.
-5. Merge one pair at a time, only inside the scope of the task. Keep the callers unchanged.
+4. Select the findings where `decision.verdict` is `survivor` (rule `merge-safe`). Sort them by
+   `decision.probabilities.refactor_safe`, highest first. Do not merge any other pair. A pair with
+   `needs-human-review` goes to the user, also when `refactor_safe` is `true`.
+5. Merge one pair at a time, only inside the task scope. Keep the callers unchanged.
 6. After each merge, run the tests of the project. Then run the discovery again (step 2 and
    step 3). A failed test stops the loop: undo the merge or fix it.
 7. Report to the user: the pairs you merged, the test result, and the pairs that need a person.

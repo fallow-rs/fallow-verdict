@@ -14,12 +14,14 @@ Fallow fact.
 ## Rules
 
 1. Run `--dry-run` first. Show the estimated cost to the user and wait for a yes.
-2. Pass `--fail-on off` to each real run.
+2. Pass `--fail-on off` to each real run and to each `report`.
 3. Parse `--format json --quiet` output. Use the `actions` array of `check`. Take commands and
    options only from `npx fallow-verdict --help`. Do not invent options.
 4. Config, suppressions, review rules, thresholds and `close` go to the user for a decision.
 5. Never run fallow-verdict in a hook that fires on each commit or each assistant turn.
 6. The Jev key is in `TYPESAFE_API_KEY`. Never ask the user to paste the key into the chat.
+   The dry run works without a key. When the real run fails with `engine_auth_failed`, tell the
+   user to set `TYPESAFE_API_KEY` in their environment, and stop.
 
 ## Loop
 
@@ -34,7 +36,7 @@ Fallow fact.
 
    ```bash
    npx fallow-verdict run --kind review --changed-since <base> --fail-on off --format json --quiet
-   npx fallow-verdict report --kind review --format json --quiet
+   npx fallow-verdict report --kind review --fail-on off --format json --quiet
    ```
 
 4. Report the survivors, highest probability first: the function, the line, the reason and the

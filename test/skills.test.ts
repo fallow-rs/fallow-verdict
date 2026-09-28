@@ -129,11 +129,11 @@ describe("skills", () => {
     for (const kind of kinds) expect(helpKinds).toContain(kind);
   });
 
-  it("pass --fail-on off to each real run", () => {
+  it("pass --fail-on off to each real run and each report", () => {
     const runs = commands.filter(
       ({ command }) =>
         command.tool === "fallow-verdict" &&
-        command.words[0] === "run" &&
+        (command.words[0] === "run" || command.words[0] === "report") &&
         !command.words.includes("--dry-run"),
     );
     expect(runs.length).toBeGreaterThan(0);
@@ -145,6 +145,20 @@ describe("skills", () => {
     for (const needle of ["--dry-run", "--fail-on off", "TYPESAFE_API_KEY", "hook", "--help"]) {
       expect(text).toContain(needle);
     }
+  });
+
+  it("select similar-code pairs by the survivor verdict, not by refactor_safe alone", () => {
+    const text = readFileSync(
+      path.join(skillsDir, "fallow-verdict-similar-code", "SKILL.md"),
+      "utf8",
+    );
+    expect(text).toMatch(/decision\.verdict`? is `"?survivor"?`/);
+    expect(text).not.toMatch(/Select the findings where `decision\.kindData\.refactor_safe`/);
+  });
+
+  it.each(skillNames)("%s stops on a rejected key", (name) => {
+    const text = readFileSync(path.join(skillsDir, name, "SKILL.md"), "utf8");
+    expect(text).toContain("engine_auth_failed");
   });
 
   it("contain no em-dash", () => {

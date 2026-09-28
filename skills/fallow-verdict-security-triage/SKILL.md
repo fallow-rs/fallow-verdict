@@ -13,12 +13,14 @@ about each candidate and sorts it into `survivor` (likely vulnerable), `needs-hu
 ## Rules
 
 1. Run `--dry-run` first. Show the estimated cost to the user and wait for a yes.
-2. Pass `--fail-on off` to each real run.
+2. Pass `--fail-on off` to each real run and to each `report`.
 3. Parse `--format json --quiet` output. Use the `actions` array of `check`. Take commands and
    options only from `npx fallow-verdict --help`. Do not invent options.
 4. Config, suppressions, thresholds and `close` go to the user for a decision.
 5. Never run fallow-verdict in a hook that fires on each commit or each assistant turn.
 6. The Jev key is in `TYPESAFE_API_KEY`. Never ask the user to paste the key into the chat.
+   The dry run works without a key. When the real run fails with `engine_auth_failed`, tell the
+   user to set `TYPESAFE_API_KEY` in their environment, and stop.
 
 ## Loop
 
@@ -32,7 +34,7 @@ about each candidate and sorts it into `survivor` (likely vulnerable), `needs-hu
 
    ```bash
    npx fallow-verdict run --fail-on off --format json --quiet
-   npx fallow-verdict report --format json --quiet
+   npx fallow-verdict report --fail-on off --format json --quiet
    ```
 
 3. Report survivors first, then `needs-human-review`, then the count of dismissed findings.
@@ -50,7 +52,7 @@ Details and exit codes: [references/triage.md](references/triage.md).
 ## A dismissal is not proof of safety
 
 - A verdict can move a finding from "keep" to "likely noise". It never marks code as safe.
-- Security findings are never dismissed without a person. Say "likely noise, confirm" for a
-  dismissed finding, never "safe" or "not vulnerable".
-- Never suppress a finding, change a threshold or close a finding because of a dismissal.
-  Send the `close` action to the user.
+- The tool can mark a finding `dismissed`. That means "likely noise". Say "likely noise,
+  confirm" for a dismissed finding, never "safe" or "not vulnerable".
+- Never suppress a finding, close a finding, delete code or change a threshold because of a
+  dismissal without the user. Send the `close` action to the user.

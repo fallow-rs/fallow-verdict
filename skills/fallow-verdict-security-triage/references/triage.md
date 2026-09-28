@@ -15,7 +15,7 @@ the second calls that confirm a dismissal.
 
 ## Fields of `report`
 
-`npx fallow-verdict report --format json --quiet` prints `fallow-verdict-report/v1`.
+`npx fallow-verdict report --fail-on off --format json --quiet` prints `fallow-verdict-report/v1`.
 
 | Field                   | Use                                                                       |
 | ----------------------- | ------------------------------------------------------------------------- |

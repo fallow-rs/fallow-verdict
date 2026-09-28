@@ -19,7 +19,7 @@ prints one object. Show `pending` (functions to assess) and `estimatedUsd` to th
 
 ## Fields of `report`
 
-`npx fallow-verdict report --kind review --format json --quiet` prints
+`npx fallow-verdict report --kind review --fail-on off --format json --quiet` prints
 `fallow-verdict-report/v1`. Each entry of `findings` is one function.
 
 | Field                    | Use                                                                                  |

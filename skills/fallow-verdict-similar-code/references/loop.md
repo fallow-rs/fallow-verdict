@@ -12,7 +12,8 @@ Show these fields to the user before the real run:
 | `maxConfirmationUsd` | Upper bound of the second calls that confirm a decision |
 | `fatal`              | Null, or the error that stopped the run                 |
 
-Exit code 2 with a message about the local model means that the model is not ready. Tell the
+Exit code 2 with a message about the local model means that the model is not ready
+(`model_ready: false` in `fallow similar-code status --format json --quiet`). Tell the
 user to run `fallow similar-code setup --local`, and stop.
 
 To limit the cost, add `--limit <n>` or `--max-cost-usd <usd>` to the real run.
@@ -22,7 +23,7 @@ The default `similarCode.failOn` is `off`, but the project config can change it.
 
 ## Fields of `report`
 
-`npx fallow-verdict report --kind similar-code --format json --quiet` prints
+`npx fallow-verdict report --kind similar-code --fail-on off --format json --quiet` prints
 `fallow-verdict-report/v1`. Each entry of `findings` is one pair:
 
 | Field                                       | Use                                                                  |
@@ -40,8 +41,10 @@ The default `similarCode.failOn` is `off`, but the project config can change it.
 
 ## Which pairs to merge
 
-- Merge a pair only when `decision.kindData.refactor_safe` is `true`.
-- A `survivor` already needs two calls that agree. Do not skip that rule.
+- Merge a pair only when `decision.verdict` is `survivor` (rule `merge-safe`). A survivor has
+  `refactor_safe: true` and the outcome `same-responsibility`, confirmed by two calls that agree.
+- `refactor_safe: true` alone is not enough. When the outcome does not agree, the policy gives
+  `needs-human-review` (rule `answers-conflict`). Send that pair to the user.
 - A pair with `needs-human-review` goes to the user with its `decision.reason`.
 - A `dismissed` pair is "not worth merging". Do not merge it, and do not suppress it.
 
@@ -52,7 +55,7 @@ in another file. Fallow accepts one verdict for each review key. The report then
 the number of candidates and keys.
 
 - Treat the candidates of a shared key as one decision. Merge them only when the verdict of the
-  key has `refactor_safe: true`.
+  key is `survivor`.
 - When the candidates of a key have different verdicts, the verdict has all axes `null` and the
   outcome `needs-human-review`. Send it to the user.
 - Fallow reports the other candidates of the key as `unverified`. That is expected.
