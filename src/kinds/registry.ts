@@ -1,4 +1,5 @@
-import type { AnalysisAdapter, AnalysisKind, BuiltEvidence } from "./adapter.ts";
+import type { AnalysisAdapter, BuiltEvidence } from "./adapter.ts";
+import type { AnalysisKind } from "./names.ts";
 import { securityAdapter } from "./security.ts";
 
 /** Receives an adapter without knowing its output, candidate and packet types. */

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { parseCli } from "../src/cli/args.ts";
-import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind } from "../src/kinds/adapter.ts";
+import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind } from "../src/kinds/names.ts";
 import { kindFor } from "../src/kinds/registry.ts";
 import { judge } from "../src/pipeline/judge.ts";
 import { syncRecords } from "../src/pipeline/scan.ts";

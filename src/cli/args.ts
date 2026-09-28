@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 
-import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind, type AnalysisKind } from "../kinds/adapter.ts";
+import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind, type AnalysisKind } from "../kinds/names.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 

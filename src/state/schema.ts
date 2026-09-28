@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ANALYSIS_KINDS, DEFAULT_KIND } from "../kinds/adapter.ts";
+import { ANALYSIS_KINDS, DEFAULT_KIND } from "../kinds/names.ts";
 
 export const RECORD_SCHEMA = "fallow-verdict-record/v1";
 export const RUN_SCHEMA = "fallow-verdict-run/v1";
