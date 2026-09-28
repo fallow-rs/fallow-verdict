@@ -18,7 +18,7 @@ An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kin
 | ----------- | ---------------------------------------------------------------------- |
 | `scan`      | Run the Fallow command, validate its schema version, return candidates |
 | `identity`  | Give each candidate a stable, unique id, its locations and severity    |
-| `match`     | Keys without the parts of the location that an edit moves, for `check` |
+| `match`     | A match key and the meaning of "the same rule", for `check`            |
 | `priority`  | Order candidates for the budget and the report                         |
 | `packet`    | Build the evidence packet, its fingerprint and its evidence summary    |
 | `questions` | The question catalog, its version and its content hash                 |

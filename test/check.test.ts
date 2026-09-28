@@ -160,12 +160,17 @@ describe("relocate", () => {
     ).toEqual({ type: "ambiguous", ids: ["a:6", "a:9"] });
   });
 
-  it("does not pick one of two stored twins for a single moved match", () => {
+  it("does not pick one of two moved stored twins for a single match", () => {
     const twin = { id: "a:7", key: "k" };
-    expect(relocate(twin, [stored, twin], [{ id: "a:5", key: "k" }])).toEqual({
+    expect(relocate(twin, [stored, twin], [{ id: "a:6", key: "k" }])).toEqual({
       type: "ambiguous",
-      ids: ["a:5"],
+      ids: ["a:6"],
     });
+  });
+
+  it("ignores a stored twin that is unchanged at its own id", () => {
+    const twin = { id: "a:7", key: "k" };
+    expect(relocate(twin, [stored, twin], [{ id: "a:5", key: "k" }])).toEqual({ type: "gone" });
   });
 
   it("keeps a finding whose evidence text changed at the same location", () => {
@@ -203,8 +208,8 @@ describe("check", () => {
       exit_code: 0,
       results: [{ status: "resolved", stored_id: OLD_ID, finding_id: null }],
     });
-    // The scoped run, then the run for the whole project that confirms `resolved`.
-    expect(adapter.scans).toBe(2);
+    // One Fallow run for the whole project.
+    expect(adapter.scans).toBe(1);
     expect(engine.engine.calls).toBe(0);
   });
 
@@ -471,67 +476,215 @@ describe("check", () => {
 });
 
 describe("possibleMatches", () => {
-  const stored = { id: "a:5", key: "k", similar: ["site", "renamed"] };
+  const stored = { id: "a:5", key: "k", rules: ["ssrf"], paths: ["src/a.ts"] };
 
-  it("finds the same sink with other evidence text", () => {
-    expect(
-      possibleMatches(stored, [stored], [{ id: "a:6", key: "k2", similar: ["site"] }]),
-    ).toEqual(["a:6"]);
+  it("finds a candidate with the same rule anywhere in the project", () => {
+    const moved = { id: "b:9", key: "k2", rules: ["ssrf"], paths: ["src/b.ts"] };
+    expect(possibleMatches(stored, [stored], [moved])).toEqual(["b:9"]);
   });
 
-  it("finds the same code in a renamed file", () => {
-    expect(
-      possibleMatches(stored, [stored], [{ id: "b:5", key: "k3", similar: ["renamed"] }]),
-    ).toEqual(["b:5"]);
+  it("finds any candidate in the original file", () => {
+    const other = { id: "a:9", key: "k3", rules: ["xss"], paths: ["src/a.ts"] };
+    expect(possibleMatches(stored, [stored], [other])).toEqual(["a:9"]);
   });
 
   it("ignores another stored finding that did not change", () => {
-    const other = { id: "c:1", key: "k4", similar: ["renamed"] };
+    const other = { id: "a:1", key: "k4", rules: ["ssrf"], paths: ["src/a.ts"] };
     expect(possibleMatches(stored, [stored, other], [other])).toEqual([]);
+  });
+
+  it("ignores a candidate with another rule in another file", () => {
+    const other = { id: "c:1", key: "k5", rules: ["xss"], paths: ["src/c.ts"] };
+    expect(possibleMatches(stored, [stored], [other])).toEqual([]);
   });
 });
 
-describe("check does not resolve a finding that can still exist", () => {
-  it("needs a person when the evidence text changed with the line", async () => {
-    const prefixed = makeFinding({
-      finding_id: OLD_ID,
-      evidence:
-        "Untrusted source reaches this sink (an argument traces to req.query). db.query receives a non-literal argument",
-    });
-    const state = await scanned([prefixed]);
-    await writeFile(path.join(state.root, SINK_FILE), MOVED_SOURCE);
+const SSRF_EVIDENCE = (callee: string): string =>
+  `Non-literal URL passed to ${callee}(). Candidate for verification: confirm the destination host is not attacker-controlled (allowlist outbound targets).`;
+const TRACED = "Untrusted source reaches this sink (an argument traces to http request input). ";
+
+/** A realistic Fallow SSRF finding. */
+const ssrf = (
+  file: string,
+  line: number,
+  shape: { callee?: string; traced?: boolean; category?: string; col?: number } = {},
+): SecurityFinding => {
+  const callee = shape.callee ?? "fetch";
+  const category = shape.category ?? "ssrf";
+  const col = shape.col ?? 2;
+  return makeFinding({
+    finding_id: `security:tainted-sink:${file}:${line}:${col}`,
+    path: file,
+    line,
+    col,
+    category,
+    cwe: 918,
+    evidence: `${shape.traced === true ? TRACED : ""}${SSRF_EVIDENCE(callee)}`,
+    trace: [{ path: file, line, col, role: "sink" }],
+    candidate: {
+      ...makeFinding().candidate,
+      sink: { path: file, line, col, category, cwe: 918, callee },
+    },
+  });
+};
+
+describe("check never resolves a finding that can still exist", () => {
+  const ambiguousFor = async (before: SecurityFinding[], after: SecurityFinding[]) => {
+    const state = await scanned(before);
+    const target = before[0]?.finding_id ?? "";
+    const engine = engineFor(VULNERABLE);
     const result = await checkWith(
-      withFreshScan([movedFinding()]),
+      withFreshScan(after),
       state.loaded,
       state.store,
-      options(state, OLD_ID, engineFor(VULNERABLE)),
+      options(state, target, engine),
     );
-    expect(result.ok && result.data.report).toMatchObject({
+    expect(engine.engine.calls).toBe(0);
+    return result.ok ? result.data.report : null;
+  };
+
+  it("needs a person after an extract-helper move to another file", async () => {
+    // `const u = req.query.u; fetch(u)` in src/a.ts becomes a helper call into src/b.ts.
+    const after = ssrf("src/b.ts", 3);
+    expect(await ambiguousFor([ssrf("src/a.ts", 2, { traced: true })], [after])).toMatchObject({
       exit_code: 3,
-      results: [{ status: "ambiguous", stored_id: OLD_ID, matches: [MOVED_ID] }],
+      results: [{ status: "ambiguous", matches: [after.finding_id] }],
     });
   });
 
-  it("needs a person when the file was renamed", async () => {
-    const state = await scanned();
-    const renamedFile = "src/routes/account.ts";
-    const renamed = makeFinding({
-      finding_id: `security:tainted-sink:${renamedFile}:5:21`,
-      path: renamedFile,
+  it("needs a person after a callee text change and a line move", async () => {
+    // `fetch(url)` becomes `globalThis.fetch(url)` with a new line above it.
+    const after = ssrf("src/a.ts", 3, { callee: "globalThis.fetch" });
+    expect(await ambiguousFor([ssrf("src/a.ts", 2)], [after])).toMatchObject({
+      exit_code: 3,
+      results: [{ status: "ambiguous", matches: [after.finding_id] }],
     });
-    const adapter = withFreshScan([renamed]);
+  });
+
+  it("needs a person after a category change for the same sink", async () => {
+    // A Fallow upgrade reports the sink under another category and anchor column.
+    const after = ssrf("src/a.ts", 2, { category: "outbound-request", col: 8 });
+    expect(await ambiguousFor([ssrf("src/a.ts", 2)], [after])).toMatchObject({
+      exit_code: 3,
+      results: [{ status: "ambiguous", matches: [after.finding_id] }],
+    });
+  });
+
+  it("resolves the fixed one of two identical calls when the other is unchanged", async () => {
+    const other = ssrf("src/a.ts", 4);
+    expect(await ambiguousFor([ssrf("src/a.ts", 2), other], [other])).toMatchObject({
+      exit_code: 0,
+      results: [{ status: "resolved" }],
+    });
+  });
+
+  it("runs Fallow once for the whole project and passes the signal", async () => {
+    const state = await scanned([ssrf("src/a.ts", 2)]);
+    const scopes: ScanScope[] = [];
+    const controller = new AbortController();
+    const adapter: SecurityAdapter = {
+      ...securityAdapter,
+      scan: {
+        ...securityAdapter.scan,
+        run: (_loaded, scope) => {
+          scopes.push(scope);
+          return Promise.resolve(ok(makeOutput([ssrf("src/b.ts", 1)])));
+        },
+      },
+    };
+    await checkWith(adapter, state.loaded, state.store, {
+      ...options(state, "security:tainted-sink:src/a.ts:2:2", engineFor(VULNERABLE)),
+      signal: controller.signal,
+    });
+    expect(scopes).toEqual([{ signal: controller.signal }]);
+  });
+
+  it("returns an error, never resolved, when the Fallow run fails", async () => {
+    const state = await scanned();
+    const adapter: SecurityAdapter = {
+      ...securityAdapter,
+      scan: {
+        ...securityAdapter.scan,
+        run: () => Promise.resolve(err(verdictError("fallow_failed", "fallow exited with 2"))),
+      },
+    };
+    expect(
+      await checkWith(
+        adapter,
+        state.loaded,
+        state.store,
+        options(state, OLD_ID, engineFor(VULNERABLE)),
+      ),
+    ).toMatchObject({ ok: false, error: { code: "fallow_failed" } });
+  });
+});
+
+describe("check fatal engine errors", () => {
+  const twoFindings = (): SecurityFinding[] => [
+    makeFinding({ finding_id: OLD_ID }),
+    makeFinding({
+      finding_id: "security:tainted-sink:src/routes/user.ts:6:3",
+      line: 6,
+      col: 3,
+      evidence: "res.json receives a non-literal argument",
+      candidate: {
+        ...makeFinding().candidate,
+        sink: { ...makeFinding().candidate.sink, line: 6, col: 3, callee: "res.json" },
+      },
+    }),
+  ];
+
+  it("stops after a rejected key and exits 2", async () => {
+    const state = await scanned();
+    let calls = 0;
+    const engine: DecisionEngine = {
+      id: "rejected",
+      evaluate: () => {
+        calls += 1;
+        return Promise.resolve(err(verdictError("engine_auth_failed", "rejected key")));
+      },
+    };
     const result = await checkWith(
-      adapter,
+      withFreshScan(twoFindings()),
       state.loaded,
       state.store,
-      options(state, OLD_ID, engineFor(VULNERABLE)),
+      options(state, SINK_FILE, () => ok(engine)),
     );
     expect(result.ok && result.data.report).toMatchObject({
-      exit_code: 3,
-      results: [{ status: "ambiguous", stored_id: OLD_ID, matches: [renamed.finding_id] }],
+      exit_code: 2,
+      results: [
+        { status: "error", error: { code: "engine_auth_failed" } },
+        { status: "error", error: { code: "engine_auth_failed" } },
+      ],
     });
-    // The scoped run misses the new file, so a second run covers the whole project.
-    expect(adapter.scans).toBe(2);
+    expect(calls).toBe(1);
+  });
+
+  it("stops after an open circuit on the confirmation call and exits 2", async () => {
+    const state = await scanned();
+    let calls = 0;
+    const safe = mockEngine(() => SAFE_MITIGATED);
+    const engine: DecisionEngine = {
+      id: "open-circuit",
+      evaluate: (request) =>
+        calls++ === 0
+          ? safe.evaluate(request)
+          : Promise.resolve(err(verdictError("engine_circuit_open", "circuit open"))),
+    };
+    const result = await checkWith(
+      withFreshScan(twoFindings()),
+      state.loaded,
+      state.store,
+      options(state, SINK_FILE, () => ok(engine)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      exit_code: 2,
+      results: [
+        { status: "error", error: { code: "engine_circuit_open" } },
+        { status: "error", error: { code: "engine_circuit_open" } },
+      ],
+    });
+    expect(calls).toBe(2);
   });
 });
 

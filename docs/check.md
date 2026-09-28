@@ -18,15 +18,18 @@ current findings in that file. The command accepts `--kind`, `--dry-run`, `--for
 
 Steps:
 
-1. Rerun Fallow for the kind, scoped to the files of the target.
+1. Run Fallow for the kind once, for the whole project. A failed run exits `2`, never with
+   `resolved`.
 2. Find each stored finding in the fresh output. See [relocation](#relocation).
-3. A finding that Fallow no longer reports is `resolved`. There is no Jev call. Before this
-   result, Fallow runs once more for the whole project. See [relocation](#relocation).
+3. A finding that Fallow no longer reports is `resolved`. There is no Jev call. The rule is
+   strict: when in doubt, the result is `ambiguous`, with exit code `3`.
 4. A finding that a person closed stays `closed` while its evidence fingerprint is the same.
 5. Build the packet from the current source on disk and judge it with the normal policy.
    The two-call rule applies: a dismissal needs a second call that agrees. `check` has no
    cost cap, so a dismissal always gets its second call. A disagreed or failed second call
    gives `needs-human-review` with the rule `dismissal-unconfirmed`, so exit code `3`.
+   A rejected key or an open circuit, on either call, gives exit code `2` and stops all
+   further assessments, as in `judge`.
 
 `check` writes no state. It does not change records, candidates, reports or runs, and it takes
 no lock. Run `scan` or `run` to save the new state.
@@ -60,27 +63,31 @@ assessment are still open. Read `outcome`, which is `estimated` in that case.
 A security finding id contains the line and the column. An edit above a finding thus changes
 its id. `check <id>` does not conclude `resolved` only because the id moved.
 
-Each kind supplies a match key without the parts of the location that an edit moves. For
-security, the key is the rule (finding kind and category), the path, the sink (category and
-callee) and the evidence text. The rules:
+Each kind supplies a main match key without the parts of the location that an edit moves.
+For security, the main key is the rule (finding kind and category), the path, the sink
+(category and callee) and the evidence text. Each kind also states what "the same rule" means.
+For security, the category alone is the rule.
 
-- A fresh finding with the same key and the same id is the stored finding.
-- One fresh finding with the same key is the stored finding at a new location. This applies
-  only when the last scan had no other finding with that key in the file.
-- More than one possible match is ambiguous. The result is `ambiguous`, with exit code `3`.
-- No fresh finding with the same key: a fresh finding with the same id is the stored finding
-  with changed evidence text, unless another stored finding has its key.
-- Otherwise the check runs Fallow for the whole project and compares the similar keys. For
-  security, one similar key leaves out the evidence text: Fallow adds optional prefixes to it,
-  for example when it finds a source trace. The other similar key leaves out the path, for a
-  renamed file. A fresh finding that shares a similar key is a possible match, and the result
-  is `ambiguous`. A fresh finding with the id and the key of another stored finding is that
-  finding, unchanged, so it is not a possible match.
-- Only when there is no possible match is the finding `resolved`.
+A fresh finding is "claimed" when it has the id and the main key of a stored finding other
+than the target. That finding did not change, so it cannot be the target. The steps:
 
-The scoped run cannot see a renamed file, so the run for the whole project is necessary. It
-happens only when a finding would be `resolved`. For security, a scoped run already analyzes
-the whole project and filters the findings, so the second run takes about the same time.
+1. A fresh finding with the same main key and the same id is the target. It is judged.
+2. One unclaimed fresh finding with the same main key is the target at a new location. It is
+   judged. This applies only when no other stored finding with that key changed.
+3. More than one match is `ambiguous`.
+4. No finding with the same main key: an unclaimed fresh finding with the same id is the
+   target with changed evidence text, unless another stored finding has its key.
+5. Otherwise, `resolved` needs a clean project. Any unclaimed fresh finding with the same rule
+   anywhere in the project, or any unclaimed fresh finding in a file of the target, makes the
+   result `ambiguous`.
+
+Thus an extract-helper move to another file, a changed callee text, a changed evidence
+prefix or a changed category gives exit code `3`, not `0`. A person then decides. When you
+fix one of two identical calls, the other call stays claimed, so the fixed one can be
+`resolved`.
+
+For security, a scoped Fallow run also analyzes the whole project and filters the findings
+afterwards. Thus `check` runs Fallow once without a scope and filters the findings itself.
 
 ## `close <id> --reason "<text>"`
 

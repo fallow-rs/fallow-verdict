@@ -10,6 +10,8 @@ import type { KindName } from "./names.ts";
 export type ScanScope = {
   changedSince?: string | undefined;
   paths?: readonly string[] | undefined;
+  /** Stops the Fallow run, for example on an interruption. */
+  signal?: AbortSignal | undefined;
 };
 
 /** The fields of a finding record that come from the candidate itself. */
@@ -23,10 +25,10 @@ export type MatchKeys = {
   /** Identifies the candidate without the parts of its location that an edit moves. */
   key: string;
   /**
-   * Weaker keys, for example without the evidence text or without the path. A fresh candidate
-   * that shares one of them can be the stored candidate, so `check` does not conclude `resolved`.
+   * What "the same rule" means for the kind. A fresh candidate that shares one of these keys can
+   * be the stored candidate after any edit, so `check` does not conclude `resolved`.
    */
-  similar: readonly string[];
+  rules: readonly string[];
 };
 
 /** Kind-owned evidence summary. The pipeline reads only `truncated`. */

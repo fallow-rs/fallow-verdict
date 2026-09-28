@@ -92,7 +92,7 @@ const pairAdapter: AnalysisAdapter<PairOutput, Pair, PairPacket> = {
     category: null,
     severity: null,
   }),
-  match: (pair) => ({ key: pair.id, similar: [] }),
+  match: (pair) => ({ key: pair.id, rules: [] }),
   priority: (record) => (record.finding_id === "pair:first" ? 0 : 1),
   packet: {
     build: (pair) =>

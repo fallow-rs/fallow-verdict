@@ -65,7 +65,7 @@ type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
 >;
 
 /** Engine errors that stop the whole run, on the first call or on the confirmation call. */
-const FATAL_CODES: ReadonlySet<VerdictError["code"]> = new Set([
+export const FATAL_CODES: ReadonlySet<VerdictError["code"]> = new Set([
   "engine_circuit_open",
   "engine_auth_failed",
   "engine_out_of_credits",

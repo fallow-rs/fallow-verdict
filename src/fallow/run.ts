@@ -17,6 +17,8 @@ export type FallowInvocation = {
   /** Explicit binary path; resolved from the project or PATH when omitted. */
   binary?: string | undefined;
   timeoutMs?: number | undefined;
+  /** Stops the child process. */
+  signal?: AbortSignal | undefined;
 };
 
 export type SecurityScanOptions = FallowInvocation & {
@@ -46,9 +48,14 @@ const capture = (
   args: readonly string[],
   cwd: string,
   timeoutMs: number,
+  abort?: AbortSignal,
 ): Promise<Result<Captured, VerdictError>> =>
   new Promise((resolve) => {
-    const child = spawn(binary, [...args], { cwd, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(binary, [...args], {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
+      signal: abort,
+    });
     const chunks: { stdout: string[]; stderr: string[] } = { stdout: [], stderr: [] };
     let bytes = 0;
     let settled = false;
@@ -80,6 +87,10 @@ const capture = (
     child.stdout.setEncoding("utf8").on("data", collect("stdout"));
     child.stderr.setEncoding("utf8").on("data", collect("stderr"));
     child.on("error", (cause) => {
+      if (cause.name === "AbortError") {
+        settle(err(verdictError("interrupted", "The fallow run was interrupted.")));
+        return;
+      }
       const missing = (cause as NodeJS.ErrnoException).code === "ENOENT";
       settle(
         err(
@@ -186,6 +197,7 @@ export const runSecurityScan = async (
     args,
     options.root,
     options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    options.signal,
   );
   if (!captured.ok) return captured;
   if (!EXIT_CODES_WITH_OUTPUT.has(captured.data.code)) {

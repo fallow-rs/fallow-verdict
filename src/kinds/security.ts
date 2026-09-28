@@ -10,20 +10,18 @@ import { toVerdictsFile } from "../verdicts/export.ts";
 import type { AnalysisAdapter, MatchKeys } from "./adapter.ts";
 
 /**
- * The id holds the line and the column. The rule, path, sink and evidence text do not move.
- * Fallow adds optional prefixes to the evidence text, for example when a source trace is found,
- * and a file can be renamed. The similar keys leave out the evidence text or the path.
+ * The id holds the line and the column. The rule, path, sink and evidence text do not move, so
+ * they form the main key. The category alone is the rule: the evidence text, the callee text and
+ * the path can all change with an edit, and a finding with the same category can be this one.
  */
 const securityMatch = (finding: SecurityFinding): MatchKeys => {
   const rule = [finding.kind, finding.category ?? null];
   const sink = [finding.candidate.sink.category ?? null, finding.candidate.sink.callee ?? null];
   const evidence = finding.evidence.trim();
+  const categories = new Set([finding.category ?? null, finding.candidate.sink.category ?? null]);
   return {
     key: JSON.stringify([...rule, finding.path, ...sink, evidence]),
-    similar: [
-      JSON.stringify(["site", ...rule, finding.path, ...sink]),
-      JSON.stringify(["renamed", ...rule, ...sink, evidence]),
-    ],
+    rules: [...categories].map((category) => JSON.stringify([finding.kind, category])),
   };
 };
 
@@ -38,6 +36,7 @@ export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, B
         timeoutMs: loaded.config.fallow.timeoutMs,
         changedSince: scope.changedSince,
         paths: scope.paths,
+        signal: scope.signal,
       }),
     parse: parseSecurityOutput,
     candidates: (output) => output.security_findings,
