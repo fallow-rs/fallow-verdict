@@ -22,8 +22,9 @@ import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
 import { judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
 
-/** A candidate reduced to what relocation compares: its id and its location-free key. */
-export type Keyed = { id: string; key: string };
+/** A candidate reduced to what relocation compares: its id and its match keys. */
+export type Keyed = { id: string; key: string; similar: readonly string[] };
+type KeyOnly = Pick<Keyed, "id" | "key">;
 
 export type Relocation =
   | { type: "gone" }
@@ -36,9 +37,9 @@ export type Relocation =
  * When the match is not certain, the result is `ambiguous`, never `gone`.
  */
 export const relocate = (
-  stored: Keyed,
-  storedAll: readonly Keyed[],
-  fresh: readonly Keyed[],
+  stored: KeyOnly,
+  storedAll: readonly KeyOnly[],
+  fresh: readonly KeyOnly[],
 ): Relocation => {
   const same = fresh.filter((candidate) => candidate.key === stored.key);
   if (same.some((candidate) => candidate.id === stored.id))
@@ -55,6 +56,26 @@ export const relocate = (
     return { type: "found", id: inPlace.id, moved: false };
   return { type: "gone" };
 };
+
+/**
+ * Fresh candidates that can still be a stored candidate that `relocate` did not find. It checks
+ * the similar keys, for example the same sink with other evidence text, or the same code in a
+ * renamed file. A fresh candidate with the id and the key of a stored candidate is that stored
+ * candidate, unchanged, so it is not a match. `check` concludes `resolved` only for no match.
+ */
+export const possibleMatches = (
+  stored: Keyed,
+  storedAll: readonly Keyed[],
+  freshAll: readonly Keyed[],
+): string[] =>
+  freshAll
+    .filter(
+      (candidate) =>
+        !storedAll.some((known) => known.id === candidate.id && known.key === candidate.key) &&
+        (candidate.key === stored.key ||
+          candidate.similar.some((key) => stored.similar.includes(key))),
+    )
+    .map((candidate) => candidate.id);
 
 export type CheckOptions = {
   /** A finding id from the last saved scan, or a file path. */
@@ -149,16 +170,20 @@ const resolveTarget = <Output, Candidate, Built extends BuiltEvidence>(
   return ok({ type: "path", value: file, named: inFile, paths: [file] });
 };
 
+const keyedWith =
+  <Output, Candidate, Built extends BuiltEvidence>(adapter: Adapter<Output, Candidate, Built>) =>
+  (candidate: Candidate): Keyed => ({
+    id: adapter.identity(candidate).finding_id,
+    ...adapter.match(candidate),
+  });
+
 const plan = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   target: Target<Candidate>,
   scopeStored: readonly Candidate[],
   fresh: readonly Candidate[],
 ): Plan<Candidate>[] => {
-  const keyed = (candidate: Candidate): Keyed => ({
-    id: adapter.identity(candidate).finding_id,
-    key: adapter.match(candidate),
-  });
+  const keyed = keyedWith(adapter);
   const storedKeyed = scopeStored.map(keyed);
   const freshKeyed = fresh.map(keyed);
   const byId = new Map(fresh.map((candidate) => [keyed(candidate).id, candidate]));
@@ -183,6 +208,32 @@ const plan = <Output, Candidate, Built extends BuiltEvidence>(
       if (!claimed.has(keyed(candidate).id))
         plans.push({ type: "current", stored: null, fresh: candidate });
   return plans;
+};
+
+/**
+ * A scoped run does not see a renamed file, so before `resolved` the check runs Fallow for the
+ * whole project and looks for a possible match. The run happens only when a finding would be
+ * resolved. Each fresh candidate with a possible match turns the result into `ambiguous`.
+ */
+const confirmResolved = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  loaded: LoadedConfig,
+  stored: readonly Candidate[],
+  plans: Plan<Candidate>[],
+): Promise<Result<Plan<Candidate>[], VerdictError>> => {
+  if (!plans.some((step) => step.type === "resolved")) return ok(plans);
+  const wide = await adapter.scan.run(loaded, {});
+  if (!wide.ok) return wide;
+  const keyed = keyedWith(adapter);
+  const storedAll = stored.map(keyed);
+  const freshAll = adapter.scan.candidates(wide.data).map(keyed);
+  return ok(
+    plans.map((step) => {
+      if (step.type !== "resolved") return step;
+      const ids = possibleMatches(keyed(step.stored), storedAll, freshAll);
+      return ids.length === 0 ? step : { type: "ambiguous", stored: step.stored, ids };
+    }),
+  );
 };
 
 const outcomeOf = (results: readonly CheckResult[]): CheckReport["outcome"] => {
@@ -277,12 +328,14 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
     adapter
       .identity(candidate)
       .locations.some((location) => target.data.paths.includes(location.path));
-  const plans = plan(
+  const scoped = plan(
     adapter,
     target.data,
     stored.filter(inScope),
     adapter.scan.candidates(fresh.data).filter(inScope),
   );
+  const plans = await confirmResolved(adapter, loaded, stored, scoped);
+  if (!plans.ok) return plans;
   const { records } = await store.readRecords();
   const recordFor = new Map(records.map((record) => [record.finding_id, record]));
 
@@ -292,7 +345,7 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
   const usage = { input_tokens: 0, cost_usd: 0 };
   let engine: Result<DecisionEngine, VerdictError> | null = null;
 
-  for (const step of plans) {
+  for (const step of plans.data) {
     const identity = adapter.identity(step.type === "current" ? step.fresh : step.stored);
     const storedId = step.stored === null ? null : adapter.identity(step.stored).finding_id;
     const base: CheckResult = {

@@ -9,10 +9,10 @@ import { parseCli } from "../src/cli/args.ts";
 import type { LoadedConfig } from "../src/config/load.ts";
 import type { DecisionEngine } from "../src/engine/types.ts";
 import type { SecurityFinding, SecurityOutput } from "../src/fallow/types.ts";
-import type { AnalysisAdapter } from "../src/kinds/adapter.ts";
+import type { AnalysisAdapter, ScanScope } from "../src/kinds/adapter.ts";
 import { securityAdapter } from "../src/kinds/security.ts";
 import type { BuiltPacket } from "../src/packet/build.ts";
-import { checkWith, relocate, type CheckOptions } from "../src/pipeline/check.ts";
+import { checkWith, possibleMatches, relocate, type CheckOptions } from "../src/pipeline/check.ts";
 import { closeWith, reopenChangedClosures } from "../src/pipeline/close.ts";
 import { judge } from "../src/pipeline/judge.ts";
 import { syncRecords } from "../src/pipeline/scan.ts";
@@ -48,14 +48,25 @@ const withFreshScan = (findings: SecurityFinding[]): SecurityAdapter & { scans: 
     scans: 0,
     scan: {
       ...securityAdapter.scan,
-      run: () => {
+      // Like the real scan: a scoped run reports only the findings in the given files.
+      run: (_loaded: LoadedConfig, scope: ScanScope) => {
         adapter.scans += 1;
-        return Promise.resolve(ok(makeOutput(findings)));
+        const paths = scope.paths ?? [];
+        return Promise.resolve(
+          ok(
+            makeOutput(
+              paths.length === 0 ? findings : findings.filter((f) => paths.includes(f.path)),
+            ),
+          ),
+        );
       },
     },
   };
   return adapter;
 };
+
+/** Fallow still reports the finding as in the last scan. */
+const unchanged = (): SecurityAdapter => withFreshScan([makeFinding({ finding_id: OLD_ID })]);
 
 /** The same finding one line lower, after a line was added above it. */
 const movedFinding = (): SecurityFinding =>
@@ -192,7 +203,8 @@ describe("check", () => {
       exit_code: 0,
       results: [{ status: "resolved", stored_id: OLD_ID, finding_id: null }],
     });
-    expect(adapter.scans).toBe(1);
+    // The scoped run, then the run for the whole project that confirms `resolved`.
+    expect(adapter.scans).toBe(2);
     expect(engine.engine.calls).toBe(0);
   });
 
@@ -453,6 +465,71 @@ describe("check", () => {
   });
 });
 
+describe("possibleMatches", () => {
+  const stored = { id: "a:5", key: "k", similar: ["site", "renamed"] };
+
+  it("finds the same sink with other evidence text", () => {
+    expect(
+      possibleMatches(stored, [stored], [{ id: "a:6", key: "k2", similar: ["site"] }]),
+    ).toEqual(["a:6"]);
+  });
+
+  it("finds the same code in a renamed file", () => {
+    expect(
+      possibleMatches(stored, [stored], [{ id: "b:5", key: "k3", similar: ["renamed"] }]),
+    ).toEqual(["b:5"]);
+  });
+
+  it("ignores another stored finding that did not change", () => {
+    const other = { id: "c:1", key: "k4", similar: ["renamed"] };
+    expect(possibleMatches(stored, [stored, other], [other])).toEqual([]);
+  });
+});
+
+describe("check does not resolve a finding that can still exist", () => {
+  it("needs a person when the evidence text changed with the line", async () => {
+    const prefixed = makeFinding({
+      finding_id: OLD_ID,
+      evidence:
+        "Untrusted source reaches this sink (an argument traces to req.query). db.query receives a non-literal argument",
+    });
+    const state = await scanned([prefixed]);
+    await writeFile(path.join(state.root, SINK_FILE), MOVED_SOURCE);
+    const result = await checkWith(
+      withFreshScan([movedFinding()]),
+      state.loaded,
+      state.store,
+      options(state, OLD_ID, engineFor(VULNERABLE)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      exit_code: 3,
+      results: [{ status: "ambiguous", stored_id: OLD_ID, matches: [MOVED_ID] }],
+    });
+  });
+
+  it("needs a person when the file was renamed", async () => {
+    const state = await scanned();
+    const renamedFile = "src/routes/account.ts";
+    const renamed = makeFinding({
+      finding_id: `security:tainted-sink:${renamedFile}:5:21`,
+      path: renamedFile,
+    });
+    const adapter = withFreshScan([renamed]);
+    const result = await checkWith(
+      adapter,
+      state.loaded,
+      state.store,
+      options(state, OLD_ID, engineFor(VULNERABLE)),
+    );
+    expect(result.ok && result.data.report).toMatchObject({
+      exit_code: 3,
+      results: [{ status: "ambiguous", stored_id: OLD_ID, matches: [renamed.finding_id] }],
+    });
+    // The scoped run misses the new file, so a second run covers the whole project.
+    expect(adapter.scans).toBe(2);
+  });
+});
+
 describe("check exit priority", () => {
   it("exits 1, not 3, when one finding stands and another needs a person", async () => {
     const state = await scanned();
@@ -486,13 +563,7 @@ describe("check exit priority", () => {
 describe("close", () => {
   it("records a judgment by a person that holds until the evidence changes", async () => {
     const state = await scanned();
-    const closed = await closeWith(
-      securityAdapter,
-      state.loaded,
-      state.store,
-      OLD_ID,
-      "Test code.",
-    );
+    const closed = await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Test code.");
     expect(closed).toMatchObject({
       ok: true,
       data: { closed: { reason: "Test code." } },
@@ -540,12 +611,12 @@ describe("close", () => {
   it("refuses an unknown id and a finding that Fallow no longer reports", async () => {
     const state = await scanned();
     expect(
-      await closeWith(securityAdapter, state.loaded, state.store, "missing", "Reason."),
+      await closeWith(unchanged(), state.loaded, state.store, "missing", "Reason."),
     ).toMatchObject({ ok: false, error: { code: "config_invalid" } });
     await syncRecords(state.store, makeOutput([]), false);
     await state.store.writeJson(state.store.candidatesPath, makeOutput([]));
     expect(
-      await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Reason."),
+      await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Reason."),
     ).toMatchObject({ ok: false, error: { code: "config_invalid" } });
   });
 
@@ -564,7 +635,7 @@ describe("close", () => {
       mockEngine(() => VULNERABLE),
       { rejudge: false, dryRun: false },
     );
-    await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Accepted risk.");
+    await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Accepted risk.");
     const report = buildReport((await state.store.readRecords()).records, securityPriority);
     expect(report.summary).toMatchObject({ candidates: 1, survivors: 0, closed: 1 });
     expect(report.findings).toEqual([]);
@@ -577,7 +648,7 @@ describe("close", () => {
 
   it("keeps a closed finding out of judge until its evidence changes", async () => {
     const state = await scanned();
-    await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Test code.");
+    await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Test code.");
     const engine = mockEngine(() => VULNERABLE);
     const plans: number[] = [];
     const dry = await judge(state.loaded, state.store, engine, {
@@ -602,7 +673,7 @@ describe("close", () => {
 
   it("exports a closed finding to Fallow as dismissed with the reason of the person", async () => {
     const state = await scanned();
-    await closeWith(securityAdapter, state.loaded, state.store, OLD_ID, "Accepted risk.");
+    await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Accepted risk.");
     const { records } = await state.store.readRecords();
     expect(toVerdictsFile(records, new Set([OLD_ID])).verdicts).toEqual([
       expect.objectContaining({
@@ -612,5 +683,37 @@ describe("close", () => {
         dismissal_reason: "closed-by-person",
       }),
     ]);
+  });
+
+  it("removes a stale closure when judge assesses the finding again", async () => {
+    const state = await scanned();
+    await closeWith(unchanged(), state.loaded, state.store, OLD_ID, "Test code.");
+    await writeFile(
+      path.join(state.root, SINK_FILE),
+      SINK_SOURCE.replace("res.json(rows);", "res.json(rows ?? []);"),
+    );
+    await judge(
+      state.loaded,
+      state.store,
+      mockEngine(() => VULNERABLE),
+      { rejudge: false, dryRun: false },
+    );
+    const { records } = await state.store.readRecords();
+    expect(records[0]?.closed).toBeUndefined();
+    const status = buildReport(records, securityPriority);
+    expect(status.summary).toMatchObject({ survivors: 1 });
+    expect(status.summary.closed).toBeUndefined();
+  });
+
+  it("refuses to close when the code moved after the last scan", async () => {
+    const state = await scanned();
+    await writeFile(path.join(state.root, SINK_FILE), MOVED_SOURCE);
+    expect(
+      await closeWith(withFreshScan([movedFinding()]), state.loaded, state.store, OLD_ID, "Why."),
+    ).toMatchObject({
+      ok: false,
+      error: { code: "config_invalid", hint: expect.stringContaining("scan") },
+    });
+    expect((await state.store.readRecords()).records[0]?.closed).toBeUndefined();
   });
 });

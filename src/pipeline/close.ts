@@ -4,6 +4,7 @@ import type { FindingRecord } from "../state/schema.ts";
 import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
+import { dropStaleClosure } from "./freshness.ts";
 
 type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
   Output,
@@ -32,6 +33,28 @@ const storedCandidates = async <Output, Candidate, Built extends BuiltEvidence>(
         .map((candidate) => [adapter.identity(candidate).finding_id, candidate]),
     ),
   });
+};
+
+/**
+ * The last scan holds line positions. After an edit, a packet built from those positions reads
+ * other code. A fresh Fallow run must report the same id with the same evidence fingerprint.
+ */
+const matchesSource = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  loaded: LoadedConfig,
+  candidate: Candidate,
+  fingerprint: string,
+): Promise<Result<boolean, VerdictError>> => {
+  const identity = adapter.identity(candidate);
+  const paths = [...new Set(identity.locations.map((location) => location.path))];
+  const fresh = await adapter.scan.run(loaded, { paths });
+  if (!fresh.ok) return fresh;
+  const same = adapter.scan
+    .candidates(fresh.data)
+    .find((entry) => adapter.identity(entry).finding_id === identity.finding_id);
+  if (same === undefined) return ok(false);
+  const built = await adapter.packet.build(same, fresh.data, loaded);
+  return ok(built.fingerprint === fingerprint);
 };
 
 /**
@@ -75,6 +98,16 @@ export const closeWith = async <Output, Candidate, Built extends BuiltEvidence>(
       ),
     );
   const built = await adapter.packet.build(candidate, stored.data.output, loaded);
+  const current = await matchesSource(adapter, loaded, candidate, built.fingerprint);
+  if (!current.ok) return current;
+  if (!current.data)
+    return err(
+      verdictError(
+        "config_invalid",
+        `The code of \`${findingId}\` changed after the last scan.`,
+        "Run `fallow-verdict scan`, then close the finding with its current id.",
+      ),
+    );
   const at = new Date().toISOString();
   const closed: FindingRecord = {
     ...record,
@@ -120,8 +153,8 @@ export const reopenChangedClosures = async <Output, Candidate, Built extends Bui
     // A finding that Fallow no longer reports is resolved; its closure does not matter now.
     if (candidate === undefined) continue;
     const built = await adapter.packet.build(candidate, stored.data.output, loaded);
-    if (built.fingerprint === record.closed?.fingerprint) continue;
-    const { closed: _closed, ...open } = record;
+    const open = dropStaleClosure(record, built.fingerprint);
+    if (open === record) continue;
     await store.writeRecord(open);
     reopened += 1;
   }

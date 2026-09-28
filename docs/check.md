@@ -20,7 +20,8 @@ Steps:
 
 1. Rerun Fallow for the kind, scoped to the files of the target.
 2. Find each stored finding in the fresh output. See [relocation](#relocation).
-3. A finding that Fallow no longer reports is `resolved`. There is no Jev call.
+3. A finding that Fallow no longer reports is `resolved`. There is no Jev call. Before this
+   result, Fallow runs once more for the whole project. See [relocation](#relocation).
 4. A finding that a person closed stays `closed` while its evidence fingerprint is the same.
 5. Build the packet from the current source on disk and judge it with the normal policy.
 
@@ -65,7 +66,17 @@ callee) and the evidence text. The rules:
 - More than one possible match is ambiguous. The result is `ambiguous`, with exit code `3`.
 - No fresh finding with the same key: a fresh finding with the same id is the stored finding
   with changed evidence text, unless another stored finding has its key.
-- Otherwise the finding is `resolved`.
+- Otherwise the check runs Fallow for the whole project and compares the similar keys. For
+  security, one similar key leaves out the evidence text: Fallow adds optional prefixes to it,
+  for example when it finds a source trace. The other similar key leaves out the path, for a
+  renamed file. A fresh finding that shares a similar key is a possible match, and the result
+  is `ambiguous`. A fresh finding with the id and the key of another stored finding is that
+  finding, unchanged, so it is not a possible match.
+- Only when there is no possible match is the finding `resolved`.
+
+The scoped run cannot see a renamed file, so the run for the whole project is necessary. It
+happens only when a finding would be `resolved`. For security, a scoped run already analyzes
+the whole project and filters the findings, so the second run takes about the same time.
 
 ## `close <id> --reason "<text>"`
 
@@ -76,13 +87,19 @@ npx fallow-verdict close <finding-id> --reason "The input comes from a fixed lis
 `close` records a judgment by a person. `--reason` is required. The finding id must be in the
 last saved scan, and Fallow must still report the finding.
 
+The last scan holds line positions. `close` runs Fallow for the files of the finding, and the
+fresh output must report the same id with the same evidence fingerprint. Otherwise the code
+changed after the last scan, and `close` refuses with `config_invalid`. Run `scan`, then close
+the finding with its current id. Thus a closure never binds to other code.
+
 The record gets a `closed` field with the time, the reason and the evidence fingerprint. The
 history gets an entry with `rule: "closed-by-person"`, `by: "person"` and the reason. The Jev
 decision stays on the record.
 
 A closed finding stays closed until its evidence fingerprint changes. An edit inside the
 evidence windows changes the fingerprint. `report` then removes the closure, and the finding
-is back in its verdict group. `check` compares the fingerprint of the current source.
+is back in its verdict group. `check` compares the fingerprint of the current source. `scan`,
+`judge` and `run` also remove a stale closure when they read the finding.
 
 `report` shows closed findings in a separate section, "Closed by a person". They do not count
 toward `--fail-on`. The JSON report has `summary.closed` and `closed` only when a finding is

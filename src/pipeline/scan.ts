@@ -7,7 +7,7 @@ import type {
   ScanScope,
 } from "../kinds/adapter.ts";
 import { securityAdapter } from "../kinds/security.ts";
-import { invalidate, isCurrent } from "./freshness.ts";
+import { dropStaleClosure, invalidate, isCurrent } from "./freshness.ts";
 import { RECORD_SCHEMA, type FindingRecord } from "../state/schema.ts";
 import { checkStoreKind, type Store } from "../state/store.ts";
 import { ok, type Result } from "../util/result.ts";
@@ -101,7 +101,8 @@ export const syncRecordsWith = async <Output, Candidate, Built extends BuiltEvid
     const built = loaded ? await adapter.packet.build(candidate, output, loaded) : null;
     const current =
       built !== null && loaded !== undefined && isCurrent(adapter, existing, built, loaded);
-    const { locations: _previous, ...kept } = current ? existing : invalidate(existing);
+    const open = built === null ? existing : dropStaleClosure(existing, built.fingerprint);
+    const { locations: _previous, ...kept } = current ? open : invalidate(open);
     await store.writeRecord({
       ...kept,
       ...locationFields(identity),

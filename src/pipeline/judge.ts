@@ -13,7 +13,7 @@ import { checkStoreKind, newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { engineIdentity, invalidate, isCurrent } from "./freshness.ts";
+import { dropStaleClosure, engineIdentity, invalidate, isCurrent } from "./freshness.ts";
 
 export type JudgeOptions = {
   /** Judge again even when the evidence and question set are unchanged. */
@@ -135,12 +135,14 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   const jobs: Job<Built>[] = [];
   const current: Job<Built>[] = [];
-  for (const record of records) {
-    const candidate = candidates.get(record.finding_id);
-    if (candidate === undefined || record.status === "resolved") continue;
+  for (const stored of records) {
+    const candidate = candidates.get(stored.finding_id);
+    if (candidate === undefined || stored.status === "resolved") continue;
     const built = await adapter.packet.build(candidate, output, loaded);
     // A person closed it and the evidence is the same: no request and no plan entry.
-    if (record.closed?.fingerprint === built.fingerprint) continue;
+    if (stored.closed?.fingerprint === built.fingerprint) continue;
+    // Otherwise a closure is stale, and the next written record must not keep it.
+    const record = dropStaleClosure(stored, built.fingerprint);
     if (
       !rejudge &&
       isCurrent(adapter, record, built, loaded) &&

@@ -7,7 +7,25 @@ import { questionHash, questionsForProfile } from "../questions/category.ts";
 import { securityPresentation, securityPriority } from "../report/security.ts";
 import type { SecurityEvidence } from "../state/schema.ts";
 import { toVerdictsFile } from "../verdicts/export.ts";
-import type { AnalysisAdapter } from "./adapter.ts";
+import type { AnalysisAdapter, MatchKeys } from "./adapter.ts";
+
+/**
+ * The id holds the line and the column. The rule, path, sink and evidence text do not move.
+ * Fallow adds optional prefixes to the evidence text, for example when a source trace is found,
+ * and a file can be renamed. The similar keys leave out the evidence text or the path.
+ */
+const securityMatch = (finding: SecurityFinding): MatchKeys => {
+  const rule = [finding.kind, finding.category ?? null];
+  const sink = [finding.candidate.sink.category ?? null, finding.candidate.sink.callee ?? null];
+  const evidence = finding.evidence.trim();
+  return {
+    key: JSON.stringify([...rule, finding.path, ...sink, evidence]),
+    similar: [
+      JSON.stringify(["site", ...rule, finding.path, ...sink]),
+      JSON.stringify(["renamed", ...rule, ...sink, evidence]),
+    ],
+  };
+};
 
 /** `fallow security` candidates, judged per sink and joined by `fallow security survivors`. */
 export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, BuiltPacket> = {
@@ -30,16 +48,7 @@ export const securityAdapter: AnalysisAdapter<SecurityOutput, SecurityFinding, B
     category: finding.category ?? null,
     severity: finding.severity,
   }),
-  // The id holds the line and the column. Rule, path, sink and evidence text do not move.
-  match: (finding) =>
-    JSON.stringify([
-      finding.kind,
-      finding.category ?? null,
-      finding.path,
-      finding.candidate.sink.category ?? null,
-      finding.candidate.sink.callee ?? null,
-      finding.evidence.trim(),
-    ]),
+  match: securityMatch,
   priority: securityPriority,
   packet: {
     build: (finding, output, loaded) =>

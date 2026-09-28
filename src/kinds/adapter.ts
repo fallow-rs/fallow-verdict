@@ -18,6 +18,17 @@ export type CandidateIdentity = Pick<FindingRecord, "finding_id" | "category" | 
   locations: readonly [Location, ...Location[]];
 };
 
+/** Keys that `check` uses to find a stored candidate again after an edit. */
+export type MatchKeys = {
+  /** Identifies the candidate without the parts of its location that an edit moves. */
+  key: string;
+  /**
+   * Weaker keys, for example without the evidence text or without the path. A fresh candidate
+   * that shares one of them can be the stored candidate, so `check` does not conclude `resolved`.
+   */
+  similar: readonly string[];
+};
+
 /** Kind-owned evidence summary. The pipeline reads only `truncated`. */
 export type EvidenceSummary = NonNullable<FindingRecord["evidence"]>;
 
@@ -46,11 +57,8 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
-  /**
-   * A key that identifies the candidate without the parts of its location that an edit moves.
-   * `check` uses it to find a stored candidate again after an edit changed its id.
-   */
-  match: (candidate: Candidate) => string;
+  /** Keys that find a stored candidate again after an edit changed its id. See `check`. */
+  match: (candidate: Candidate) => MatchKeys;
   /** Budget and report order: a lower value comes first, so a cap spends on what matters most. */
   priority: (record: FindingRecord) => number;
   /** Build the evidence packet and its fingerprint. */

@@ -14,18 +14,18 @@ code 2, and the message lists the known kinds.
 
 An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kind:
 
-| Part        | Responsibility                                                          |
-| ----------- | ----------------------------------------------------------------------- |
-| `scan`      | Run the Fallow command, validate its schema version, return candidates  |
-| `identity`  | Give each candidate a stable, unique id, its locations and severity     |
-| `match`     | A key without the parts of the location that an edit moves, for `check` |
-| `priority`  | Order candidates for the budget and the report                          |
-| `packet`    | Build the evidence packet, its fingerprint and its evidence summary     |
-| `questions` | The question catalog, its version and its content hash                  |
-| `policy`    | A pure function from answers to a decision, with a named rule           |
-| `report`    | The words and evidence lines of the terminal and Markdown reports       |
-| `supports`  | The options that the kind supports: `--question-profile` and `eval`     |
-| `export`    | Write the verdict contract and run the Fallow join command, if any      |
+| Part        | Responsibility                                                         |
+| ----------- | ---------------------------------------------------------------------- |
+| `scan`      | Run the Fallow command, validate its schema version, return candidates |
+| `identity`  | Give each candidate a stable, unique id, its locations and severity    |
+| `match`     | Keys without the parts of the location that an edit moves, for `check` |
+| `priority`  | Order candidates for the budget and the report                         |
+| `packet`    | Build the evidence packet, its fingerprint and its evidence summary    |
+| `questions` | The question catalog, its version and its content hash                 |
+| `policy`    | A pure function from answers to a decision, with a named rule          |
+| `report`    | The words and evidence lines of the terminal and Markdown reports      |
+| `supports`  | The options that the kind supports: `--question-profile` and `eval`    |
+| `export`    | Write the verdict contract and run the Fallow join command, if any     |
 
 The shared pipeline owns state, staleness, budgets, retries, locking and reports. It never reads
 kind-specific fields.
