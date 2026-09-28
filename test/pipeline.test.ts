@@ -91,7 +91,9 @@ describe("judge", () => {
       mockEngine(() => VULNERABLE),
       { ...judgeOptions, dryRun: true },
     );
-    const perCandidate = (plan.ok ? plan.data.estimatedUsd : 0) / findings.length;
+    // Each candidate reserves room for a possible dismissal confirmation call.
+    const perCandidate =
+      (plan.ok ? plan.data.estimatedUsd + plan.data.maxConfirmationUsd : 0) / findings.length;
 
     const result = await judge(
       loaded,

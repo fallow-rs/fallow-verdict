@@ -64,6 +64,16 @@ type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
   Built
 >;
 
+/** Engine errors that stop the whole run, on the first call or on the confirmation call. */
+const FATAL_CODES: ReadonlySet<VerdictError["code"]> = new Set([
+  "engine_circuit_open",
+  "engine_auth_failed",
+  "engine_out_of_credits",
+]);
+
+/** A judged record, and a fatal engine error from its confirmation call, if any. */
+type Judged = { record: FindingRecord; fatal: VerdictError | null };
+
 /** Id recorded in history when a verdict changed because the policy did, not the evidence. */
 const POLICY_RUN_ID = "policy";
 
@@ -149,9 +159,9 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   loaded: LoadedConfig,
   runId: string,
   signal: AbortSignal | undefined,
-  /** Reserves budget for a confirmation call; false when the budget, time or signal forbid it. */
+  /** False when the time limit or an interruption forbids a confirmation call. */
   mayConfirm: () => boolean,
-): Promise<Result<FindingRecord, VerdictError>> => {
+): Promise<Result<Judged, VerdictError>> => {
   if (job.built.stateTokens > loaded.config.packet.maxStateTokens) {
     return err(
       verdictError(
@@ -171,13 +181,17 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   const first = adapter.policy(response.data.answers, job.built, loaded);
   let confirmation: EvaluateResponse | null = null;
   let missing: string | undefined;
+  let fatal: VerdictError | null = null;
   if (loaded.config.policy.confirmDismissals && first.verdict === "dismissed") {
     if (mayConfirm()) {
       const second = await engine.evaluate(request);
       if (second.ok) confirmation = second.data;
-      else missing = `the second assessment failed (${second.error.code})`;
+      else {
+        missing = `the second assessment failed (${second.error.code})`;
+        if (FATAL_CODES.has(second.error.code)) fatal = second.error;
+      }
     } else {
-      missing = "the budget, the time limit or an interruption stopped the second assessment";
+      missing = "the time limit or an interruption stopped the second assessment";
     }
   }
   const decision = decideWith(
@@ -190,7 +204,7 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   const inputTokens = response.data.inputTokens + (confirmation?.inputTokens ?? 0);
   const now = new Date().toISOString();
-  return ok({
+  const record: FindingRecord = {
     ...job.record,
     status: "judged",
     fingerprint: job.built.fingerprint,
@@ -219,7 +233,8 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
         model: response.data.model,
       },
     ],
-  });
+  };
+  return ok({ record, fatal });
 };
 
 /**
@@ -236,7 +251,11 @@ const applyPolicy = async <Output, Candidate, Built extends BuiltEvidence>(
     const { record, built } = job;
     if (record.answers === null || record.decision === null) continue;
     const decision = decideWith(adapter, record.answers, record.confirmationAnswers, built, loaded);
-    if (decision.verdict === record.decision.verdict && decision.rule === record.decision.rule) {
+    if (
+      decision.verdict === record.decision.verdict &&
+      decision.rule === record.decision.rule &&
+      decision.confidence === record.decision.confidence
+    ) {
       continue;
     }
     job.record = {
@@ -407,10 +426,18 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   let reservedUsd = 0;
   const estimateUsd = (job: Job<Built>): number =>
     tokensToUsd(job.built.stateTokens + questionTokens(adapter, job, loaded));
-  const stopReason = (job: Job<Built>): RunRecord["outcome"] | null => {
+  // A dismissal needs a confirmation call, so a job reserves both calls before the first one.
+  const callsPerJob = loaded.config.policy.confirmDismissals ? 2 : 1;
+  const reserveUsd = (job: Job<Built>): number => estimateUsd(job) * callsPerJob;
+  const timeStop = (): RunRecord["outcome"] | null => {
     if (options.signal?.aborted) return "interrupted";
     if (deadline !== null && Date.now() >= deadline) return "budget-exhausted";
-    const projected = summary.costUsd + reservedUsd + estimateUsd(job);
+    return null;
+  };
+  const stopReason = (job: Job<Built>): RunRecord["outcome"] | null => {
+    const stopped = timeStop();
+    if (stopped !== null) return stopped;
+    const projected = summary.costUsd + reservedUsd + reserveUsd(job);
     if (options.maxCostUsd !== undefined && projected > options.maxCostUsd)
       return "budget-exhausted";
     return null;
@@ -426,30 +453,26 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
         summary.outcome = stop;
         return;
       }
-      reservedUsd += estimateUsd(job);
-      let confirmReservedUsd = 0;
-      const mayConfirm = (): boolean => {
-        if (stopReason(job) !== null) return false;
-        confirmReservedUsd = estimateUsd(job);
-        reservedUsd += confirmReservedUsd;
-        return true;
-      };
+      // Released in full after the job: the unused confirmation share returns to the budget.
+      reservedUsd += reserveUsd(job);
+      const mayConfirm = (): boolean => timeStop() === null;
       const result = await judgeOne(adapter, job, engine, loaded, runId, signal, mayConfirm);
-      reservedUsd -= estimateUsd(job) + confirmReservedUsd;
+      reservedUsd -= reserveUsd(job);
       if (result.ok) {
+        const { record, fatal } = result.data;
         summary.judged += 1;
         summary.pending -= 1;
-        summary.inputTokens += result.data.usage?.inputTokens ?? 0;
-        summary.costUsd += result.data.usage?.costUsd ?? 0;
-        await store.writeRecord(result.data);
+        summary.inputTokens += record.usage?.inputTokens ?? 0;
+        summary.costUsd += record.usage?.costUsd ?? 0;
+        await store.writeRecord(record);
         // Counted at emit time, with no await in between, so positions stay in order.
         done += 1;
-        options.onProgress?.({
-          type: "judged",
-          record: result.data,
-          done,
-          total: jobs.length,
-        });
+        options.onProgress?.({ type: "judged", record, done, total: jobs.length });
+        if (fatal !== null) {
+          summary.outcome = "error";
+          summary.fatal ??= fatal;
+          return;
+        }
         continue;
       }
       if (result.error.code === "interrupted") {
@@ -474,11 +497,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
         done,
         total: jobs.length,
       });
-      if (
-        result.error.code === "engine_circuit_open" ||
-        result.error.code === "engine_auth_failed" ||
-        result.error.code === "engine_out_of_credits"
-      ) {
+      if (FATAL_CODES.has(result.error.code)) {
         summary.outcome = "error";
         summary.fatal ??= result.error;
         return;

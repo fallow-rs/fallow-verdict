@@ -48,8 +48,9 @@ records the change in the finding's history.
 answers dismiss. The candidate stays dismissed only when both answer sets agree. See
 [questions.md](questions.md#dismissal-agreement). The second call is counted in usage and cost.
 The dry-run plan states an upper bound for these calls: one more call for every candidate. The
-cost cap also applies: when the cap does not allow the second call, the candidate goes to a person
-until the next `judge` asks again.
+cost cap also applies. Each candidate reserves the cost of both calls before its first call, and
+the unused share returns to the budget when the first answers do not dismiss. Thus a candidate
+starts only when the cap leaves room for both calls.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.
 

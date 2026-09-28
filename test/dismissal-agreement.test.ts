@@ -174,6 +174,73 @@ describe("dismissal agreement", () => {
   });
 });
 
+describe("fatal confirmation errors", () => {
+  it("stops the run when the confirmation call fails authentication", async () => {
+    const findings = [1, 2].map((index) =>
+      makeFinding({ finding_id: `security:${index}`, severity: "medium" }),
+    );
+    const { loaded, store } = await setup({}, findings);
+    let calls = 0;
+    const engine: DecisionEngine = {
+      id: "auth",
+      evaluate: () => {
+        calls += 1;
+        return Promise.resolve(
+          calls === 2
+            ? err(verdictError("engine_auth_failed", "bad key"))
+            : ok({
+                model: "m",
+                answers: answersFor(SAFE_MITIGATED),
+                inputTokens: 1000,
+                latencyMs: 1,
+              }),
+        );
+      },
+    };
+
+    const result = await judge(loaded, store, engine, judgeOptions);
+
+    expect(calls).toBe(2);
+    expect(result).toMatchObject({
+      ok: true,
+      data: {
+        outcome: "error",
+        fatal: { code: "engine_auth_failed" },
+        judged: 1,
+        inputTokens: 1000,
+      },
+    });
+    const rules = (await store.readRecords()).records.map((record) => record.decision?.rule);
+    expect(rules.toSorted()).toEqual(["dismissal-unconfirmed", undefined].toSorted());
+  });
+});
+
+describe("confirmed confidence", () => {
+  it("writes the record back when only the confirmed confidence changes", async () => {
+    const { root, store } = await setup();
+    const engine = sequence(SAFE_MITIGATED, { ...SAFE_MITIGATED, exploitable: 0.08 });
+    await judge(
+      makeLoaded(root, { policy: { confirmDismissals: false } }),
+      store,
+      engine,
+      judgeOptions,
+    );
+    await store.writeRecord({
+      ...(await onlyRecord(store)),
+      confirmationAnswers: answersFor({ ...SAFE_MITIGATED, exploitable: 0.08 }),
+    });
+    const before = await onlyRecord(store);
+    expect(before.decision?.verdict).toBe("dismissed");
+
+    await refreshVerdicts(makeLoaded(root), store);
+
+    const after = await onlyRecord(store);
+    expect(after.decision?.verdict).toBe("dismissed");
+    expect(after.decision?.confidence).toBeLessThan(before.decision?.confidence ?? 0);
+    expect(after.history).toHaveLength(2);
+  });
+});
+
 describe("unconfirmed stored dismissals", () => {
   const judgedWithoutConfirmation = async () => {
     const context = await setup();
@@ -349,7 +416,7 @@ describe("dismissal agreement cost", () => {
     expect(without.data.maxConfirmationUsd).toBe(0);
   });
 
-  it("does not pass the cost cap for a confirmation call", async () => {
+  it("does not start a candidate without budget for both calls", async () => {
     const { loaded, store } = await setup();
     const plan = await judge(
       loaded,
@@ -363,10 +430,72 @@ describe("dismissal agreement cost", () => {
     const single = plan.ok ? plan.data.estimatedUsd : 0;
     const engine = mockEngine(() => SAFE_MITIGATED);
 
-    await judge(loaded, store, engine, { ...judgeOptions, maxCostUsd: single * 1.5 });
+    const result = await judge(loaded, store, engine, {
+      ...judgeOptions,
+      maxCostUsd: single * 1.5,
+    });
 
-    expect(engine.calls).toBe(1);
-    expect((await onlyRecord(store)).decision?.rule).toBe("dismissal-unconfirmed");
+    expect(engine.calls).toBe(0);
+    expect(result).toMatchObject({ ok: true, data: { outcome: "budget-exhausted", judged: 0 } });
+    expect((await onlyRecord(store)).status).toBe("pending");
+  });
+
+  it("reserves both calls per candidate under concurrency", async () => {
+    const findings = [1, 2, 3].map((index) =>
+      makeFinding({ finding_id: `security:${index}`, severity: "medium" }),
+    );
+    const { root, store } = await setup({}, findings);
+    const loaded = makeLoaded(root, { engine: { concurrency: 3 } });
+    const plan = await judge(
+      loaded,
+      store,
+      mockEngine(() => SAFE_MITIGATED),
+      {
+        ...judgeOptions,
+        dryRun: true,
+      },
+    );
+    const single = plan.ok ? plan.data.estimatedUsd / findings.length : 0;
+    const engine = mockEngine(() => SAFE_MITIGATED);
+
+    const result = await judge(loaded, store, engine, {
+      ...judgeOptions,
+      maxCostUsd: single * 2.5,
+    });
+
+    const { records } = await store.readRecords();
+    expect(engine.calls).toBe(2);
+    expect(result).toMatchObject({ ok: true, data: { outcome: "budget-exhausted", judged: 1 } });
+    expect(records.filter((record) => record.decision?.rule === "dismissed")).toHaveLength(1);
+    expect(records.some((record) => record.decision?.rule === "dismissal-unconfirmed")).toBe(false);
+  });
+
+  it("returns the unused confirmation reservation when the first answer is not a dismissal", async () => {
+    const findings = [1, 2].map((index) =>
+      makeFinding({ finding_id: `security:${index}`, severity: "medium" }),
+    );
+    const { root, store } = await setup({}, findings);
+    const loaded = makeLoaded(root, { engine: { concurrency: 1 } });
+    const plan = await judge(
+      loaded,
+      store,
+      mockEngine(() => VULNERABLE),
+      {
+        ...judgeOptions,
+        dryRun: true,
+      },
+    );
+    const single = plan.ok ? plan.data.estimatedUsd / findings.length : 0;
+    const engine = mockEngine(() => VULNERABLE);
+
+    // Two survivors cost two calls. Each start needs room for two calls.
+    const result = await judge(loaded, store, engine, {
+      ...judgeOptions,
+      maxCostUsd: single * 3.01,
+    });
+
+    expect(engine.calls).toBe(2);
+    expect(result).toMatchObject({ ok: true, data: { outcome: "done", judged: 2 } });
   });
 });
 
@@ -395,6 +524,10 @@ describe("dismissal agreement evaluation", () => {
       ],
     });
     expect(result.missedVulnerabilities).toEqual([]);
-    expect(result.dismissalsUnconfirmed).toEqual({ total: 1, vulnerable: 1, safe: 0 });
+    expect(result.dismissalsUnconfirmed).toEqual({
+      total: 1,
+      disagreed: { vulnerable: 1, safe: 0 },
+      notConfirmed: { vulnerable: 0, safe: 0 },
+    });
   });
 });

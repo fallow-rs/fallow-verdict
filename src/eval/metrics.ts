@@ -49,13 +49,26 @@ export type EvalReport = {
   /** Expected calibration error of P(exploitable) over ten bins. */
   calibrationError: number | null;
   /**
-   * Candidates whose first answers mapped to a dismissal, but that went to a person because a
-   * second call did not confirm it (rule `dismissal-unconfirmed`), split by label.
+   * Candidates whose first answers mapped to a dismissal, but that went to a person (rule
+   * `dismissal-unconfirmed`), split by label. `disagreed`: a second answer set did not map to a
+   * dismissal. `notConfirmed`: there is no second answer set (an old record, a budget stop or a
+   * failed call).
    */
-  dismissalsUnconfirmed: { total: number; vulnerable: number; safe: number };
+  dismissalsUnconfirmed: {
+    total: number;
+    disagreed: LabelCounts;
+    notConfirmed: LabelCounts;
+  };
 };
 
+export type LabelCounts = { vulnerable: number; safe: number };
+
 const CALIBRATION_BINS = 10;
+
+const labelCounts = (pairs: readonly { vulnerable: boolean }[]): LabelCounts => {
+  const vulnerable = pairs.filter((pair) => pair.vulnerable).length;
+  return { vulnerable, safe: pairs.length - vulnerable };
+};
 
 const ratio = (numerator: number, denominator: number): number | null =>
   denominator === 0 ? null : numerator / denominator;
@@ -87,7 +100,14 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
     const decision = record?.status === "judged" ? record.decision : null;
     return decision === null
       ? []
-      : [{ finding_id, vulnerable: expected === "vulnerable", decision }];
+      : [
+          {
+            finding_id,
+            vulnerable: expected === "vulnerable",
+            decision,
+            confirmed: record?.confirmationAnswers !== undefined,
+          },
+        ];
   });
 
   const dismissed = pairs.filter(({ decision }) => decision.verdict === "dismissed");
@@ -96,7 +116,7 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
   const missed = dismissed.filter((pair) => pair.vulnerable);
   const complete = pairs.length === labels.labels.length;
   const unconfirmed = pairs.filter(({ decision }) => decision.rule === "dismissal-unconfirmed");
-  const unconfirmedVulnerable = unconfirmed.filter((pair) => pair.vulnerable).length;
+  const disagreed = unconfirmed.filter(({ confirmed }) => confirmed);
 
   return {
     labeled: labels.labels.length,
@@ -129,8 +149,8 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
       : null,
     dismissalsUnconfirmed: {
       total: unconfirmed.length,
-      vulnerable: unconfirmedVulnerable,
-      safe: unconfirmed.length - unconfirmedVulnerable,
+      disagreed: labelCounts(disagreed),
+      notConfirmed: labelCounts(unconfirmed.filter(({ confirmed }) => !confirmed)),
     },
   };
 };

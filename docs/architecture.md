@@ -192,6 +192,8 @@ and backup together if you need to return to an earlier review state.
   `retry-after` support.
 - A rejected key opens the circuit breaker at once; repeated provider failures open it after a
   short streak. The run stops with exit code 2 instead of marking every candidate as errored.
+  The dismissal confirmation call uses the same engine and breaker. A rejected key or an open
+  circuit on that call also stops the run; the record keeps the review verdict.
 - A failed forced re-judge keeps the verdict that is still valid for the current evidence.
 - Error codes are a stable, add-only list (`src/util/errors.ts`).
 

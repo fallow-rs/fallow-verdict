@@ -14,9 +14,10 @@
 - Reject `--question-profile` and `eval` with exit code 2 for a kind that does not support them.
 - Require two engine calls that agree before a candidate is dismissed. A disagreement, a failed second call or a budget stop gives `needs-human-review` with the new rule `dismissal-unconfirmed`. Records store the second answer set in `confirmationAnswers`.
 - Add `policy.confirmDismissals` (default `true`). Set it to `false` to keep the single-call behavior for evaluation comparisons.
-- Count the confirmation call in record usage, run cost and the cost cap. The plan and `--dry-run` state an upper bound for confirmation calls.
+- Count the confirmation call in record usage, run cost and the cost cap. Each candidate reserves the cost of both calls before its first call, so a candidate starts only when the cap leaves room for both. The plan and `--dry-run` state an upper bound for confirmation calls.
+- Stop the run when the confirmation call fails with a rejected key or an open circuit, as for the first call.
 - A policy remap of a record without a confirming answer set, for example a record from before this change, gives `needs-human-review` instead of `dismissed`. `judge` treats a stored dismissal without a second answer set as pending and asks again, also after a failed second call; `report` alone shows the review verdict. Only a disagreement is final for the current evidence.
-- Report `dismissalsUnconfirmed` in `eval` output.
+- Report `dismissalsUnconfirmed` in `eval` output, split into `disagreed` and `notConfirmed`.
 
 ## 0.1.0 (2026-09-23)
 
