@@ -138,6 +138,10 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "confirmDismissals": {
+          "default": true,
+          "type": "boolean"
         }
       },
       "additionalProperties": false

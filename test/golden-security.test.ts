@@ -26,6 +26,10 @@ import {
  * were made with the same steps as below, with the main API (`openStore(dataDir)`,
  * `buildReport(records)`, `renderHuman(report, true)`, `renderMarkdown(report)`), and the same
  * `normalize` function.
+ *
+ * One later change is intended: the dismissed record makes a confirmation call. It stores
+ * `confirmationAnswers`, and its usage and the recorded cost count both calls. The survivor and
+ * the review records do not change.
  */
 const FIXTURES = fileURLToPath(new URL("./fixtures/golden-security/", import.meta.url));
 
@@ -65,9 +69,15 @@ const produce = async (): Promise<Record<string, string>> => {
   const output = makeOutput(findings);
   await store.writeJson(store.candidatesPath, output);
   await syncRecords(store, output, false);
-  const responses = [VULNERABLE, SAFE_MITIGATED, { ...VULNERABLE, tampering: 0.9 }];
-  let call = 0;
-  const engine = mockEngine(() => responses[call++] ?? VULNERABLE);
+  // Keyed by finding, so the dismissal confirmation call gets the same answers as the first call.
+  const responses = new Map([
+    [findings[0]?.finding_id, VULNERABLE],
+    [findings[1]?.finding_id, SAFE_MITIGATED],
+    [findings[2]?.finding_id, { ...VULNERABLE, tampering: 0.9 }],
+  ]);
+  const engine = mockEngine(
+    (state) => responses.get((state as { finding_id: string }).finding_id) ?? VULNERABLE,
+  );
   await judge(loaded, store, engine, { rejudge: false, dryRun: false });
 
   const findingsDir = path.join(loaded.dataDir, "findings");

@@ -48,6 +48,11 @@ export type EvalReport = {
   reviewRate: number | null;
   /** Expected calibration error of P(exploitable) over ten bins. */
   calibrationError: number | null;
+  /**
+   * Candidates whose first answers mapped to a dismissal, but that went to a person because a
+   * second call did not confirm it (rule `dismissal-unconfirmed`), split by label.
+   */
+  dismissalsUnconfirmed: { total: number; vulnerable: number; safe: number };
 };
 
 const CALIBRATION_BINS = 10;
@@ -90,6 +95,8 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
   const safe = pairs.filter((pair) => !pair.vulnerable);
   const missed = dismissed.filter((pair) => pair.vulnerable);
   const complete = pairs.length === labels.labels.length;
+  const unconfirmed = pairs.filter(({ decision }) => decision.rule === "dismissal-unconfirmed");
+  const unconfirmedVulnerable = unconfirmed.filter((pair) => pair.vulnerable).length;
 
   return {
     labeled: labels.labels.length,
@@ -120,5 +127,10 @@ export const evaluate = (records: readonly FindingRecord[], labels: Labels): Eva
           }),
         )
       : null,
+    dismissalsUnconfirmed: {
+      total: unconfirmed.length,
+      vulnerable: unconfirmedVulnerable,
+      safe: unconfirmed.length - unconfirmedVulnerable,
+    },
   };
 };

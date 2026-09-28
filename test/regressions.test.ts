@@ -213,7 +213,8 @@ describe("run accounting safety", () => {
       judgeOptions,
     );
 
-    expect(engine.calls).toBe(1);
+    // One judgment: the dismissal and its confirmation call.
+    expect(engine.calls).toBe(2);
     expect(result).toMatchObject({ ok: true, data: { judged: 1, upToDate: 0 } });
   });
 

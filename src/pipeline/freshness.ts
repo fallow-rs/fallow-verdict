@@ -25,6 +25,7 @@ export const invalidate = (record: FindingRecord): FindingRecord => ({
   ...record,
   status: "pending",
   answers: null,
+  confirmationAnswers: undefined,
   decision: null,
   evidence: null,
   error: null,

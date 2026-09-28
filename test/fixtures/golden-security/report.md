@@ -72,4 +72,4 @@ Dismissed (mitigated 0.96): exploitable 0.02, attacker-controlled 0.90, reaches 
 
 Review suggested approaches against the code before making changes.
 
-Recorded assessment cost: $0.0001
+Recorded assessment cost: $0.0002

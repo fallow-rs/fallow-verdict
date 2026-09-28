@@ -1,8 +1,14 @@
 import type { LoadedConfig } from "../config/load.ts";
-import type { DecisionEngine } from "../engine/types.ts";
+import type { Answer, DecisionEngine, EvaluateResponse } from "../engine/types.ts";
 import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
 import { securityAdapter } from "../kinds/security.ts";
-import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
+import { confirmDismissal } from "../policy/confirm.ts";
+import {
+  RUN_SCHEMA,
+  type FindingRecord,
+  type RunRecord,
+  type StoredDecision,
+} from "../state/schema.ts";
 import { checkStoreKind, newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
@@ -28,6 +34,8 @@ export type JudgeProgress =
       upToDate: number;
       estimatedTokens: number;
       estimatedUsd: number;
+      /** Upper bound for dismissal confirmation calls: one more call for every candidate. */
+      maxConfirmationUsd: number;
     }
   | { type: "judged"; record: FindingRecord; done: number; total: number }
   | { type: "failed"; findingId: string; error: VerdictError; done: number; total: number };
@@ -42,6 +50,8 @@ export type JudgeSummary = {
   inputTokens: number;
   costUsd: number;
   estimatedUsd: number;
+  /** Upper bound for dismissal confirmation calls, on top of `estimatedUsd`. Zero when disabled. */
+  maxConfirmationUsd: number;
   /** First engine error to report when a batch cannot complete successfully. */
   fatal: VerdictError | null;
 };
@@ -62,6 +72,25 @@ const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
   job: Job<Built>,
   loaded: LoadedConfig,
 ): number => estimateTokens(adapter.questions.for(job.built, loaded));
+
+/**
+ * Maps the stored answers to a decision. With `policy.confirmDismissals`, a dismissal also needs
+ * a confirming answer set that maps to a dismissal; without one it goes to a person.
+ */
+const decideWith = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  answers: Record<string, Answer>,
+  confirmationAnswers: Record<string, Answer> | undefined,
+  built: Built,
+  loaded: LoadedConfig,
+  missing?: string,
+): StoredDecision => {
+  const first = adapter.policy(answers, built, loaded);
+  if (!loaded.config.policy.confirmDismissals) return first;
+  const second =
+    confirmationAnswers === undefined ? null : adapter.policy(confirmationAnswers, built, loaded);
+  return confirmDismissal(first, second, missing);
+};
 
 const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -96,6 +125,8 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   loaded: LoadedConfig,
   runId: string,
   signal: AbortSignal | undefined,
+  /** Reserves budget for a confirmation call; false when the budget, time or signal forbid it. */
+  mayConfirm: () => boolean,
 ): Promise<Result<FindingRecord, VerdictError>> => {
   if (job.built.stateTokens > loaded.config.packet.maxStateTokens) {
     return err(
@@ -105,14 +136,35 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
       ),
     );
   }
-  const response = await engine.evaluate({
+  const request = {
     state: job.built.packet,
     questions: adapter.questions.for(job.built, loaded),
     signal,
-  });
+  };
+  const response = await engine.evaluate(request);
   if (!response.ok) return response;
 
-  const decision = adapter.policy(response.data.answers, job.built, loaded);
+  const first = adapter.policy(response.data.answers, job.built, loaded);
+  let confirmation: EvaluateResponse | null = null;
+  let missing: string | undefined;
+  if (loaded.config.policy.confirmDismissals && first.verdict === "dismissed") {
+    if (mayConfirm()) {
+      const second = await engine.evaluate(request);
+      if (second.ok) confirmation = second.data;
+      else missing = `the second assessment failed (${second.error.code})`;
+    } else {
+      missing = "the budget, the time limit or an interruption stopped the second assessment";
+    }
+  }
+  const decision = decideWith(
+    adapter,
+    response.data.answers,
+    confirmation?.answers,
+    job.built,
+    loaded,
+    missing,
+  );
+  const inputTokens = response.data.inputTokens + (confirmation?.inputTokens ?? 0);
   const now = new Date().toISOString();
   return ok({
     ...job.record,
@@ -122,12 +174,13 @@ const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
     questionHash: adapter.questions.hash(job.built, loaded),
     engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
+    confirmationAnswers: confirmation?.answers,
     decision,
     evidence: adapter.packet.summary(job.built),
     usage: {
-      inputTokens: response.data.inputTokens,
-      costUsd: tokensToUsd(response.data.inputTokens),
-      latencyMs: response.data.latencyMs,
+      inputTokens,
+      costUsd: tokensToUsd(inputTokens),
+      latencyMs: response.data.latencyMs + (confirmation?.latencyMs ?? 0),
     },
     error: null,
     history: [
@@ -157,7 +210,7 @@ const applyPolicy = async <Output, Candidate, Built extends BuiltEvidence>(
 ): Promise<void> => {
   for (const { record, built } of jobs) {
     if (record.answers === null || record.decision === null) continue;
-    const decision = adapter.policy(record.answers, built, loaded);
+    const decision = decideWith(adapter, record.answers, record.confirmationAnswers, built, loaded);
     if (decision.verdict === record.decision.verdict && decision.rule === record.decision.rule) {
       continue;
     }
@@ -265,12 +318,15 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
     0,
   );
   const estimatedUsd = tokensToUsd(estimatedTokens);
+  // Each candidate can need one confirmation call of the same size, so this is an upper bound.
+  const maxConfirmationUsd = loaded.config.policy.confirmDismissals ? estimatedUsd : 0;
   options.onProgress?.({
     type: "plan",
     toJudge: jobs.length,
     upToDate: plan.current.length,
     estimatedTokens,
     estimatedUsd,
+    maxConfirmationUsd,
   });
 
   const runId = newRunId();
@@ -284,6 +340,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
     inputTokens: 0,
     costUsd: 0,
     estimatedUsd,
+    maxConfirmationUsd,
     fatal: null,
   };
   if (options.dryRun) return ok(summary);
@@ -341,8 +398,15 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
         return;
       }
       reservedUsd += estimateUsd(job);
-      const result = await judgeOne(adapter, job, engine, loaded, runId, signal);
-      reservedUsd -= estimateUsd(job);
+      let confirmReservedUsd = 0;
+      const mayConfirm = (): boolean => {
+        if (stopReason(job) !== null) return false;
+        confirmReservedUsd = estimateUsd(job);
+        reservedUsd += confirmReservedUsd;
+        return true;
+      };
+      const result = await judgeOne(adapter, job, engine, loaded, runId, signal, mayConfirm);
+      reservedUsd -= estimateUsd(job) + confirmReservedUsd;
       if (result.ok) {
         summary.judged += 1;
         summary.pending -= 1;

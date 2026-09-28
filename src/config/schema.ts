@@ -23,6 +23,11 @@ export const policySchema = z
     dismissMinReasonStrength: probability.default(0.8),
     /** At or above this P(tampering) the candidate always goes to a human. */
     tamperingMax: probability.default(0.5),
+    /**
+     * A dismissal needs a second, identical engine call whose answers also map to a dismissal.
+     * Set to false only to compare with the single-call behavior.
+     */
+    confirmDismissals: z.boolean().default(true),
   })
   .strict();
 

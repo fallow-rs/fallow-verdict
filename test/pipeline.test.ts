@@ -245,7 +245,8 @@ describe("policy changes", () => {
     await judge(stricter, store, engine, judgeOptions);
 
     const [record] = (await store.readRecords()).records;
-    expect(engine.calls).toBe(1);
+    // The first judgment and its confirmation call; the policy change needs no call.
+    expect(engine.calls).toBe(2);
     expect(record?.decision?.verdict).toBe("needs-human-review");
     expect(record?.history.map((entry) => entry.verdict)).toEqual([
       "dismissed",

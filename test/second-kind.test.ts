@@ -216,7 +216,9 @@ describe("a second analysis kind", () => {
     });
     expect(judged).toMatchObject({ ok: true, data: { judged: 2, errors: 0 } });
     // The adapter priority orders the budget, not a security severity.
-    expect(engine.order).toEqual(["pair:first", "pair:low"]);
+    expect([...new Set(engine.order)]).toEqual(["pair:first", "pair:low"]);
+    // Each dismissal takes a second call that must agree.
+    expect(engine.order).toHaveLength(4);
 
     const { records, corrupt } = await store.readRecords();
     expect(corrupt).toEqual([]);

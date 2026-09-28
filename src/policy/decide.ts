@@ -16,7 +16,8 @@ export type PolicyRule =
   | "dismissed"
   | "truncated-evidence"
   | "evidence-conflict"
-  | "uncertain";
+  | "uncertain"
+  | "dismissal-unconfirmed";
 
 export type DismissalReason =
   | "not-attacker-controlled"
