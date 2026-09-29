@@ -18,6 +18,7 @@ import {
 import { checkWith } from "../pipeline/check.ts";
 import { closeWith, reopenChangedClosures } from "../pipeline/close.ts";
 import { scanWith } from "../pipeline/scan.ts";
+import { judgeActions, reportActions } from "../report/actions.ts";
 import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
@@ -32,7 +33,7 @@ import { checkStoreKind, openStore, type Store } from "../state/store.ts";
 import { EXIT, verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { formatUsd } from "../util/tokens.ts";
-import { HELP, parseCli, type CliOptions } from "./args.ts";
+import { helpFor, parseCli, type CliOptions } from "./args.ts";
 
 const STARTER_CONFIG = `import { defineConfig } from "fallow-verdict/config";
 
@@ -206,7 +207,7 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
       report,
       options.failOn ?? adapter.failOn?.(loaded) ?? loaded.config.failOn,
     ),
-    json: report,
+    json: { ...report, actions: reportActions(report, options.actions) },
     human: withNotes(renderHuman(report, adapter.report, options.showDismissed)),
   });
 };
@@ -238,6 +239,7 @@ const runCheck = async <Output, Candidate, Built extends BuiltEvidence>(
     dryRun: options.dryRun,
     engine: () => createEngine(loaded),
     signal,
+    actions: options.actions,
   });
   if (!checked.ok) return checked;
   return ok({
@@ -351,7 +353,7 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
     const report = buildReport(records, adapter.priority);
     return ok({
       exitCode: EXIT.ok,
-      json: report,
+      json: { ...report, actions: reportActions(report, options.actions) },
       human: renderHuman(report, adapter.report, options.showDismissed),
     });
   }
@@ -395,7 +397,15 @@ export const dispatchKind = async <Output, Candidate, Built extends BuiltEvidenc
         const incomplete = judged.data.pending > 0;
         return ok({
           exitCode: !options.dryRun && incomplete ? EXIT.error : EXIT.ok,
-          json: judged.data,
+          json: {
+            ...judged.data,
+            actions: judgeActions(judged.data, {
+              command: options.command,
+              dryRun: options.dryRun,
+              argv: options.argv,
+              context: options.actions,
+            }),
+          },
         });
       }
     }
@@ -417,14 +427,25 @@ const printError = (error: VerdictError, format: CliOptions["format"]): void => 
   if (error.hint !== undefined) process.stderr.write(`${error.hint}\n`);
 };
 
+/**
+ * The output format of a usage error. The parser stops at the first error, so this reads
+ * `--format json` from the raw arguments.
+ */
+const requestedFormat = (argv: readonly string[]): CliOptions["format"] =>
+  argv.some(
+    (arg, index) => arg === "--format=json" || (arg === "--format" && argv[index + 1] === "json"),
+  )
+    ? "json"
+    : "human";
+
 export const main = async (argv: readonly string[]): Promise<number> => {
   const parsed = parseCli(argv);
   if (!parsed.ok) {
-    printError(parsed.error, "human");
+    printError(parsed.error, requestedFormat(argv));
     return EXIT.error;
   }
   if (parsed.data.kind === "help") {
-    process.stdout.write(HELP);
+    process.stdout.write(helpFor(parsed.data.command));
     return EXIT.ok;
   }
   if (parsed.data.kind === "version") {

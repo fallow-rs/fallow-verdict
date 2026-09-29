@@ -452,19 +452,43 @@ describe("check", () => {
         type: "rerun-check",
         auto_fixable: false,
         description: expect.any(String),
-        command: `fallow-verdict check ${OLD_ID}`,
+        command: `npx fallow-verdict check ${OLD_ID}`,
       },
       {
         type: "close",
         auto_fixable: false,
         description: expect.any(String),
-        command: `fallow-verdict close ${OLD_ID} --reason "<reason>"`,
+        command: `npx fallow-verdict close ${OLD_ID} --reason "<reason>"`,
         finding_id: OLD_ID,
       },
     ]);
     const human = renderCheckHuman(result.data, securityPresentation);
     expect(human).toContain("Likely vulnerability");
-    expect(human).toContain(`fallow-verdict check ${OLD_ID}`);
+    expect(human).toContain(`npx fallow-verdict check ${OLD_ID}`);
+  });
+
+  it("repeats the invocation and the context options in its actions", async () => {
+    const state = await scanned();
+    const result = await checkWith(
+      withFreshScan([makeFinding({ finding_id: OLD_ID })]),
+      state.loaded,
+      state.store,
+      {
+        ...options(state, OLD_ID, engineFor(VULNERABLE)),
+        actions: {
+          invocation: "pnpm exec fallow-verdict",
+          kind: "security",
+          cwd: "/work/app dir",
+          config: "verdict.config.json",
+          questionProfile: "category",
+        },
+      },
+    );
+    if (!result.ok) throw new Error(result.error.message);
+    expect(result.data.report.actions.map((action) => action.command)).toEqual([
+      `pnpm exec fallow-verdict check ${OLD_ID} --question-profile category --config verdict.config.json --cwd '/work/app dir'`,
+      `pnpm exec fallow-verdict close ${OLD_ID} --reason "<reason>" --config verdict.config.json --cwd '/work/app dir'`,
+    ]);
   });
 
   it("keeps the generated JSON schema current", async () => {

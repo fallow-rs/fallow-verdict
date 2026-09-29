@@ -15,8 +15,9 @@ to Fallow when Fallow can express it.
 
 1. Run `--dry-run` first. Show the estimated cost to the user and wait for a yes.
 2. Pass `--fail-on off` to each real run and to each `report`.
-3. Parse `--format json --quiet` output. Take commands and options only from
-   `npx fallow-verdict --help`. Do not invent options.
+3. Parse `--format json --quiet` output. Use the `actions` arrays of `run`, `report` and
+   `check`. Take commands and options only from `npx fallow-verdict <command> --help`. Do not
+   invent options.
 4. Config, suppressions, review rules, thresholds and `close` go to the user for a decision.
    Propose the exact change. Do not write the config file until the user says yes.
 5. Never run fallow-verdict in a hook that fires on each commit or each assistant turn.
@@ -38,7 +39,7 @@ to Fallow when Fallow can express it.
 6. Try the rule on a small scope. Show the cost first:
 
    ```bash
-   npx fallow-verdict run --kind review <path> --dry-run --format json --quiet
+   npx fallow-verdict run --kind review <path> --dry-run --fail-on off --format json --quiet
    npx fallow-verdict run --kind review <path> --fail-on off --format json --quiet
    npx fallow-verdict report --kind review --fail-on off --format json --quiet
    ```

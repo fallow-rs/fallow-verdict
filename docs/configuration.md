@@ -74,7 +74,8 @@ starts only when the cap leaves room for both calls.
 The `review` section configures [review mode](review.md). The top-level `failOn` and `policy`
 apply to security; review mode has its own `failOn` and `confirmDismissals`.
 
-JSON Schemas for the config, finding records, and labels are published in `schemas/`.
+JSON Schemas for the config, finding records, labels, and the JSON output of the commands are
+published in `schemas/`. See [JSON output](json-output.md).
 
 ## Similar-code policy
 

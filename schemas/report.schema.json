@@ -1,0 +1,1253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "fallow-verdict-report/v1"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "candidates": {
+          "type": "number"
+        },
+        "survivors": {
+          "type": "number"
+        },
+        "needsHumanReview": {
+          "type": "number"
+        },
+        "dismissed": {
+          "type": "number"
+        },
+        "pending": {
+          "type": "number"
+        },
+        "errors": {
+          "type": "number"
+        },
+        "resolved": {
+          "type": "number"
+        },
+        "costUsd": {
+          "type": "number"
+        },
+        "closed": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "candidates",
+        "survivors",
+        "needsHumanReview",
+        "dismissed",
+        "pending",
+        "errors",
+        "resolved",
+        "costUsd"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "fallow-verdict-record/v1"
+          },
+          "kind": {
+            "default": "security",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "finding_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "number"
+          },
+          "col": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locations": {
+            "minItems": 2,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "number"
+                },
+                "col": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "path",
+                "line",
+                "col"
+              ]
+            }
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "judged",
+              "error",
+              "resolved"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionSet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionHash": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engine": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "answers": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "noul"
+                        },
+                        "probability": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "probability"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "choice"
+                        },
+                        "choice": {
+                          "type": "string"
+                        },
+                        "probabilities": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "choice",
+                        "probabilities",
+                        "confidence"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "score"
+                        },
+                        "score": {
+                          "type": "number"
+                        },
+                        "probabilities": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "score",
+                        "probabilities",
+                        "confidence"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confirmationAnswers": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "noul"
+                    },
+                    "probability": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "probability"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "choice"
+                    },
+                    "choice": {
+                      "type": "string"
+                    },
+                    "probabilities": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "choice",
+                    "probabilities",
+                    "confidence"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "score"
+                    },
+                    "score": {
+                      "type": "number"
+                    },
+                    "probabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "score",
+                    "probabilities",
+                    "confidence"
+                  ]
+                }
+              ]
+            }
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "survivor",
+                      "dismissed",
+                      "needs-human-review"
+                    ]
+                  },
+                  "rule": {
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "probabilities": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  },
+                  "impact": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "score": {
+                            "type": "number"
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "score",
+                          "label"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fixDirection": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "dismissalReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "kindData": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "verdict",
+                  "rule",
+                  "confidence",
+                  "probabilities",
+                  "impact",
+                  "fixDirection",
+                  "dismissalReason",
+                  "reason"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "truncated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "truncated"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "inputTokens": {
+                    "type": "number"
+                  },
+                  "costUsd": {
+                    "type": "number"
+                  },
+                  "latencyMs": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "inputTokens",
+                  "costUsd",
+                  "latencyMs"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string"
+                },
+                "runId": {
+                  "type": "string"
+                },
+                "verdict": {
+                  "type": "string",
+                  "enum": [
+                    "survivor",
+                    "dismissed",
+                    "needs-human-review"
+                  ]
+                },
+                "rule": {
+                  "type": "string"
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "fingerprint": {
+                  "type": "string"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "by": {
+                  "type": "string",
+                  "const": "person"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "at",
+                "runId",
+                "verdict",
+                "rule",
+                "confidence",
+                "fingerprint",
+                "model"
+              ]
+            }
+          },
+          "closed": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fingerprint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "at",
+              "reason",
+              "fingerprint"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "finding_id",
+          "path",
+          "line",
+          "category",
+          "severity",
+          "status",
+          "firstSeenAt",
+          "lastSeenAt",
+          "fingerprint",
+          "questionSet",
+          "decision",
+          "evidence",
+          "usage",
+          "error",
+          "history"
+        ]
+      }
+    },
+    "closed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "fallow-verdict-record/v1"
+          },
+          "kind": {
+            "default": "security",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "finding_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "number"
+          },
+          "col": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locations": {
+            "minItems": 2,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "number"
+                },
+                "col": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "path",
+                "line",
+                "col"
+              ]
+            }
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "judged",
+              "error",
+              "resolved"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string"
+          },
+          "lastSeenAt": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionSet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "questionHash": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engine": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "answers": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "noul"
+                        },
+                        "probability": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "probability"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "choice"
+                        },
+                        "choice": {
+                          "type": "string"
+                        },
+                        "probabilities": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "choice",
+                        "probabilities",
+                        "confidence"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "score"
+                        },
+                        "score": {
+                          "type": "number"
+                        },
+                        "probabilities": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "score",
+                        "probabilities",
+                        "confidence"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confirmationAnswers": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "noul"
+                    },
+                    "probability": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "probability"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "choice"
+                    },
+                    "choice": {
+                      "type": "string"
+                    },
+                    "probabilities": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "choice",
+                    "probabilities",
+                    "confidence"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "score"
+                    },
+                    "score": {
+                      "type": "number"
+                    },
+                    "probabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "score",
+                    "probabilities",
+                    "confidence"
+                  ]
+                }
+              ]
+            }
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "survivor",
+                      "dismissed",
+                      "needs-human-review"
+                    ]
+                  },
+                  "rule": {
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "probabilities": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "number"
+                    }
+                  },
+                  "impact": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "score": {
+                            "type": "number"
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "score",
+                          "label"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fixDirection": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "dismissalReason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "kindData": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "verdict",
+                  "rule",
+                  "confidence",
+                  "probabilities",
+                  "impact",
+                  "fixDirection",
+                  "dismissalReason",
+                  "reason"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "truncated": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "truncated"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "inputTokens": {
+                    "type": "number"
+                  },
+                  "costUsd": {
+                    "type": "number"
+                  },
+                  "latencyMs": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "inputTokens",
+                  "costUsd",
+                  "latencyMs"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "string"
+                },
+                "runId": {
+                  "type": "string"
+                },
+                "verdict": {
+                  "type": "string",
+                  "enum": [
+                    "survivor",
+                    "dismissed",
+                    "needs-human-review"
+                  ]
+                },
+                "rule": {
+                  "type": "string"
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "fingerprint": {
+                  "type": "string"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "by": {
+                  "type": "string",
+                  "const": "person"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "at",
+                "runId",
+                "verdict",
+                "rule",
+                "confidence",
+                "fingerprint",
+                "model"
+              ]
+            }
+          },
+          "closed": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fingerprint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "at",
+              "reason",
+              "fingerprint"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "finding_id",
+          "path",
+          "line",
+          "category",
+          "severity",
+          "status",
+          "firstSeenAt",
+          "lastSeenAt",
+          "fingerprint",
+          "questionSet",
+          "decision",
+          "evidence",
+          "usage",
+          "error",
+          "history"
+        ]
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "run",
+              "judge",
+              "check",
+              "close",
+              "report"
+            ]
+          },
+          "auto_fixable": {
+            "type": "boolean",
+            "const": false
+          },
+          "description": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "finding_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "auto_fixable",
+          "description",
+          "command"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "generatedAt",
+    "summary",
+    "findings",
+    "actions"
+  ]
+}

@@ -179,5 +179,10 @@ Each action has `type`, `auto_fixable` (always `false`), `description` and `comm
 | `close`       | An open finding with the same id as the scan        | `fallow-verdict close <id> --reason "<reason>"` |
 | `scan`        | An open finding that moved, is new, or is ambiguous | `fallow-verdict scan`                           |
 
+Each command starts with the invocation that ran fallow-verdict, for example
+`npx fallow-verdict`, and ends with the context options `--kind`, `--question-profile`,
+`--config` and `--cwd` that the command accepts. See
+[JSON output and actions](json-output.md#how-a-command-is-built).
+
 A `close` action also has `finding_id`. Replace `<reason>` before you run it. A coding
 assistant must not close a finding without a person: send the action to the user.

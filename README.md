@@ -146,6 +146,11 @@ Changes outside those excerpts may require `--rejudge` and a larger
 
 Use `report --format json` for a JSON report. Run `npx fallow-verdict --help`
 for all options, including `--changed-since` to scan changes since a Git reference.
+Run `npx fallow-verdict <command> --help` for the options and exit codes of one command.
+An option that a command does not accept exits with `2`.
+
+The JSON output of `run`, `report`, `status`, `judge` and `check` has an `actions` array with
+the next steps as commands. See [JSON output and actions](docs/json-output.md).
 
 | Exit code | Meaning                                                                  |
 | --------- | ------------------------------------------------------------------------ |

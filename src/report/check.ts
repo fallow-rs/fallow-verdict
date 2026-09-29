@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { locationSchema } from "../state/schema.ts";
 import { formatUsd } from "../util/tokens.ts";
+import { actionFields } from "./actions.ts";
 import {
   confirmationBoundLine,
   dismissedWords,
@@ -20,12 +21,7 @@ const probability = z.number().min(0).max(1);
 
 const actionSchema = z.object({
   type: z.enum(["rerun-check", "close", "scan"]),
-  /** Always false: a person or a coding assistant runs the command. */
-  auto_fixable: z.literal(false),
-  description: z.string(),
-  command: z.string(),
-  /** The finding that `close` records a judgment for. */
-  finding_id: z.string().optional(),
+  ...actionFields,
 });
 
 const resultSchema = z.object({

@@ -10,12 +10,29 @@ const skillsDir = path.join(repo, "skills");
 const cli = path.join(repo, "bin/fallow-verdict.js");
 const EM_DASH = String.fromCharCode(0x2014);
 
-const help = execFileSync(process.execPath, [cli, "--help"], { encoding: "utf8" });
+const helpText = (args: string[]): string =>
+  execFileSync(process.execPath, [cli, ...args], { encoding: "utf8" });
+
+/** The options in the Options section of a help text. */
+const flagsOf = (text: string): Set<string> =>
+  new Set(
+    [
+      ...(text.split("\nOptions\n")[1]?.split("\nExit codes")[0] ?? "").matchAll(
+        /^ {2}(?:-h, )?(--[a-z][a-z-]*)/gm,
+      ),
+    ].map((m) => m[1] ?? ""),
+  );
+
+const help = helpText(["--help"]);
 
 // The skills follow the real CLI: every name below comes from the help text.
-const helpFlags = new Set([...help.matchAll(/^\s+(?:-h, )?(--[a-z][a-z-]*)/gm)].map((m) => m[1]));
+const helpFlags = flagsOf(help);
 const helpCommands = new Set(
-  [...(help.split("\nOptions")[0] ?? "").matchAll(/^ {2}([a-z]+) {2,}/gm)].map((m) => m[1]),
+  [...(help.split("\nOptions")[0] ?? "").matchAll(/^ {2}([a-z]+) {2,}/gm)].map((m) => m[1] ?? ""),
+);
+/** The options of each command, from `fallow-verdict <command> --help`. */
+const commandFlags = new Map(
+  [...helpCommands].map((command) => [command, flagsOf(helpText([command, "--help"]))]),
 );
 const helpKinds = (/Known kinds: (.+)/.exec(help)?.[1] ?? "").split(/,\s*/);
 
@@ -101,17 +118,28 @@ describe("skills", () => {
     expect(commands.some((c) => c.command.tool === "fallow-verdict")).toBe(true);
   });
 
-  it("name only commands and options that the CLI has", () => {
+  it("read the options of each command from the help of that command", () => {
+    expect(commandFlags.get("run")).toContain("--dry-run");
+    expect(commandFlags.get("status")).not.toContain("--dry-run");
+    expect(commandFlags.get("close")).toContain("--reason");
+  });
+
+  it("name only commands, and options that the named command accepts", () => {
     const unknown = commands.flatMap(({ file, snippet, command }) => {
       if (command.tool === "fallow") return [];
       const problems: string[] = [];
       const [first] = command.words;
-      if (command.tool === "fallow-verdict" && first !== undefined && !first.startsWith("-")) {
-        if (!helpCommands.has(first)) problems.push(`command ${first}`);
-      }
+      const named =
+        command.tool === "fallow-verdict" && first !== undefined && !/^[-<]/.test(first)
+          ? first
+          : undefined;
+      if (named !== undefined && !helpCommands.has(named)) problems.push(`command ${named}`);
+      // An option without a command, or after a placeholder, must be in the overview.
+      const accepted = (named === undefined ? undefined : commandFlags.get(named)) ?? helpFlags;
       for (const word of command.words) {
         const flag = /^(--[a-z][a-z-]*)/.exec(word)?.[1];
-        if (flag !== undefined && !helpFlags.has(flag)) problems.push(`option ${flag}`);
+        if (flag !== undefined && !accepted.has(flag))
+          problems.push(`option ${flag}${named === undefined ? "" : ` for ${named}`}`);
       }
       return problems.map((problem) => `${file}: ${problem} in \`${snippet}\``);
     });

@@ -2,7 +2,7 @@
 
 ## Output of `run`
 
-`npx fallow-verdict run --kind similar-code --dry-run --format json --quiet` prints one object.
+`npx fallow-verdict run --kind similar-code --dry-run --fail-on off --format json --quiet` prints one object.
 Show these fields to the user before the real run:
 
 | Field                | Meaning                                                 |
@@ -11,6 +11,7 @@ Show these fields to the user before the real run:
 | `estimatedUsd`       | Estimated cost of the first call for each pair          |
 | `maxConfirmationUsd` | Upper bound of the second calls that confirm a decision |
 | `fatal`              | Null, or the error that stopped the run                 |
+| `actions`            | One `run` action: the same command without `--dry-run`  |
 
 Exit code 2 with a message about the local model means that the model is not ready
 (`model_ready: false` in `fallow similar-code status --format json --quiet`). Tell the
