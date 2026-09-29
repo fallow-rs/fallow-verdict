@@ -21,7 +21,8 @@ import {
 } from "./helpers.ts";
 
 /**
- * The fixtures are the output of origin/main at 69f0ead, before analysis kinds existed. They
+ * The fixtures are the output of origin/main at 69f0ead, before analysis kinds existed, with
+ * the engine identity updated to the versioned default model that #13 introduced. They
  * were made with the same steps as below, with the main API (`openStore(dataDir)`,
  * `buildReport(records)`, `renderHuman(report, true)`, `renderMarkdown(report)`), and the same
  * `normalize` function.

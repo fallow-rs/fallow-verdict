@@ -13,7 +13,7 @@ findings/08f1127adb91b51e7a56099c.json
   "fingerprint": "2bfa0a6f890b0c4e01f5e5a46e43cabd",
   "questionSet": "2",
   "questionHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
-  "engine": "[\"jev-latest\",null]",
+  "engine": "[\"jev-1.13.0\",null]",
   "answers": {
     "attacker_controlled": {
       "type": "noul",
@@ -120,7 +120,7 @@ findings/6b25c7d76901efa40b7358f2.json
   "fingerprint": "1604701bfdf633c6479a86768226f1c7",
   "questionSet": "2",
   "questionHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
-  "engine": "[\"jev-latest\",null]",
+  "engine": "[\"jev-1.13.0\",null]",
   "answers": {
     "attacker_controlled": {
       "type": "noul",
@@ -227,7 +227,7 @@ findings/f90eb88e2e59efd80a00ada1.json
   "fingerprint": "f88d94b4c2bfc6b0c55878da99de3bec",
   "questionSet": "2",
   "questionHash": "4444e18b9f9a27f263bba9589ddc089f8d0884506516d9c573bc302cf9e5f5ec",
-  "engine": "[\"jev-latest\",null]",
+  "engine": "[\"jev-1.13.0\",null]",
   "answers": {
     "attacker_controlled": {
       "type": "noul",
