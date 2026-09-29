@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { DEFAULT_MODEL, DEFAULT_REQUESTS_PER_MINUTE } from "../engine/jev.ts";
+
 const probability = z.number().min(0).max(1);
 
 export const policySchema = z
@@ -41,12 +43,19 @@ export const configSchema = z
       .prefault({}),
     engine: z
       .object({
-        model: z.string().default("jev-latest"),
+        model: z.string().default(DEFAULT_MODEL),
         baseUrl: z.url().optional(),
         /** Name of the environment variable that holds the API key. The key itself never goes in config. */
         apiKeyEnv: z.string().default("TYPESAFE_API_KEY"),
         timeoutMs: z.number().int().positive().default(10_000),
         concurrency: z.number().int().min(1).max(64).default(8),
+        /** Upper bound on Jev requests per minute for the whole run, retries included. */
+        requestsPerMinute: z
+          .number()
+          .int()
+          .min(1)
+          .max(100_000)
+          .default(DEFAULT_REQUESTS_PER_MINUTE),
       })
       .strict()
       .prefault({}),

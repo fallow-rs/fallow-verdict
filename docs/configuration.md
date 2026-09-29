@@ -13,11 +13,12 @@ export default defineConfig({
   failOn: "survivor", // "off" | "survivor" | "needs-human-review"
   fallow: { binary: undefined, timeoutMs: undefined },
   engine: {
-    model: "jev-latest",
+    model: "jev-1.13.0",
     apiKeyEnv: "TYPESAFE_API_KEY", // name of the variable, never the key
     baseUrl: undefined,
     timeoutMs: 10_000,
     concurrency: 8,
+    requestsPerMinute: 1_000, // shared by all workers, retries included
   },
   packet: { radius: 20, maxStateTokens: 28_000, blind: false },
   policy: {
@@ -29,8 +30,14 @@ export default defineConfig({
 });
 ```
 
-Pin `engine.model` to a concrete version to avoid alias drift. Fresh calls may still vary. The version that answered is
-stored on every decision.
+The default `engine.model` is a concrete version. Stored decisions are keyed on the requested model,
+so an alias such as `jev-latest` can move to a new version while old decisions still count as
+current. Keep a versioned id unless you accept that risk. Fresh calls may still vary. The version
+that answered is stored on every decision.
+
+`engine.requestsPerMinute` spaces requests for the whole run. Jev documents a limit of 1,200
+requests per minute and can change it without notice. An HTTP 402 (out of credits) stops the run
+at once with `engine_out_of_credits`, like a rejected key.
 
 Policy thresholds only change how answers are mapped. Raw answers are stored, so after a
 threshold change the next `judge`, `run`, `report`, or `eval` maps them again locally, without engine calls, and

@@ -214,6 +214,18 @@ describe("judge failure handling", () => {
     const [record] = (await store.readRecords()).records;
     expect(record).toMatchObject({ status: "judged", decision: { verdict: "survivor" } });
   });
+
+  it("stops the run when the account is out of credits", async () => {
+    const { loaded, store } = await setup();
+    const broke = {
+      id: "broke",
+      evaluate: () => Promise.resolve(err(verdictError("engine_out_of_credits", "no credits"))),
+    };
+    expect(await judge(loaded, store, broke, judgeOptions)).toMatchObject({
+      ok: true,
+      data: { outcome: "error", fatal: { code: "engine_out_of_credits" } },
+    });
+  });
 });
 
 describe("policy changes", () => {

@@ -21,6 +21,7 @@ export const ERROR_CODES = [
   "engine_circuit_open",
   "budget_exhausted",
   "interrupted",
+  "engine_out_of_credits",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

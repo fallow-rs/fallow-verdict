@@ -5,7 +5,7 @@ import type { DecisionEngine } from "./types.ts";
 const CONSECUTIVE_FAILURE_LIMIT = 5;
 
 /** Failures that will not fix themselves: stop spending requests on them. */
-const FATAL: ReadonlySet<ErrorCode> = new Set(["engine_auth_failed"]);
+const FATAL: ReadonlySet<ErrorCode> = new Set(["engine_auth_failed", "engine_out_of_credits"]);
 const COUNTED: ReadonlySet<ErrorCode> = new Set([
   "engine_unavailable",
   "engine_timeout",

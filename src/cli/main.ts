@@ -39,7 +39,7 @@ const progress = (options: CliOptions, line: string): void => {
 };
 
 const createEngine = (loaded: LoadedConfig): Result<DecisionEngine, VerdictError> => {
-  const { apiKeyEnv, baseUrl, model, timeoutMs } = loaded.config.engine;
+  const { apiKeyEnv, baseUrl, model, timeoutMs, requestsPerMinute } = loaded.config.engine;
   const apiKey = process.env[apiKeyEnv];
   if (apiKey === undefined || apiKey === "") {
     return err(
@@ -50,7 +50,9 @@ const createEngine = (loaded: LoadedConfig): Result<DecisionEngine, VerdictError
       ),
     );
   }
-  return ok(withCircuitBreaker(createJevEngine({ apiKey, baseUrl, model, timeoutMs })));
+  return ok(
+    withCircuitBreaker(createJevEngine({ apiKey, baseUrl, model, timeoutMs, requestsPerMinute })),
+  );
 };
 
 const onJudgeProgress =
