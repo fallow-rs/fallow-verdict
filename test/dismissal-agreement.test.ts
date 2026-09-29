@@ -175,44 +175,47 @@ describe("dismissal agreement", () => {
 });
 
 describe("fatal confirmation errors", () => {
-  it("stops the run when the confirmation call fails authentication", async () => {
-    const findings = [1, 2].map((index) =>
-      makeFinding({ finding_id: `security:${index}`, severity: "medium" }),
-    );
-    const { loaded, store } = await setup({}, findings);
-    let calls = 0;
-    const engine: DecisionEngine = {
-      id: "auth",
-      evaluate: () => {
-        calls += 1;
-        return Promise.resolve(
-          calls === 2
-            ? err(verdictError("engine_auth_failed", "bad key"))
-            : ok({
-                model: "m",
-                answers: answersFor(SAFE_MITIGATED),
-                inputTokens: 1000,
-                latencyMs: 1,
-              }),
-        );
-      },
-    };
+  it.each(["engine_auth_failed", "engine_out_of_credits"] as const)(
+    "stops the run when the confirmation call fails with %s",
+    async (code) => {
+      const findings = [1, 2].map((index) =>
+        makeFinding({ finding_id: `security:${index}`, severity: "medium" }),
+      );
+      const { loaded, store } = await setup({}, findings);
+      let calls = 0;
+      const engine: DecisionEngine = {
+        id: "auth",
+        evaluate: () => {
+          calls += 1;
+          return Promise.resolve(
+            calls === 2
+              ? err(verdictError(code, "the engine refused the call"))
+              : ok({
+                  model: "m",
+                  answers: answersFor(SAFE_MITIGATED),
+                  inputTokens: 1000,
+                  latencyMs: 1,
+                }),
+          );
+        },
+      };
 
-    const result = await judge(loaded, store, engine, judgeOptions);
+      const result = await judge(loaded, store, engine, judgeOptions);
 
-    expect(calls).toBe(2);
-    expect(result).toMatchObject({
-      ok: true,
-      data: {
-        outcome: "error",
-        fatal: { code: "engine_auth_failed" },
-        judged: 1,
-        inputTokens: 1000,
-      },
-    });
-    const rules = (await store.readRecords()).records.map((record) => record.decision?.rule);
-    expect(rules.toSorted()).toEqual(["dismissal-unconfirmed", undefined].toSorted());
-  });
+      expect(calls).toBe(2);
+      expect(result).toMatchObject({
+        ok: true,
+        data: {
+          outcome: "error",
+          fatal: { code },
+          judged: 1,
+          inputTokens: 1000,
+        },
+      });
+      const rules = (await store.readRecords()).records.map((record) => record.decision?.rule);
+      expect(rules.toSorted()).toEqual(["dismissal-unconfirmed", undefined].toSorted());
+    },
+  );
 });
 
 describe("confirmed confidence", () => {
