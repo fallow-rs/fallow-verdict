@@ -49,3 +49,8 @@ Keep the published holdout evaluation available alongside each release.
 Provider-side billing limits remain necessary for a hard cost
 cap. Accuracy comparisons with deepsec or Warden require the same pinned projects, labels and
 scope, including findings outside Fallow's catalogue.
+
+## Extend past security
+
+A proposal to apply the same review pipeline to similar-code pairs, dead code and a scoped
+review mode is in [beyond-security.md](beyond-security.md).
