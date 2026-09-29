@@ -1,11 +1,7 @@
 import type { LoadedConfig } from "../config/load.ts";
 import type { DecisionEngine } from "../engine/types.ts";
-import { parseSecurityOutput } from "../fallow/run.ts";
-import type { SecurityFinding, SecurityOutput } from "../fallow/types.ts";
-import { buildPacket, type BuiltPacket } from "../packet/build.ts";
-import { decide } from "../policy/decide.ts";
-import { QUESTION_SET_VERSION } from "../questions/catalog.ts";
-import { questionHash, questionsForProfile } from "../questions/category.ts";
+import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
+import { securityAdapter } from "../kinds/security.ts";
 import { RUN_SCHEMA, type FindingRecord, type RunRecord } from "../state/schema.ts";
 import { newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
@@ -50,37 +46,42 @@ export type JudgeSummary = {
   fatal: VerdictError | null;
 };
 
-type Job = { record: FindingRecord; built: BuiltPacket };
+type Job<Built> = { record: FindingRecord; built: Built };
+
+type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
+  Output,
+  Candidate,
+  Built
+>;
 
 /** Id recorded in history when a verdict changed because the policy did, not the evidence. */
 const POLICY_RUN_ID = "policy";
 
-const questionTokens = (job: Job, loaded: LoadedConfig): number =>
-  estimateTokens(questionsForProfile(job.built.packet, loaded.config.questionProfile));
-
-const planJobs = async (
+const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  job: Job<Built>,
   loaded: LoadedConfig,
-  output: SecurityOutput,
+): number => estimateTokens(adapter.questions.for(job.built, loaded));
+
+const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  loaded: LoadedConfig,
+  output: Output,
   records: readonly FindingRecord[],
   rejudge: boolean,
-): Promise<{ jobs: Job[]; current: Job[] }> => {
-  const findings = new Map<string, SecurityFinding>(
-    output.security_findings.map((finding) => [finding.finding_id, finding]),
+): Promise<{ jobs: Job<Built>[]; current: Job<Built>[] }> => {
+  const candidates = new Map<string, Candidate>(
+    adapter.scan
+      .candidates(output)
+      .map((candidate) => [adapter.identity(candidate).finding_id, candidate]),
   );
-  const jobs: Job[] = [];
-  const current: Job[] = [];
+  const jobs: Job<Built>[] = [];
+  const current: Job<Built>[] = [];
   for (const record of records) {
-    const finding = findings.get(record.finding_id);
-    if (finding === undefined || record.status === "resolved") continue;
-    const built = await buildPacket(finding, output, {
-      root: loaded.root,
-      ...loaded.config.packet,
-    });
-    if (
-      !rejudge &&
-      isCurrent(record, built, engineIdentity(loaded.config.engine), loaded.config.questionProfile)
-    )
-      current.push({ record, built });
+    const candidate = candidates.get(record.finding_id);
+    if (candidate === undefined || record.status === "resolved") continue;
+    const built = await adapter.packet.build(candidate, output, loaded);
+    if (!rejudge && isCurrent(adapter, record, built, loaded)) current.push({ record, built });
     else jobs.push({ record, built });
   }
   // Highest severity first, so a budget cap spends on what matters most.
@@ -89,8 +90,9 @@ const planJobs = async (
   return { jobs, current };
 };
 
-const judgeOne = async (
-  job: Job,
+const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  job: Job<Built>,
   engine: DecisionEngine,
   loaded: LoadedConfig,
   runId: string,
@@ -106,28 +108,23 @@ const judgeOne = async (
   }
   const response = await engine.evaluate({
     state: job.built.packet,
-    questions: questionsForProfile(job.built.packet, loaded.config.questionProfile),
+    questions: adapter.questions.for(job.built, loaded),
     signal,
   });
   if (!response.ok) return response;
 
-  const decision = decide(response.data.answers, job.built, loaded.config.policy);
+  const decision = adapter.policy(response.data.answers, job.built, loaded);
   const now = new Date().toISOString();
   return ok({
     ...job.record,
     status: "judged",
     fingerprint: job.built.fingerprint,
-    questionSet: QUESTION_SET_VERSION,
-    questionHash: questionHash(job.built.packet, loaded.config.questionProfile),
+    questionSet: adapter.questions.version,
+    questionHash: adapter.questions.hash(job.built, loaded),
     engine: engineIdentity(loaded.config.engine),
     answers: response.data.answers,
     decision,
-    evidence: {
-      truncated: job.built.truncated,
-      windows: job.built.packet.source_windows.length,
-      hasSource: job.built.packet.source_windows.some((window) => window.roles.includes("source")),
-      hasTrace: job.built.packet.trace.length > 0,
-    },
+    evidence: adapter.packet.summary(job.built),
     usage: {
       inputTokens: response.data.inputTokens,
       costUsd: tokensToUsd(response.data.inputTokens),
@@ -153,14 +150,15 @@ const judgeOne = async (
  * Thresholds are config, answers are data. When only the policy changed, the stored
  * answers are mapped again locally: no engine call, no cost.
  */
-const applyPolicy = async (
-  jobs: readonly Job[],
+const applyPolicy = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  jobs: readonly Job<Built>[],
   loaded: LoadedConfig,
   store: Store,
 ): Promise<void> => {
   for (const { record, built } of jobs) {
     if (record.answers === null || record.decision === null) continue;
-    const decision = decide(record.answers, built, loaded.config.policy);
+    const decision = adapter.policy(record.answers, built, loaded);
     if (decision.verdict === record.decision.verdict && decision.rule === record.decision.rule) {
       continue;
     }
@@ -183,38 +181,38 @@ const applyPolicy = async (
   }
 };
 
-const invalidateJobs = async (jobs: Job[], loaded: LoadedConfig, store: Store): Promise<void> => {
+const invalidateJobs = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  jobs: Job<Built>[],
+  loaded: LoadedConfig,
+  store: Store,
+): Promise<void> => {
   for (const job of jobs) {
-    if (
-      isCurrent(
-        job.record,
-        job.built,
-        engineIdentity(loaded.config.engine),
-        loaded.config.questionProfile,
-      )
-    )
-      continue;
+    if (isCurrent(adapter, job.record, job.built, loaded)) continue;
     job.record = invalidate(job.record);
     await store.writeRecord(job.record);
   }
 };
 
-/** Revalidate stored decisions before reporting or evaluating, without any engine calls. */
-export const refreshVerdicts = async (
-  loaded: LoadedConfig,
+/** Stored candidates and their records. Every current candidate must have a readable record. */
+const loadState = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
   store: Store,
-): Promise<Result<void, VerdictError>> => {
+): Promise<Result<{ output: Output; records: FindingRecord[] }, VerdictError>> => {
   const raw = await store.readJson(store.candidatesPath);
   if (!raw.ok) return raw;
-  const output = parseSecurityOutput(raw.data);
+  const output = adapter.scan.parse(raw.data);
   if (!output.ok) return output;
-  const { records, corrupt } = await store.readRecords();
+  const read = await store.readRecords();
+  const records = read.records.filter((record) => record.kind === adapter.kind);
   const recorded = new Set(
     records.filter((record) => record.status !== "resolved").map((record) => record.finding_id),
   );
   if (
-    corrupt.length > 0 ||
-    output.data.security_findings.some((finding) => !recorded.has(finding.finding_id))
+    read.corrupt.length > 0 ||
+    adapter.scan
+      .candidates(output.data)
+      .some((candidate) => !recorded.has(adapter.identity(candidate).finding_id))
   )
     return err(
       verdictError(
@@ -222,41 +220,47 @@ export const refreshVerdicts = async (
         "Missing or unreadable finding records. Run scan to reconstruct current candidates.",
       ),
     );
-  const plan = await planJobs(loaded, output.data, records, false);
-  await invalidateJobs(plan.jobs, loaded, store);
-  await applyPolicy(plan.current, loaded, store);
+  return ok({ output: output.data, records });
+};
+
+/** Revalidate stored decisions before reporting or evaluating, without any engine calls. */
+export const refreshVerdictsWith = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  loaded: LoadedConfig,
+  store: Store,
+): Promise<Result<void, VerdictError>> => {
+  const state = await loadState(adapter, store);
+  if (!state.ok) return state;
+  const plan = await planJobs(adapter, loaded, state.data.output, state.data.records, false);
+  await invalidateJobs(adapter, plan.jobs, loaded, store);
+  await applyPolicy(adapter, plan.current, loaded, store);
   return ok(undefined);
 };
 
-export const judge = async (
+export const refreshVerdicts = (
+  loaded: LoadedConfig,
+  store: Store,
+): Promise<Result<void, VerdictError>> => refreshVerdictsWith(securityAdapter, loaded, store);
+
+export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
   loaded: LoadedConfig,
   store: Store,
   engine: DecisionEngine,
   options: JudgeOptions,
 ): Promise<Result<JudgeSummary, VerdictError>> => {
-  const raw = await store.readJson(store.candidatesPath);
-  if (!raw.ok) return raw;
-  const output = parseSecurityOutput(raw.data);
-  if (!output.ok) return output;
-
-  const { records, corrupt } = await store.readRecords();
-  const recorded = new Set(
-    records.filter((record) => record.status !== "resolved").map((record) => record.finding_id),
+  const state = await loadState(adapter, store);
+  if (!state.ok) return state;
+  const plan = await planJobs(
+    adapter,
+    loaded,
+    state.data.output,
+    state.data.records,
+    options.rejudge,
   );
-  if (
-    corrupt.length > 0 ||
-    output.data.security_findings.some((finding) => !recorded.has(finding.finding_id))
-  )
-    return err(
-      verdictError(
-        "state_corrupt",
-        "Missing or unreadable finding records. Run scan to reconstruct current candidates.",
-      ),
-    );
-  const plan = await planJobs(loaded, output.data, records, options.rejudge);
   const jobs = options.limit === undefined ? plan.jobs : plan.jobs.slice(0, options.limit);
   const estimatedTokens = jobs.reduce(
-    (sum, job) => sum + job.built.stateTokens + questionTokens(job, loaded),
+    (sum, job) => sum + job.built.stateTokens + questionTokens(adapter, job, loaded),
     0,
   );
   const estimatedUsd = tokensToUsd(estimatedTokens);
@@ -282,8 +286,8 @@ export const judge = async (
     fatal: null,
   };
   if (options.dryRun) return ok(summary);
-  await invalidateJobs(plan.jobs, loaded, store);
-  await applyPolicy(plan.current, loaded, store);
+  await invalidateJobs(adapter, plan.jobs, loaded, store);
+  await applyPolicy(adapter, plan.current, loaded, store);
   if (jobs.length === 0) return ok(summary);
 
   const run: RunRecord = {
@@ -313,9 +317,9 @@ export const judge = async (
   let done = 0;
   /** Estimated spend of requests in flight, so concurrent workers cannot jointly pass the cap. */
   let reservedUsd = 0;
-  const estimateUsd = (job: Job): number =>
-    tokensToUsd(job.built.stateTokens + questionTokens(job, loaded));
-  const stopReason = (job: Job): RunRecord["outcome"] | null => {
+  const estimateUsd = (job: Job<Built>): number =>
+    tokensToUsd(job.built.stateTokens + questionTokens(adapter, job, loaded));
+  const stopReason = (job: Job<Built>): RunRecord["outcome"] | null => {
     if (options.signal?.aborted) return "interrupted";
     if (deadline !== null && Date.now() >= deadline) return "budget-exhausted";
     const projected = summary.costUsd + reservedUsd + estimateUsd(job);
@@ -335,7 +339,7 @@ export const judge = async (
         return;
       }
       reservedUsd += estimateUsd(job);
-      const result = await judgeOne(job, engine, loaded, runId, signal);
+      const result = await judgeOne(adapter, job, engine, loaded, runId, signal);
       reservedUsd -= estimateUsd(job);
       if (result.ok) {
         summary.judged += 1;
@@ -360,14 +364,7 @@ export const judge = async (
       summary.errors += 1;
       summary.fatal ??= result.error;
       // A failed re-judge must not cost a verdict that is still valid for this evidence.
-      if (
-        !isCurrent(
-          job.record,
-          job.built,
-          engineIdentity(loaded.config.engine),
-          loaded.config.questionProfile,
-        )
-      ) {
+      if (!isCurrent(adapter, job.record, job.built, loaded)) {
         await store.writeRecord({
           ...job.record,
           status: "error",
@@ -411,3 +408,11 @@ export const judge = async (
   });
   return ok(summary);
 };
+
+export const judge = (
+  loaded: LoadedConfig,
+  store: Store,
+  engine: DecisionEngine,
+  options: JudgeOptions,
+): Promise<Result<JudgeSummary, VerdictError>> =>
+  judgeWith(securityAdapter, loaded, store, engine, options);

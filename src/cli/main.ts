@@ -7,20 +7,21 @@ import { withCircuitBreaker } from "../engine/breaker.ts";
 import { createJevEngine } from "../engine/jev.ts";
 import type { DecisionEngine } from "../engine/types.ts";
 import { evaluate, labelsSchema } from "../eval/metrics.ts";
-import { parseSecurityOutput, runSurvivors } from "../fallow/run.ts";
+import type { AnalysisAdapter, BuiltEvidence } from "../kinds/adapter.ts";
+import { kindFor } from "../kinds/registry.ts";
 import {
-  judge,
-  refreshVerdicts,
+  judgeWith,
+  refreshVerdictsWith,
   type JudgeProgress,
   type JudgeSummary,
 } from "../pipeline/judge.ts";
-import { scan } from "../pipeline/scan.ts";
+import { scanWith } from "../pipeline/scan.ts";
 import { buildReport, renderHuman, renderMarkdown, type Report } from "../report/render.ts";
+import type { FindingRecord } from "../state/schema.ts";
 import { openStore, type Store } from "../state/store.ts";
 import { EXIT, verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { formatUsd } from "../util/tokens.ts";
-import { toVerdictsFile } from "../verdicts/export.ts";
 import { HELP, parseCli, type CliOptions } from "./args.ts";
 
 const STARTER_CONFIG = `import { defineConfig } from "fallow-verdict/config";
@@ -32,6 +33,11 @@ export default defineConfig({
 `;
 
 type Context = { options: CliOptions; loaded: LoadedConfig; store: Store; signal: AbortSignal };
+type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
+  Output,
+  Candidate,
+  Built
+>;
 type Outcome = Result<{ exitCode: number; json?: unknown; human?: string }, VerdictError>;
 
 const progress = (options: CliOptions, line: string): void => {
@@ -85,7 +91,10 @@ const onJudgeProgress =
     }
   };
 
-const runJudge = async (context: Context): Promise<Result<JudgeSummary, VerdictError>> => {
+const runJudge = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Result<JudgeSummary, VerdictError>> => {
   const { options, loaded, store, signal } = context;
   let engine: DecisionEngine | null = null;
   if (!options.dryRun) {
@@ -98,7 +107,7 @@ const runJudge = async (context: Context): Promise<Result<JudgeSummary, VerdictE
     id: "none",
     evaluate: () => Promise.resolve(err(verdictError("engine_rejected", "dry run"))),
   };
-  return judge(loaded, store, engine ?? unreachable, {
+  return judgeWith(adapter, loaded, store, engine ?? unreachable, {
     rejudge: options.rejudge,
     dryRun: options.dryRun,
     limit: options.limit,
@@ -118,27 +127,49 @@ const exitCodeFor = (report: Report, failOn: LoadedConfig["config"]["failOn"]): 
   return failing > 0 ? EXIT.findings : EXIT.ok;
 };
 
-const runReport = async (context: Context): Promise<Outcome> => {
-  const { options, loaded, store } = context;
-  const refreshed = await refreshVerdicts(loaded, store);
-  if (!refreshed.ok) return refreshed;
-  const { records, corrupt } = await store.readRecords();
-  for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
-
+/** Finding ids of the stored candidate set, taken from the adapter, never from an engine response. */
+const candidateIds = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  store: Store,
+): Promise<Result<Set<string>, VerdictError>> => {
   const raw = await store.readJson(store.candidatesPath);
   if (!raw.ok) return raw;
-  const candidates = parseSecurityOutput(raw.data);
-  if (!candidates.ok) return candidates;
-  const ids = new Set(candidates.data.security_findings.map((finding) => finding.finding_id));
+  const output = adapter.scan.parse(raw.data);
+  if (!output.ok) return output;
+  return ok(
+    new Set(
+      adapter.scan
+        .candidates(output.data)
+        .map((candidate) => adapter.identity(candidate).finding_id),
+    ),
+  );
+};
 
-  await store.writeJson(store.verdictsPath, toVerdictsFile(records, ids));
-  if (options.validate) {
-    const validated = await runSurvivors({
-      root: loaded.root,
-      binary: loaded.config.fallow.binary,
-      candidatesPath: store.candidatesPath,
-      verdictsPath: store.verdictsPath,
-    });
+const recordsOfKind = async (
+  kind: FindingRecord["kind"],
+  store: Store,
+): Promise<{ records: FindingRecord[]; corrupt: string[] }> => {
+  const { records, corrupt } = await store.readRecords();
+  return { records: records.filter((record) => record.kind === kind), corrupt };
+};
+
+const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Outcome> => {
+  const { options, loaded, store } = context;
+  const refreshed = await refreshVerdictsWith(adapter, loaded, store);
+  if (!refreshed.ok) return refreshed;
+  const { records, corrupt } = await recordsOfKind(adapter.kind, store);
+  for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
+
+  const candidates = await candidateIds(adapter, store);
+  if (!candidates.ok) return candidates;
+  const ids = candidates.data;
+
+  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids));
+  if (options.validate && adapter.export.validate !== null) {
+    const validated = await adapter.export.validate(loaded, store);
     if (!validated.ok) return validated;
   }
 
@@ -169,7 +200,10 @@ const runInit = async (options: CliOptions): Promise<Outcome> => {
 const percent = (value: number | null): string =>
   value === null ? "n/a" : `${(value * 100).toFixed(1)}%`;
 
-const runEval = async (context: Context): Promise<Outcome> => {
+const runEval = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Outcome> => {
   const { options, store } = context;
   if (options.labels === undefined) {
     return err(verdictError("config_invalid", "`eval` needs --labels <path>."));
@@ -180,12 +214,10 @@ const runEval = async (context: Context): Promise<Outcome> => {
   if (!labels.success) {
     return err(verdictError("config_invalid", `Invalid labels file: ${labels.error.message}`));
   }
-  const { records } = await store.readRecords();
-  const rawCandidates = await store.readJson(store.candidatesPath);
-  if (!rawCandidates.ok) return rawCandidates;
-  const candidates = parseSecurityOutput(rawCandidates.data);
+  const { records } = await recordsOfKind(adapter.kind, store);
+  const candidates = await candidateIds(adapter, store);
   if (!candidates.ok) return candidates;
-  const ids = new Set(candidates.data.security_findings.map((finding) => finding.finding_id));
+  const ids = candidates.data;
   const result = evaluate(
     records.filter((record) => ids.has(record.finding_id)),
     labels.data,
@@ -218,12 +250,15 @@ const runEval = async (context: Context): Promise<Outcome> => {
   });
 };
 
-const dispatch = async (context: Context): Promise<Outcome> => {
+const dispatchKind = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  context: Context,
+): Promise<Outcome> => {
   const { options, loaded, store } = context;
   const scanOptions = { changedSince: options.changedSince, paths: options.positionals };
 
   if (options.command === "status") {
-    const { records } = await store.readRecords();
+    const { records } = await recordsOfKind(adapter.kind, store);
     const report = buildReport(records);
     return ok({
       exitCode: EXIT.ok,
@@ -235,12 +270,12 @@ const dispatch = async (context: Context): Promise<Outcome> => {
   if (!release.ok) return release;
   try {
     if (options.command === "eval") {
-      const refreshed = await refreshVerdicts(loaded, store);
+      const refreshed = await refreshVerdictsWith(adapter, loaded, store);
       if (!refreshed.ok) return refreshed;
-      return runEval(context);
+      return runEval(adapter, context);
     }
     if (options.command === "scan" || options.command === "run") {
-      const scanned = await scan(loaded, store, scanOptions);
+      const scanned = await scanWith(adapter, loaded, store, scanOptions);
       if (!scanned.ok) return scanned;
       const { candidates, added, resolved, reopened } = scanned.data;
       progress(
@@ -250,7 +285,7 @@ const dispatch = async (context: Context): Promise<Outcome> => {
       if (options.command === "scan") return ok({ exitCode: EXIT.ok, json: scanned.data });
     }
     if (options.command === "judge" || options.command === "run") {
-      const judged = await runJudge(context);
+      const judged = await runJudge(adapter, context);
       if (!judged.ok) return judged;
       if (judged.data.outcome === "interrupted") return ok({ exitCode: EXIT.interrupted });
       if (judged.data.outcome === "error") {
@@ -273,11 +308,14 @@ const dispatch = async (context: Context): Promise<Outcome> => {
         });
       }
     }
-    return await runReport(context);
+    return await runReport(adapter, context);
   } finally {
     await release.data();
   }
 };
+
+const dispatch = (context: Context): Promise<Outcome> =>
+  kindFor(context.options.kind).use((adapter) => dispatchKind(adapter, context));
 
 const printError = (error: VerdictError, format: CliOptions["format"]): void => {
   if (format === "json") {

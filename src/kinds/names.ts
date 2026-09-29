@@ -1,0 +1,19 @@
+import { verdictError, type VerdictError } from "../util/errors.ts";
+import { err, ok, type Result } from "../util/result.ts";
+
+/** Add-only. Each name has exactly one adapter in `src/kinds/registry.ts`. */
+export const ANALYSIS_KINDS = ["security"] as const;
+export type AnalysisKind = (typeof ANALYSIS_KINDS)[number];
+
+/** Records without a `kind` field were written before kinds existed and are security records. */
+export const DEFAULT_KIND: AnalysisKind = "security";
+
+export const parseKind = (raw: string): Result<AnalysisKind, VerdictError> =>
+  (ANALYSIS_KINDS as readonly string[]).includes(raw)
+    ? ok(raw as AnalysisKind)
+    : err(
+        verdictError(
+          "config_invalid",
+          `Unknown analysis kind \`${raw}\`. Known kinds: ${ANALYSIS_KINDS.join(", ")}.`,
+        ),
+      );
