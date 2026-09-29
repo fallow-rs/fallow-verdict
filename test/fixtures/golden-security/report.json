@@ -9,7 +9,7 @@
     "pending": 0,
     "errors": 0,
     "resolved": 0,
-    "costUsd": 0.00012600000000000003
+    "costUsd": 0.00016800000000000002
   },
   "findings": [
     {
@@ -178,6 +178,52 @@
           "confidence": 0.88
         }
       },
+      "confirmationAnswers": {
+        "attacker_controlled": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "reaches_sink": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "mitigated": {
+          "type": "noul",
+          "probability": 0.96
+        },
+        "exploitable": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "non_production": {
+          "type": "noul",
+          "probability": 0.02
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.01
+        },
+        "impact": {
+          "type": "score",
+          "score": 2.8,
+          "probabilities": [
+            0,
+            0.05,
+            0.1,
+            0.85
+          ],
+          "confidence": 0.8
+        },
+        "fix_direction": {
+          "type": "choice",
+          "choice": "avoid-shell",
+          "probabilities": {
+            "avoid-shell": 0.9,
+            "none": 0.1
+          },
+          "confidence": 0.88
+        }
+      },
       "decision": {
         "verdict": "dismissed",
         "rule": "dismissed",
@@ -202,9 +248,9 @@
         "hasTrace": true
       },
       "usage": {
-        "inputTokens": 1000,
-        "costUsd": 0.000042000000000000004,
-        "latencyMs": 1
+        "inputTokens": 2000,
+        "costUsd": 0.00008400000000000001,
+        "latencyMs": 2
       },
       "error": null,
       "history": [

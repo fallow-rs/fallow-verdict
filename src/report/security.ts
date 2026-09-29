@@ -26,6 +26,8 @@ const REVIEW_REASONS: Readonly<Partial<Record<string, string>>> = {
     "Jev's exploitability estimate conflicts with its answers about the input or protections. Check how input reaches the sensitive operation.",
   uncertain:
     "Review how input reaches the sensitive operation and check the protections along that path.",
+  "dismissal-unconfirmed":
+    "A second assessment did not confirm the dismissal. Review how input reaches the sensitive operation before dismissing this candidate.",
 } satisfies Record<Exclude<PolicyRule, "survivor" | "dismissed">, string>;
 
 const DISMISSAL_REASONS: Readonly<Partial<Record<string, string>>> = {

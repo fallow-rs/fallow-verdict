@@ -91,6 +91,9 @@ it("runs the built CLI with real fallow, resumes, rejects stale verdicts and exp
     expect(first).toMatchObject({ code: 0, data: { summary: { pending: 0, errors: 0 } } });
     expect(calls).toBeGreaterThan(0);
     const initialCalls = calls;
+    // Every candidate is dismissed, and each dismissal takes a confirmation call.
+    const candidates = initialCalls / 2;
+    expect(first).toMatchObject({ data: { summary: { candidates, dismissed: candidates } } });
     expect(await runCli(root, ["run"])).toMatchObject({ code: 0 });
     expect(calls).toBe(initialCalls);
 
@@ -119,7 +122,7 @@ it("runs the built CLI with real fallow, resumes, rejects stale verdicts and exp
     });
     expect(await runCli(root, ["run", "src", "other"])).toMatchObject({
       code: 0,
-      data: { summary: { candidates: initialCalls, dismissed: initialCalls, pending: 0 } },
+      data: { summary: { candidates, dismissed: candidates, pending: 0 } },
     });
     await rm(path.join(root, ".fallow-verdict/findings"), { recursive: true });
     expect(await runCli(root, ["report"])).toMatchObject({

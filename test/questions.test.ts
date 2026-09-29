@@ -46,7 +46,8 @@ describe("question profiles", () => {
     const category = makeLoaded(root, { questionProfile: "category" });
     await judge(category, store, engine, options);
     await judge(category, store, engine, options);
-    expect(engine.calls).toBe(2);
+    // Two judgments, and each dismissal takes a confirmation call.
+    expect(engine.calls).toBe(4);
     const record = (await store.readRecords()).records[0];
     if (record === undefined) throw new Error("Missing record");
     await store.writeRecord({ ...record, questionHash: "old-unversioned-questions" });

@@ -80,13 +80,20 @@ applicability to the sink is not established. This scope covers both the flatten
 those retained per attack surface. A control may belong to another function or operate on a
 different value. Its presence alone cannot establish effective mitigation.
 
-**engine** sends the packet as `state` with the question set in a single request. Questions
+**engine** sends the packet as `state` with the question set in a single request. A dismissal
+takes a second, identical request (see dismissal agreement below). Questions
 are evaluated in parallel by the engine; their errors can be correlated. The response is validated: every
 question must be answered in the type that was asked, and a choice must be one of the offered
 options. Anything else is `engine_response_invalid`, never a partial success.
 
 **policy** (`src/policy/decide.ts`) is a pure function from answers to a decision. It names the
 rule that fired. See [questions.md](questions.md).
+
+**dismissal agreement** (`src/policy/confirm.ts`) runs in the shared pipeline for every kind. When
+the policy gives `dismissed`, the pipeline sends the same request again. The verdict stays
+`dismissed` only when the second answers also map to `dismissed`. Otherwise the verdict is
+`needs-human-review` with the rule `dismissal-unconfirmed`. `policy.confirmDismissals: false`
+turns this off.
 
 **verdicts** exports `fallow-security-verdicts/v1`. The `finding_id` always comes from the stored
 candidate, never from an engine response. `report` then runs `fallow security survivors`, which
@@ -134,6 +141,19 @@ set version, actual question content hash, requested model, and endpoint match. 
 Changing a question's wording bumps `QUESTION_SET_VERSION`. Either makes the candidate pending
 again. Pending decisions are invalidated before any budget, limit, or interruption can skip them.
 Reports recheck the current source windows, and a changed policy remaps stored answers locally.
+The remap uses both stored answer sets, `answers` and `confirmationAnswers`. Without a confirming
+answer set, a remap gives `needs-human-review` with the rule `dismissal-unconfirmed`, never
+`dismissed`.
+
+With `policy.confirmDismissals: true`, `judge` also treats an unconfirmed stored dismissal as
+pending: the first answers map to `dismissed`, and `confirmationAnswers` is absent. This covers a
+record from before the confirmation rule, a record judged with `confirmDismissals: false`, and a
+record whose second call failed with an engine error or was stopped by a budget or time limit.
+`judge` asks again with a first call and a confirmation call, and the dry-run plan counts the
+record as "to assess". Only a confirmation that disagreed is final for the current evidence,
+because only a disagreement is a signal about the finding. The history keeps each failed attempt
+with the rule `dismissal-unconfirmed`. `report` without `judge` makes no calls and shows the
+review verdict with the rule `dismissal-unconfirmed`.
 
 Older records without a question content hash load with `questionHash: null`. They require a
 fresh judgment before their verdict can be reported. Their history remains available. Switching
@@ -150,7 +170,9 @@ Version 0.1.0 reads `fallow-verdict-record/v1` records from the source preview.
 Missing optional fields receive defaults. A record without a `kind` field loads as a
 `security` record, and a run record without a `kind` field loads as a `security` run. Security
 records keep their layout: one location in `path`, `line` and `col`, a severity, and the same
-evidence summary. Older evidence or engine settings can
+evidence summary. A record without `confirmationAnswers` stays valid and is remapped as before,
+but a remap cannot make it `dismissed`: it gives `needs-human-review` with the rule
+`dismissal-unconfirmed`. The next `judge` asks again for such a stored dismissal (see Staleness). Older evidence or engine settings can
 make a stored decision stale, so the next assessment may require a Jev call.
 Existing history is retained when those decisions are invalidated.
 
@@ -170,6 +192,8 @@ and backup together if you need to return to an earlier review state.
   `retry-after` support.
 - A rejected key opens the circuit breaker at once; repeated provider failures open it after a
   short streak. The run stops with exit code 2 instead of marking every candidate as errored.
+  The dismissal confirmation call uses the same engine and breaker. A rejected key or an open
+  circuit on that call also stops the run; the record keeps the review verdict.
 - A failed forced re-judge keeps the verdict that is still valid for the current evidence.
 - Error codes are a stable, add-only list (`src/util/errors.ts`).
 

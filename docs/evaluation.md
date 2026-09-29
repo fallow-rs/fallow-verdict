@@ -64,7 +64,12 @@ to request fresh answers with the experimental profile.
 This is a development set, not an independent holdout or evidence of production calibration.
 `dismissPrecision: null` means no dismissal was observed, not perfect accuracy. `eval` exits 2
 when labeled candidates have no current judgment. Empty or duplicate labels are rejected. If any labeled candidate is pending, errored, resolved,
-or missing, all aggregate rates are `null`; observed unsafe dismissals remain listed. See [validation.md](validation.md) for the initial live result.
+or missing, all aggregate rates are `null`; observed unsafe dismissals remain listed.
+`dismissalsUnconfirmed` counts the candidates that the dismissal agreement rule sent to a person.
+`disagreed` counts the candidates whose second answer set did not map to a dismissal. Its
+`vulnerable` count is the number of hidden vulnerabilities that a disagreeing second call
+prevented. `notConfirmed` counts the candidates without a second answer set: an old record, a
+budget or time stop, or a failed second call. Both are split by label. The paired comparison runner makes one call per observation and does not apply this rule. See [validation.md](validation.md) for the initial live result.
 
 ## Fresh paired comparisons
 

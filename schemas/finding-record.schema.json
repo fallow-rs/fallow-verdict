@@ -229,6 +229,99 @@
         }
       ]
     },
+    "confirmationAnswers": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "noul"
+              },
+              "probability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "type",
+              "probability"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "choice"
+              },
+              "choice": {
+                "type": "string"
+              },
+              "probabilities": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "type",
+              "choice",
+              "probabilities",
+              "confidence"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "score"
+              },
+              "score": {
+                "type": "number"
+              },
+              "probabilities": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "type",
+              "score",
+              "probabilities",
+              "confidence"
+            ]
+          }
+        ]
+      }
+    },
     "decision": {
       "anyOf": [
         {

@@ -77,7 +77,7 @@ const onJudgeProgress =
     if (event.type === "plan") {
       progress(
         options,
-        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
+        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${event.maxConfirmationUsd > 0 ? `\nDismissal confirmation calls can add up to ${formatUsd(event.maxConfirmationUsd)}.` : ""}${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
       );
     } else if (event.type === "judged") {
       const decision = event.record.decision;

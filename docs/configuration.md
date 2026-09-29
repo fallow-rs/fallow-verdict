@@ -26,6 +26,7 @@ export default defineConfig({
     dismissMaxExploitable: { high: 0.05, medium: 0.1, low: 0.15 },
     dismissMinReasonStrength: 0.8,
     tamperingMax: 0.5,
+    confirmDismissals: true, // a dismissal needs a second call that agrees
   },
 });
 ```
@@ -42,6 +43,14 @@ at once with `engine_out_of_credits`, like a rejected key.
 Policy thresholds only change how answers are mapped. Raw answers are stored, so after a
 threshold change the next `judge`, `run`, `report`, or `eval` maps them again locally, without engine calls, and
 records the change in the finding's history.
+
+`policy.confirmDismissals` sends a second, identical request for each candidate that the first
+answers dismiss. The candidate stays dismissed only when both answer sets agree. See
+[questions.md](questions.md#dismissal-agreement). The second call is counted in usage and cost.
+The dry-run plan states an upper bound for these calls: one more call for every candidate. The
+cost cap also applies. Each candidate reserves the cost of both calls before its first call, and
+the unused share returns to the budget when the first answers do not dismiss. Thus a candidate
+starts only when the cap leaves room for both calls.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.
 

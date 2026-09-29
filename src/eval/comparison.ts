@@ -35,8 +35,14 @@ export type Observation = {
   latencyMs: number;
 };
 
-/** Rules that intentionally leave a candidate for human review. */
-export type ReviewPolicyRule = Exclude<PolicyRule, "survivor" | "dismissed">;
+/**
+ * Rules that intentionally leave a candidate for human review. A comparison makes one call per
+ * observation, so the dismissal confirmation rule never applies here.
+ */
+export type ReviewPolicyRule = Exclude<
+  PolicyRule,
+  "survivor" | "dismissed" | "dismissal-unconfirmed"
+>;
 
 export type ReviewByRule = Record<ReviewPolicyRule, number>;
 
@@ -82,7 +88,7 @@ const uniqueIds = (matches: Observation[]): string[] => [
 ];
 
 const isReviewRule = (rule: PolicyRule): rule is ReviewPolicyRule =>
-  rule !== "survivor" && rule !== "dismissed";
+  rule !== "survivor" && rule !== "dismissed" && rule !== "dismissal-unconfirmed";
 
 const reviewByRule = (rows: readonly Observation[]): ReviewByRule => {
   const counts: ReviewByRule = {

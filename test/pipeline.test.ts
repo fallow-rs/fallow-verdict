@@ -91,7 +91,9 @@ describe("judge", () => {
       mockEngine(() => VULNERABLE),
       { ...judgeOptions, dryRun: true },
     );
-    const perCandidate = (plan.ok ? plan.data.estimatedUsd : 0) / findings.length;
+    // Each candidate reserves room for a possible dismissal confirmation call.
+    const perCandidate =
+      (plan.ok ? plan.data.estimatedUsd + plan.data.maxConfirmationUsd : 0) / findings.length;
 
     const result = await judge(
       loaded,
@@ -245,7 +247,8 @@ describe("policy changes", () => {
     await judge(stricter, store, engine, judgeOptions);
 
     const [record] = (await store.readRecords()).records;
-    expect(engine.calls).toBe(1);
+    // The first judgment and its confirmation call; the policy change needs no call.
+    expect(engine.calls).toBe(2);
     expect(record?.decision?.verdict).toBe("needs-human-review");
     expect(record?.history.map((entry) => entry.verdict)).toEqual([
       "dismissed",
