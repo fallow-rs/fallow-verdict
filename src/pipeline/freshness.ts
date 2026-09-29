@@ -20,6 +20,16 @@ export const isCurrent = <Output, Candidate, Built extends BuiltEvidence>(
   record.questionHash === adapter.questions.hash(built, loaded) &&
   record.engine === engineIdentity(loaded.config.engine);
 
+/**
+ * Removes a closure whose evidence fingerprint changed. The history keeps the judgment of the
+ * person. A valid closure stays.
+ */
+export const dropStaleClosure = (record: FindingRecord, fingerprint: string): FindingRecord => {
+  if (record.closed === undefined || record.closed.fingerprint === fingerprint) return record;
+  const { closed: _closed, ...open } = record;
+  return open;
+};
+
 /** Keep the audit history while removing a decision that no longer describes current evidence. */
 export const invalidate = (record: FindingRecord): FindingRecord => ({
   ...record,

@@ -141,6 +141,8 @@ Changes outside those excerpts may require `--rejudge` and a larger
 | `run`    | Run the scan and assessment, then write reports.                  | Yes           |
 | `status` | Show saved results.                                               | No            |
 | `eval`   | Compare saved results with labels supplied through `--labels`.    | No            |
+| `check`  | Check one finding or one file again after an edit. No state.      | Yes           |
+| `close`  | Record a judgment by a person with `--reason`.                    | No            |
 
 Use `report --format json` for a JSON report. Run `npx fallow-verdict --help`
 for all options, including `--changed-since` to scan changes since a Git reference.
@@ -150,12 +152,16 @@ for all options, including `--changed-since` to scan changes since a Git referen
 | `0`       | The command completed without a failing verdict.                         |
 | `1`       | Results meet `--fail-on`, or evaluation found a dismissed vulnerability. |
 | `2`       | Invalid input, an execution failure, or incomplete assessments.          |
+| `3`       | `check` only: a finding needs a person.                                  |
 | `130`     | The command was interrupted.                                             |
 
 By default, `run` and `report` exit with `1` on likely vulnerabilities.
 Set `--fail-on needs-human-review` to also fail when review is needed.
 Incomplete reports exit with `2`, even with `--fail-on off`. The `scan` and
 `status` commands do not fail because of findings. See the [CI guide](docs/ci.md).
+
+`check` is for an edit loop. It exits `0` when the findings are resolved, dismissed or
+closed, and `1` when a finding stands. See [check and close](docs/check.md).
 
 ## What has been tested
 
@@ -176,6 +182,7 @@ visible in your own labeled examples.
 ## Further reading
 
 - [Configuration](docs/configuration.md): model settings and decision thresholds.
+- [Check and close](docs/check.md): the edit loop and its JSON contract.
 - [Responsibilities](docs/responsibilities.md): what belongs in Fallow and in this package.
 - [Architecture](docs/architecture.md): evidence collection and stored records.
 - [Roadmap](docs/roadmap.md): planned work and release requirements.

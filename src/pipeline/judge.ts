@@ -13,7 +13,7 @@ import { checkStoreKind, newRunId, type Store } from "../state/store.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { engineIdentity, invalidate, isCurrent } from "./freshness.ts";
+import { dropStaleClosure, engineIdentity, invalidate, isCurrent } from "./freshness.ts";
 
 export type JudgeOptions = {
   /** Judge again even when the evidence and question set are unchanged. */
@@ -56,7 +56,7 @@ export type JudgeSummary = {
   fatal: VerdictError | null;
 };
 
-type Job<Built> = { record: FindingRecord; built: Built };
+export type Job<Built> = { record: FindingRecord; built: Built };
 
 type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
   Output,
@@ -65,7 +65,7 @@ type Adapter<Output, Candidate, Built extends BuiltEvidence> = AnalysisAdapter<
 >;
 
 /** Engine errors that stop the whole run, on the first call or on the confirmation call. */
-const FATAL_CODES: ReadonlySet<VerdictError["code"]> = new Set([
+export const FATAL_CODES: ReadonlySet<VerdictError["code"]> = new Set([
   "engine_circuit_open",
   "engine_auth_failed",
   "engine_out_of_credits",
@@ -135,10 +135,14 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   const jobs: Job<Built>[] = [];
   const current: Job<Built>[] = [];
-  for (const record of records) {
-    const candidate = candidates.get(record.finding_id);
-    if (candidate === undefined || record.status === "resolved") continue;
+  for (const stored of records) {
+    const candidate = candidates.get(stored.finding_id);
+    if (candidate === undefined || stored.status === "resolved") continue;
     const built = await adapter.packet.build(candidate, output, loaded);
+    // A person closed it and the evidence is the same: no request and no plan entry.
+    if (stored.closed?.fingerprint === built.fingerprint) continue;
+    // Otherwise a closure is stale, and the next written record must not keep it.
+    const record = dropStaleClosure(stored, built.fingerprint);
     if (
       !rejudge &&
       isCurrent(adapter, record, built, loaded) &&
@@ -152,7 +156,8 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   return { jobs, current };
 };
 
-const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
+/** Judges one candidate and returns the new record. It writes no state. `check` uses it too. */
+export const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   job: Job<Built>,
   engine: DecisionEngine,

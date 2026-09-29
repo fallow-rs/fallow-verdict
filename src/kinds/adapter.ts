@@ -10,12 +10,25 @@ import type { KindName } from "./names.ts";
 export type ScanScope = {
   changedSince?: string | undefined;
   paths?: readonly string[] | undefined;
+  /** Stops the Fallow run, for example on an interruption. */
+  signal?: AbortSignal | undefined;
 };
 
 /** The fields of a finding record that come from the candidate itself. */
 export type CandidateIdentity = Pick<FindingRecord, "finding_id" | "category" | "severity"> & {
   /** Every location of the candidate, primary first. A similar-code pair has two. */
   locations: readonly [Location, ...Location[]];
+};
+
+/** Keys that `check` uses to find a stored candidate again after an edit. */
+export type MatchKeys = {
+  /** Identifies the candidate without the parts of its location that an edit moves. */
+  key: string;
+  /**
+   * What "the same rule" means for the kind. A fresh candidate that shares one of these keys can
+   * be the stored candidate after any edit, so `check` does not conclude `resolved`.
+   */
+  rules: readonly string[];
 };
 
 /** Kind-owned evidence summary. The pipeline reads only `truncated`. */
@@ -33,7 +46,7 @@ export type BuiltEvidence = {
 
 /**
  * Everything that is specific to one Fallow analysis. The shared pipeline handles state,
- * staleness, budgets, retries and reports; an adapter supplies the six parts below.
+ * staleness, budgets, retries and reports; an adapter supplies the parts below.
  */
 export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   kind: KindName;
@@ -46,6 +59,8 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
+  /** Keys that find a stored candidate again after an edit changed its id. See `check`. */
+  match: (candidate: Candidate) => MatchKeys;
   /** Budget and report order: a lower value comes first, so a cap spends on what matters most. */
   priority: (record: FindingRecord) => number;
   /** Build the evidence packet and its fingerprint. */

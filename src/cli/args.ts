@@ -4,7 +4,17 @@ import { ANALYSIS_KINDS, DEFAULT_KIND, parseKind, type AnalysisKind } from "../k
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 
-export const COMMANDS = ["init", "scan", "judge", "report", "run", "status", "eval"] as const;
+export const COMMANDS = [
+  "init",
+  "scan",
+  "judge",
+  "report",
+  "run",
+  "status",
+  "eval",
+  "check",
+  "close",
+] as const;
 export type CommandName = (typeof COMMANDS)[number];
 
 export type CliOptions = {
@@ -26,6 +36,8 @@ export type CliOptions = {
   validate: boolean;
   labels?: string | undefined;
   questionProfile?: "generic" | "category" | undefined;
+  /** The reason that a person gives with `close`. */
+  reason?: string | undefined;
 };
 
 export const HELP = `fallow-verdict: assess security findings with Jev
@@ -41,6 +53,8 @@ Commands
   run       Scan the project, assess candidates, and write reports
   status    Show saved results
   eval      Compare saved verdicts with labeled examples
+  check     Check one finding id or one file again after an edit (no state written)
+  close     Record a judgment by a person: close <id> --reason "<text>"
 
 Options
   --config <path>            Config file (default: nearest fallow-verdict.config.*)
@@ -62,6 +76,7 @@ Options
   --show-dismissed           Include dismissed candidates in the terminal report
   --no-validate              Skip validation by fallow security survivors
   --labels <path>            Labeled examples for eval
+  --reason <text>            Reason for close (required)
   -h, --help                 Show this help
   --version                  Show the version
 
@@ -69,7 +84,11 @@ Exit codes
   0    Command completed without a failing verdict
   1    Findings meet --fail-on, or eval found a dismissed vulnerability
   2    Invalid input, execution failed, or assessments are incomplete
+  3    check only: a finding needs a person
   130  Interrupted
+
+  check exits 0 when the findings are resolved, dismissed or closed, and 1 when a
+  finding stands. See docs/check.md.
 `;
 
 const positiveNumber = (
@@ -111,6 +130,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
         "show-dismissed": { type: "boolean" },
         "no-validate": { type: "boolean" },
         labels: { type: "string" },
+        reason: { type: "string" },
         help: { type: "boolean", short: "h" },
         version: { type: "boolean" },
       },
@@ -169,6 +189,25 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
   )
     return err(verdictError("config_invalid", "--question-profile must be generic or category."));
 
+  const reason = values.reason?.trim();
+  if (command === "close" && (reason === undefined || reason === ""))
+    return err(
+      verdictError(
+        "config_invalid",
+        "`close` needs --reason <text>.",
+        "Say why a person accepts the finding.",
+      ),
+    );
+  if ((command === "close" || command === "check") && rest.length !== 1)
+    return err(
+      verdictError(
+        "config_invalid",
+        command === "close"
+          ? "`close` needs exactly one finding id."
+          : "`check` needs exactly one target: a finding id or a file path.",
+      ),
+    );
+
   return ok({
     kind: "command",
     options: {
@@ -190,6 +229,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
       validate: !(values["no-validate"] ?? false),
       labels: values.labels,
       questionProfile,
+      reason,
     },
   });
 };

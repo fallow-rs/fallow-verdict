@@ -65,6 +65,18 @@ const historyEntrySchema = z.object({
   confidence: probability,
   fingerprint: z.string(),
   model: z.string(),
+  /** Present on an entry that a person wrote with `close`. */
+  by: z.literal("person").optional(),
+  /** The reason that the person gave. */
+  reason: z.string().min(1).optional(),
+});
+
+/** A judgment by a person. It holds while the evidence fingerprint stays the same. */
+export const closureSchema = z.object({
+  at: z.string(),
+  reason: z.string().min(1),
+  /** Evidence fingerprint at the time of the judgment. */
+  fingerprint: z.string(),
 });
 
 export const recordSchema = z
@@ -116,6 +128,8 @@ export const recordSchema = z
     error: z.object({ code: z.string(), message: z.string() }).nullable(),
     /** Append-only. Never rewritten, so a verdict flip stays visible. */
     history: z.array(historyEntrySchema),
+    /** Set by `close`. Absent when no person closed the finding, or when its evidence changed. */
+    closed: closureSchema.optional(),
   })
   .superRefine((record, context) => {
     // A security record keeps its strict contract: a severity and the full evidence summary.
@@ -137,6 +151,7 @@ export const recordSchema = z
 export type FindingRecord = z.infer<typeof recordSchema>;
 export type StoredDecision = z.infer<typeof decisionSchema>;
 export type Location = z.infer<typeof locationSchema>;
+export type Closure = z.infer<typeof closureSchema>;
 
 /** Every location of a record, primary first. */
 export const recordLocations = (record: FindingRecord): Location[] =>
