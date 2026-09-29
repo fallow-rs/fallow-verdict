@@ -83,6 +83,23 @@ export const reviewSchema = z
   })
   .strict();
 
+/**
+ * Confidence floors of the similar-code kind. An axis whose probability is not at least its floor
+ * away from the middle is unknown (`null`), not `false`.
+ */
+export const similarCodePolicySchema = z
+  .object({
+    /** `candidate_worthy` is true at or above this probability, false at or below 1 minus it. */
+    candidateWorthyFloor: probability.min(0.5).default(0.8),
+    /** The same for `behaviorally_equivalent`. */
+    behaviorallyEquivalentFloor: probability.min(0.5).default(0.9),
+    /** The same for `refactor_safe`. A wrong `true` merges functions that differ, so it is the highest. */
+    refactorSafeFloor: probability.min(0.5).default(0.95),
+    /** Below this confidence the outcome is `needs-human-review`. */
+    outcomeMinConfidence: probability.default(0.7),
+  })
+  .strict();
+
 export const configSchema = z
   .object({
     /** Project root that fallow analyzes. Relative to the config file. */
@@ -126,6 +143,23 @@ export const configSchema = z
       .prefault({}),
     policy: policySchema.prefault({}),
     review: reviewSchema.prefault({}),
+    /** Settings of the `similar-code` kind. */
+    similarCode: z
+      .object({
+        policy: similarCodePolicySchema.prefault({}),
+        /**
+         * A survivor gates a code change, so it needs a second, identical engine call whose
+         * answers also map to a survivor. Set to false only to compare with one call.
+         */
+        confirmSurvivors: z.boolean().default(true),
+        /**
+         * A safe merge is a chance, not a defect, so similar-code fails a run only when this is
+         * set. `--fail-on` overrides it.
+         */
+        failOn: z.enum(FAIL_ON).default("off"),
+      })
+      .strict()
+      .prefault({}),
     /** Verdicts at or above this level make `run` and `report` exit 1. */
     failOn: z.enum(FAIL_ON).default("survivor"),
   })
@@ -137,3 +171,4 @@ export type Policy = z.infer<typeof policySchema>;
 export type ReviewConfig = z.infer<typeof reviewSchema>;
 export type ReviewRule = z.infer<typeof reviewRuleSchema>;
 export type FailOn = (typeof FAIL_ON)[number];
+export type SimilarCodePolicy = z.infer<typeof similarCodePolicySchema>;

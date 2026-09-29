@@ -69,10 +69,10 @@ describe("--kind", () => {
   });
 
   it("exits 2 for an unknown kind and lists the known kinds", async () => {
-    const result = await runCli(["run", "--dry-run", "--kind", "similar-code"]);
+    const result = await runCli(["run", "--dry-run", "--kind", "dead-code"]);
     expect(result.code).toBe(2);
-    expect(result.stderr).toContain("similar-code");
-    expect(result.stderr).toContain("Known kinds: security");
+    expect(result.stderr).toContain("dead-code");
+    expect(result.stderr).toContain("Known kinds: security, review, similar-code");
   });
 });
 

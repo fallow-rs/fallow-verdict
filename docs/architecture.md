@@ -8,7 +8,8 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 ## Analysis kinds
 
 The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. The kinds are
-`security`, the default, and `review` (see [review mode](review.md)). The `--kind <name>` flag selects the kind for
+`security`, the default, `review` (see [review mode](review.md)) and `similar-code` (see
+[similar-code pairs](similar-code.md)). The `--kind <name>` flag selects the kind for
 `scan`, `judge`, `run`, `report`, `status`, `eval`, `check` and `close`. An unknown kind is a usage error with exit
 code 2, and the message lists the known kinds.
 
@@ -77,6 +78,64 @@ built-in questions and the project rules in one request, and exports
 `review.confirmDismissals` is set, and it fails a run only when `review.failOn` or `--fail-on`
 is set. Its match key is the path and the function name, and its rules block `resolved` for a
 function with the same path and name or with the same source.
+
+The optional `scan.complete(output)` says whether Fallow finished the analysis for the whole scan.
+When it returns false, `scan` resolves no records. It differs from `conclusive`: `conclusive`
+answers for the target files of one `check`, `complete` answers for a whole scan, and a kind with
+a capped selection (review) can be complete while it is not conclusive for a file it left out.
+Without the function, a scan is complete.
+
+### The similar-code kind
+
+`src/kinds/similar-code.ts` connects the modules for `fallow similar-code` pairs. See
+[similar-code.md](similar-code.md) for the user view.
+
+| Part        | Similar-code behavior                                                             |
+| ----------- | --------------------------------------------------------------------------------- |
+| `scan`      | `fallow similar-code --format json --quiet`, stored unchanged; schema version `1` |
+| `complete`  | True only for `completion.status: "complete"`; `conclusive` gives the same value  |
+| `identity`  | `candidate_id`; two locations; the similarity band as category; no severity       |
+| `match`     | Main key: `review_key`. Rules: each function name. Any pair in the files counts   |
+| `priority`  | Strongest similarity band first                                                   |
+| `packet`    | `fallow similar-code inspect` against the stored snapshot; truncated on a gap     |
+| `questions` | `candidate_worthy`, `behaviorally_equivalent`, `refactor_safe`, `outcome`         |
+| `policy`    | Floors, the contract order, then the shared verdict; axes in `kindData`           |
+| `confirm*`  | Dismissals per `policy.confirmDismissals`, survivors per `confirmSurvivors`       |
+| `export`    | Fallow verdict document `1`; `fallow similar-code review` with one per candidate  |
+
+Modules: `src/fallow/similar-code.ts` (Fallow calls), `src/packet/similar-code.ts` (pair
+packet), `src/questions/similar-code.ts`, `src/policy/similar-code.ts`,
+`src/report/similar-code.ts`, `src/verdicts/similar-code.ts` and `src/eval/similar-code.ts`.
+
+The packet builder needs inspect output for each record on `scan`, `judge` and `report`. It
+caches the output on disk in `kinds/similar-code/inspect/`, keyed by the discovery generation,
+the candidate id and the digest of both endpoint files. An entry also stores the digests of its
+context (the caller, callee and test files that inspect names, the CODEOWNERS files and the Git
+commit), and a changed digest makes it invalid. The same context digests enter the evidence
+fingerprint. `packet.build` takes an optional `readOnly` flag: `check` and `close` set it for a
+fresh Fallow run, so they never write the cache. A packet for another snapshot does not write
+either. The `snapshot` marker file holds the digest of the
+snapshot; the first write after a new scan removes the old entries. A failed inspect is not
+cached. It gives a truncated packet with a stable fingerprint, so the policy sends the pair to a
+person.
+
+The two-call rule is shared. `confirmedVerdicts` in `src/pipeline/judge.ts` gives the verdicts
+of a kind that need a second call that agrees: a dismissal per the adapter `confirmDismissals`
+(absent: `policy.confirmDismissals`), and a survivor when the adapter `confirmSurvivors` returns
+true (absent: false). Security and review do not change. Similar-code confirms a survivor per
+`similarCode.confirmSurvivors`.
+`confirmDecision` in `src/policy/confirm.ts` gives the rule `survivor-unconfirmed` for a survivor
+that is not confirmed. The cost reservation, the dry-run bound, the fatal-error stop and the new
+request after a failed second call apply to each confirmed verdict. The
+evidence summary stores `reviewKey`, `leftName`, `rightName`, `windows` and `omissions`.
+
+The optional `export.notes(output)` gives lines that `report` adds to the terminal and Markdown
+reports. Similar-code uses it when candidates share a review key; then it also runs the join
+without `--require-verdict-for-each-candidate`. Similar-code has `failOn: "off"` by default
+(`similarCode.failOn`), through the adapter `failOn`.
+
+`export.verdicts` gets the stored Fallow output as a third argument, because the Fallow
+verdict document needs the `review_key` of every candidate, also of a pending one.
 
 The stages below describe the security kind.
 

@@ -1,0 +1,1513 @@
+{
+  "kind": "similar-code",
+  "schema_version": "1",
+  "version": "3.30.0",
+  "elapsed_ms": 14609,
+  "generation": {
+    "extraction_semantics_version": 1,
+    "embedding_semantics_version": 1,
+    "provider": {
+      "provider": "official-local-companion",
+      "companion_version": "3.30.0",
+      "protocol_version": 2,
+      "source_left_machine": false
+    },
+    "model": {
+      "model_id": "jinaai/jina-embeddings-v2-base-code",
+      "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",
+      "artifact_sha256": "8b53bfd4ae2cd586004a6ca4a16551b630a2a1b1d655ff1ee9be1286a1781c5b",
+      "license": "Apache-2.0",
+      "dimensions": 768
+    },
+    "parameters": {
+      "dtype": "f32",
+      "pooling": "mean",
+      "normalized": true,
+      "batch_size": 1,
+      "max_tokens": 1024,
+      "parameter_sha256": "a41ef119ecb605de742d0ea4035a45fb7371cec7cc3f049b90b3c24f6678b606"
+    },
+    "scope": {
+      "active": false,
+      "paths": []
+    },
+    "threshold": 0.3,
+    "min_lines": 3
+  },
+  "candidates": [
+    {
+      "candidate_id": "similar-code:candidate:v1:64ea865395a6ad1a426333a0e24186a452fdb8840e678ac49b0fb39693c9141f",
+      "review_key": "similar-code:review:v1:77279bf12605887ab88ac9a42c3f47fbc361ae16c5be1964671f342216700866",
+      "left": {
+        "path": "src/cart.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.9999999999999999,
+      "similarity_band": "very-high",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:4c41c959a301a9a0ae0f5830341421e86a6a51839ca61ef49b03453bb599ea15",
+      "review_key": "similar-code:review:v1:2116df5adcefb4b5afe8f418cfa3d1f750a77639893cfaa8475857317c52bc08",
+      "left": {
+        "path": "src/cart.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "similarity": 0.9999999999999998,
+      "similarity_band": "very-high",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:d0918c8714ca53dbc770d081158152c8ab133effa5046461c93289aa962115e2",
+      "review_key": "similar-code:review:v1:3778f91fdd7921e501275ce734e92088d860a5f9b104a4dd3551ae022c650405",
+      "left": {
+        "path": "src/cart.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "similarity": 0.9999999999999998,
+      "similarity_band": "very-high",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:436043b431221ffb50935061b234743ce7644bcab44ea29b7993c6066c2b0ca4",
+      "review_key": "similar-code:review:v1:36ca5131d57c2ba275fdfba9ff7ae6a4dd5358bc0c44aba7e4429f1043f6f1a1",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "totalCost",
+        "start_line": 3,
+        "start_column": 8,
+        "end_line": 7,
+        "end_column": 2,
+        "source_sha256": "413f4ff259bef4b9eb85a54de188cb7dde45ef6123f4181f6f16c169bdf51bc2"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.7800560955803102,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:56ca2dbe098fef7c569da5c939eebc2af89f3bf23a80f8b7400ccfef91d8a443",
+      "review_key": "similar-code:review:v1:36ca5131d57c2ba275fdfba9ff7ae6a4dd5358bc0c44aba7e4429f1043f6f1a1",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "totalCost",
+        "start_line": 3,
+        "start_column": 8,
+        "end_line": 7,
+        "end_column": 2,
+        "source_sha256": "413f4ff259bef4b9eb85a54de188cb7dde45ef6123f4181f6f16c169bdf51bc2"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.7800560955803102,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:a1a6b0c91e36c9a3227dc7e53df1b13a828ed5ece4aa19851adcc81a000f88d4",
+      "review_key": "similar-code:review:v1:c9f29864997d8291390340525dbdf290adcfde044eff1a6b6c767c3ade5d625c",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "insideBounds",
+        "start_line": 9,
+        "start_column": 8,
+        "end_line": 13,
+        "end_column": 2,
+        "source_sha256": "4947b3e33f87c184d66154d0bdd8813033d0658da247a455f847fd24eeaea793"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "similarity": 0.7767749287980577,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:cdc60485ad4f12dda2991284dbbc8dc96e604a12895e739119da24d6a9feb2c5",
+      "review_key": "similar-code:review:v1:c9f29864997d8291390340525dbdf290adcfde044eff1a6b6c767c3ade5d625c",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "insideBounds",
+        "start_line": 9,
+        "start_column": 8,
+        "end_line": 13,
+        "end_column": 2,
+        "source_sha256": "4947b3e33f87c184d66154d0bdd8813033d0658da247a455f847fd24eeaea793"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "similarity": 0.7767749287980577,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:46bc3fa073167f9d5665ddae013ac36be07d8027802b13b4215ffc577156227b",
+      "review_key": "similar-code:review:v1:11a5be4417a66ba346345ebe7bacfe96c06b19be76381b049ee426ae93ff474c",
+      "left": {
+        "path": "src/labels.ts",
+        "name": "isEmptyString",
+        "start_line": 1,
+        "start_column": 8,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "18bc699f355f69800d9c8bb032e285fa4fa5f7e4d4edc74711556010e479790d"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "isBlankText",
+        "start_line": 1,
+        "start_column": 28,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d"
+      },
+      "similarity": 0.7527146857596754,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:fe2f1b158520d4216b47abe3628af5d99f63f94c18cfc8f87d00fa6e63dfd871",
+      "review_key": "similar-code:review:v1:9d613a088a1fbec95c4ef83dbbdff8a66188d41e93b41f8c1431a7ffef42d874",
+      "left": {
+        "path": "src/text.ts",
+        "name": "normalizeTags",
+        "start_line": 6,
+        "start_column": 30,
+        "end_line": 13,
+        "end_column": 2,
+        "source_sha256": "10e3a986c412a96d1f7026e0c39cbf6b8d3f55b7d437309bb5089d9458701653"
+      },
+      "right": {
+        "path": "src/labels.ts",
+        "name": "tidyNames",
+        "start_line": 6,
+        "start_column": 8,
+        "end_line": 12,
+        "end_column": 2,
+        "source_sha256": "50d63474d2ea55a2e30fdce7b9b028c1bc982685b5babc26b0a9ec8cce793923"
+      },
+      "similarity": 0.7416780025123748,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:52244c052578cbc59aed5b704c65b3e431e702b72535a825e325d3824b6c17c5",
+      "review_key": "similar-code:review:v1:fd1bd7bfc12c2d33d4cd428429a591fbdfbd20f96cbbd51dc1ec6a1a6b2e8d32",
+      "left": {
+        "path": "src/text.ts",
+        "name": "parseUserId",
+        "start_line": 15,
+        "start_column": 28,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "isBlankText",
+        "start_line": 1,
+        "start_column": 28,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d"
+      },
+      "similarity": 0.5171146626953187,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:fc5cb1a6ed155f3799f130117897507c30e25c9d4e4252f6f8181584c8855a74",
+      "review_key": "similar-code:review:v1:1db70e3909151cf4fe2965f40c8fc5a6ec59fdd40cc8ddf82bb970cc7bc069bc",
+      "left": {
+        "path": "src/cart.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "isBlankText",
+        "start_line": 1,
+        "start_column": 28,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d"
+      },
+      "similarity": 0.47217150533494967,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:8149dd5b05d8b4de4faaa0866428d762333f1a6a4649418d0a790ce74153252c",
+      "review_key": "similar-code:review:v1:1db70e3909151cf4fe2965f40c8fc5a6ec59fdd40cc8ddf82bb970cc7bc069bc",
+      "left": {
+        "path": "src/cart2.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "isBlankText",
+        "start_line": 1,
+        "start_column": 28,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d"
+      },
+      "similarity": 0.4721715053349496,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:68a312115d2c709644bbaf57ce25e3be89e452c553dcccfbdfa3c3e830ca1211",
+      "review_key": "similar-code:review:v1:6ba52c04942f019ee558834f18e932a0be1a9b0e7dc3c769f269c0708367b5fb",
+      "left": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.46993686712121674,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:2b32393b7e5458c53f2b4880310565fbaba50bbc063769ec01e9ba8b6f7419cc",
+      "review_key": "similar-code:review:v1:6ba52c04942f019ee558834f18e932a0be1a9b0e7dc3c769f269c0708367b5fb",
+      "left": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.46993686712121674,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:b54822e81427f137245d501063f6f523890835d956aa60751141ca4990f39934",
+      "review_key": "similar-code:review:v1:67034ccd6f4d1587d65cc3328181c8c560bba734869ecae6c77b7373362b87ad",
+      "left": {
+        "path": "src/cart.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "right": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "similarity": 0.4450127137341719,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:3d513156852c7a1180a14df852ae5baf5ca18953dde4b50a793b66817af99f59",
+      "review_key": "similar-code:review:v1:67034ccd6f4d1587d65cc3328181c8c560bba734869ecae6c77b7373362b87ad",
+      "left": {
+        "path": "src/cart2.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "right": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "similarity": 0.4450127137341719,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:f60d22414fd0f595f0acaaad8819dd41155b301413717c83bbfd44d6c81e9a0e",
+      "review_key": "similar-code:review:v1:8d6ee943c3773ccba00c8e7f95b40600e4dcdcffad9eb882c2c2345a16116c8c",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "totalCost",
+        "start_line": 3,
+        "start_column": 8,
+        "end_line": 7,
+        "end_column": 2,
+        "source_sha256": "413f4ff259bef4b9eb85a54de188cb7dde45ef6123f4181f6f16c169bdf51bc2"
+      },
+      "right": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "similarity": 0.4352129041753789,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:ddcf1a9281a0e16ff9781ef4a95e317646a600358ba2d42fe8267379d3d27176",
+      "review_key": "similar-code:review:v1:bf5132a9afd1f3facac1f1fe47dab2a183a5641db3f813a5310a003e7ef22d77",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "totalCost",
+        "start_line": 3,
+        "start_column": 8,
+        "end_line": 7,
+        "end_column": 2,
+        "source_sha256": "413f4ff259bef4b9eb85a54de188cb7dde45ef6123f4181f6f16c169bdf51bc2"
+      },
+      "right": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "similarity": 0.42681362513507454,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:b58fedc82d43171b260f4d5a356a4b4df7715cabb483249bad9df80e722af1ce",
+      "review_key": "similar-code:review:v1:a59a4525d5c1ee0387b9f31f276a5d978b7873bff4c8b8f65866424bf0f06efa",
+      "left": {
+        "path": "src/text.ts",
+        "name": "normalizeTags",
+        "start_line": 6,
+        "start_column": 30,
+        "end_line": 13,
+        "end_column": 2,
+        "source_sha256": "10e3a986c412a96d1f7026e0c39cbf6b8d3f55b7d437309bb5089d9458701653"
+      },
+      "right": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "similarity": 0.42218217146758064,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:0769c50e0dff5687d6da099c409e3145a352d293a8b88789b42a3151bcef60e5",
+      "review_key": "similar-code:review:v1:fe2ee1ec39907dc0429f044405e353c0c2abee437769db9002be3c5d53a4adcd",
+      "left": {
+        "path": "src/text.ts",
+        "name": "normalizeTags",
+        "start_line": 6,
+        "start_column": 30,
+        "end_line": 13,
+        "end_column": 2,
+        "source_sha256": "10e3a986c412a96d1f7026e0c39cbf6b8d3f55b7d437309bb5089d9458701653"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "isBlankText",
+        "start_line": 1,
+        "start_column": 28,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d"
+      },
+      "similarity": 0.3900524211588611,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:624ee542c6d42b36ea25b3e1465618ea9f06c875716aaf1a15eaf418299a6779",
+      "review_key": "similar-code:review:v1:e7f401595a8fdbb85f96826a4e86587804f9efa0cebb9751abe4a4b945112d90",
+      "left": {
+        "path": "src/text.ts",
+        "name": "parseUserId",
+        "start_line": 15,
+        "start_column": 28,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "similarity": 0.37002455597629563,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:edd72679934544428ffd8d2cd084b64fe92a2c992e1862e508326c12b7974c86",
+      "review_key": "similar-code:review:v1:e7f401595a8fdbb85f96826a4e86587804f9efa0cebb9751abe4a4b945112d90",
+      "left": {
+        "path": "src/text.ts",
+        "name": "parseUserId",
+        "start_line": 15,
+        "start_column": 28,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "withinRange",
+        "start_line": 11,
+        "start_column": 28,
+        "end_line": 15,
+        "end_column": 2,
+        "source_sha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f"
+      },
+      "similarity": 0.3700245559762956,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:7e77046f18015cd22e8e72411211e6dddbe39dc5d1988a85fd997c57c2f1c367",
+      "review_key": "similar-code:review:v1:bc8a69b433ccb98b4eafd05090466623dc5f553e45b7c8cd5de3e4eb958ccb61",
+      "left": {
+        "path": "src/text.ts",
+        "name": "parseUserId",
+        "start_line": 15,
+        "start_column": 28,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13"
+      },
+      "right": {
+        "path": "src/labels.ts",
+        "name": "parseUserAgent",
+        "start_line": 14,
+        "start_column": 8,
+        "end_line": 18,
+        "end_column": 2,
+        "source_sha256": "41089e4be9cf11e63c46ef72684ed6c6a8b76f588f0dbc40ece013a600fa45d1"
+      },
+      "similarity": 0.34958065175921,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:bc45de67b59dc9a27d69e140a9feadf41c646d00d305ccbfc3dbe8e0071ac012",
+      "review_key": "similar-code:review:v1:ffd92a2dc41e7dfaa7085a6432a3eaa7c875be1c6417849b030f1e37b5ea4db5",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.32539419230362965,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:56c167d797bce6db7e12255d66c09cd0463966d0d07278186d1d0fde999aa574",
+      "review_key": "similar-code:review:v1:ffd92a2dc41e7dfaa7085a6432a3eaa7c875be1c6417849b030f1e37b5ea4db5",
+      "left": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "sumPrices",
+        "start_line": 3,
+        "start_column": 26,
+        "end_line": 9,
+        "end_column": 2,
+        "source_sha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516"
+      },
+      "similarity": 0.32539419230362965,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:8d8e39324645d7f2c341c9c9d93aaa8c3e4baa4e06487ef531bd35e1a284cfcc",
+      "review_key": "similar-code:review:v1:61440fd355c77d6b6c11274ab377a663b2bf0a5b69cb6ee14dc5552f9c26e666",
+      "left": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "right": {
+        "path": "src/checkout.ts",
+        "name": "formatOrderTotal",
+        "start_line": 15,
+        "start_column": 8,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e"
+      },
+      "similarity": 0.3214563590682506,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:710c8b74844ff437d93347722890c4dd1b1190a42c829383ed17d7fb553c8909",
+      "review_key": "similar-code:review:v1:a91a3a2e2e9e3e83aa0dfb79806accb6855a977e89a90b4d315e5a4c0151be8e",
+      "left": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "right": {
+        "path": "src/cart.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "similarity": 0.3211703382622409,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:3f105ff59193511c8535168d8c61b49022c0d56757f71494d02f67aa4158e7c0",
+      "review_key": "similar-code:review:v1:a91a3a2e2e9e3e83aa0dfb79806accb6855a977e89a90b4d315e5a4c0151be8e",
+      "left": {
+        "path": "src/index.ts",
+        "name": "exercise",
+        "start_line": 6,
+        "start_column": 25,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "41a97fd2ef7eb369c02809f61504cd9b7a7742945c5e02628c09d9cf51485fc9"
+      },
+      "right": {
+        "path": "src/cart2.ts",
+        "name": "formatOrderDate",
+        "start_line": 17,
+        "start_column": 32,
+        "end_line": 21,
+        "end_column": 2,
+        "source_sha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7"
+      },
+      "similarity": 0.3211703382622409,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    },
+    {
+      "candidate_id": "similar-code:candidate:v1:5e79d7821806b307e68754b41d3391e3f319db420a1f46b0d65b494cf640cd07",
+      "review_key": "similar-code:review:v1:ffbfcca43e9cec45d4fb3db9fc344e204dee53c062bc5ba6b80ed5b0b69a172c",
+      "left": {
+        "path": "src/labels.ts",
+        "name": "isEmptyString",
+        "start_line": 1,
+        "start_column": 8,
+        "end_line": 4,
+        "end_column": 2,
+        "source_sha256": "18bc699f355f69800d9c8bb032e285fa4fa5f7e4d4edc74711556010e479790d"
+      },
+      "right": {
+        "path": "src/text.ts",
+        "name": "parseUserId",
+        "start_line": 15,
+        "start_column": 28,
+        "end_line": 19,
+        "end_column": 2,
+        "source_sha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13"
+      },
+      "similarity": 0.3115972994713274,
+      "similarity_band": "moderate",
+      "verification_status": "unverified",
+      "enrichment": {
+        "graph_relationship": "not-requested",
+        "entry_point_reachability": "not-requested",
+        "callers": "not-requested",
+        "callees": "not-requested",
+        "ownership": "not-requested",
+        "churn": "not-requested",
+        "tests": "not-requested",
+        "deterministic_clone_coverage": "not-requested",
+        "runtime": "not-requested"
+      },
+      "actions": [
+        {
+          "action": "inspect",
+          "description": "Inspect bounded source, graph, ownership, churn, test, and deterministic clone evidence",
+          "read_only": true
+        },
+        {
+          "action": "review",
+          "description": "Join this immutable candidate with a separate evidence-grounded verdict",
+          "read_only": true
+        }
+      ]
+    }
+  ],
+  "completion": {
+    "status": "partial",
+    "phases": [
+      {
+        "phase": "discovery",
+        "status": "complete",
+        "processed": 6,
+        "total": 6,
+        "reason": null
+      },
+      {
+        "phase": "extraction",
+        "status": "partial",
+        "processed": 16,
+        "total": null,
+        "reason": "one or more function forms or source fragments were outside extraction limits"
+      },
+      {
+        "phase": "cache",
+        "status": "complete",
+        "processed": 16,
+        "total": 16,
+        "reason": null
+      },
+      {
+        "phase": "embedding",
+        "status": "complete",
+        "processed": 16,
+        "total": 16,
+        "reason": null
+      },
+      {
+        "phase": "validation",
+        "status": "complete",
+        "processed": 16,
+        "total": 16,
+        "reason": null
+      },
+      {
+        "phase": "comparison",
+        "status": "complete",
+        "processed": 120,
+        "total": null,
+        "reason": null
+      },
+      {
+        "phase": "enrichment",
+        "status": "skipped",
+        "processed": 0,
+        "total": null,
+        "reason": "raw discovery defers source-grounded enrichment to inspect"
+      }
+    ],
+    "limits": {
+      "max_files": 20000,
+      "max_functions": 10000,
+      "max_source_bytes": 16777216,
+      "max_function_bytes": 65536,
+      "max_batch_size": 1,
+      "max_vector_bytes": 268435456,
+      "max_comparisons": 1000000,
+      "max_candidates": 4096,
+      "max_neighbors_per_function": 20,
+      "timeout_ms": 900000
+    },
+    "skips": [
+      {
+        "phase": "extraction",
+        "reason": "unsupported-function",
+        "count": 1
+      }
+    ],
+    "cache": {
+      "status": "miss",
+      "hits": 0,
+      "misses": 16,
+      "writes": 13,
+      "invalid_entries": 0
+    },
+    "provider_inference_ms": 12934
+  },
+  "diagnostics": []
+}

@@ -27,7 +27,7 @@ export type SecurityScanOptions = FallowInvocation & {
   paths?: readonly string[] | undefined;
 };
 
-type Captured = { code: number; stdout: string; stderr: string };
+export type Captured = { code: number; stdout: string; stderr: string };
 
 /** Prefer the project's own fallow so the scan matches what CI runs. */
 export const resolveFallowBinary = (root: string, explicit?: string): string => {

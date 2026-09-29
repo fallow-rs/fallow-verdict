@@ -19,7 +19,7 @@ import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { confirmsDismissals, FATAL_CODES, judgeOne } from "./judge.ts";
+import { confirmedVerdicts, FATAL_CODES, judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
 
 /** A candidate reduced to what relocation compares. */
@@ -429,7 +429,8 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       continue;
     }
     const matched = { ...base, matches: [identity.finding_id] };
-    const built = await adapter.packet.build(step.fresh, fresh.data, loaded);
+    // `check` writes no state, also no kind cache.
+    const built = await adapter.packet.build(step.fresh, fresh.data, loaded, { readOnly: true });
     const closure = storedId === null ? undefined : recordFor.get(storedId)?.closed;
     if (closure !== undefined && closure.fingerprint === built.fingerprint) {
       results.push({ ...matched, status: "closed", reason: closure.reason });
@@ -438,8 +439,9 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
     const tokens = built.stateTokens + estimateTokens(adapter.questions.for(built, loaded));
     estimate.input_tokens += tokens;
     estimate.usd += tokensToUsd(tokens);
-    // Each dismissal needs one more call of the same size, so this is an upper bound.
-    if (confirmsDismissals(adapter, loaded)) estimate.max_confirmation_usd += tokensToUsd(tokens);
+    // Each confirmed verdict needs one more call of the same size, so this is an upper bound.
+    if (confirmedVerdicts(adapter, loaded).size > 0)
+      estimate.max_confirmation_usd += tokensToUsd(tokens);
     if (options.dryRun) {
       results.push({ ...matched, status: "not-assessed", reason: "Dry run: not assessed." });
       continue;

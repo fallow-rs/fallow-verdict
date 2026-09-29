@@ -250,6 +250,57 @@
       },
       "additionalProperties": false
     },
+    "similarCode": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "policy": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "candidateWorthyFloor": {
+              "default": 0.8,
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 1
+            },
+            "behaviorallyEquivalentFloor": {
+              "default": 0.9,
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 1
+            },
+            "refactorSafeFloor": {
+              "default": 0.95,
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 1
+            },
+            "outcomeMinConfidence": {
+              "default": 0.7,
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "confirmSurvivors": {
+          "default": true,
+          "type": "boolean"
+        },
+        "failOn": {
+          "default": "off",
+          "type": "string",
+          "enum": [
+            "off",
+            "survivor",
+            "needs-human-review"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "failOn": {
       "default": "survivor",
       "type": "string",

@@ -53,7 +53,7 @@ const matchesSource = async <Output, Candidate, Built extends BuiltEvidence>(
     .candidates(fresh.data)
     .find((entry) => adapter.identity(entry).finding_id === identity.finding_id);
   if (same === undefined) return ok(false);
-  const built = await adapter.packet.build(same, fresh.data, loaded);
+  const built = await adapter.packet.build(same, fresh.data, loaded, { readOnly: true });
   return ok(built.fingerprint === fingerprint);
 };
 

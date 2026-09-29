@@ -1,0 +1,68 @@
+{
+  "schema_version": "fallow-verdict-pair-labels/v1",
+  "labels": [
+    {
+      "id": "sumPrices~totalCost",
+      "left": "src/cart.ts#sumPrices",
+      "right": "src/checkout.ts#totalCost",
+      "leftSha256": "ed200b49c619e42d0d654952b6d03a7ee2655784682b9bd13168beaa6c068516",
+      "rightSha256": "413f4ff259bef4b9eb85a54de188cb7dde45ef6123f4181f6f16c169bdf51bc2",
+      "expected": "equivalent",
+      "rationale": "Both add the price of each item, start at zero and return zero for an empty list. Only the loop form differs."
+    },
+    {
+      "id": "isBlankText~isEmptyString",
+      "left": "src/text.ts#isBlankText",
+      "right": "src/labels.ts#isEmptyString",
+      "leftSha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d",
+      "rightSha256": "18bc699f355f69800d9c8bb032e285fa4fa5f7e4d4edc74711556010e479790d",
+      "expected": "equivalent",
+      "rationale": "Both trim the value and return true only for an empty result."
+    },
+    {
+      "id": "normalizeTags~tidyNames",
+      "left": "src/text.ts#normalizeTags",
+      "right": "src/labels.ts#tidyNames",
+      "leftSha256": "10e3a986c412a96d1f7026e0c39cbf6b8d3f55b7d437309bb5089d9458701653",
+      "rightSha256": "50d63474d2ea55a2e30fdce7b9b028c1bc982685b5babc26b0a9ec8cce793923",
+      "expected": "near-miss",
+      "rationale": "Both trim and lower-case each value, but normalizeTags drops empty values and tidyNames keeps them."
+    },
+    {
+      "id": "withinRange~insideBounds",
+      "left": "src/cart.ts#withinRange",
+      "right": "src/checkout.ts#insideBounds",
+      "leftSha256": "8084db8c3da8d4ddb87d12ca066e673855060ea62575e5c3a88a52487562843f",
+      "rightSha256": "4947b3e33f87c184d66154d0bdd8813033d0658da247a455f847fd24eeaea793",
+      "expected": "near-miss",
+      "rationale": "withinRange includes both bounds and insideBounds excludes them, so the results differ at the bounds."
+    },
+    {
+      "id": "formatOrderDate~formatOrderTotal",
+      "left": "src/cart.ts#formatOrderDate",
+      "right": "src/checkout.ts#formatOrderTotal",
+      "leftSha256": "5b61511834c90b6ae52245de63135d3543b4719f854c4b155802ba52f2d821e7",
+      "rightSha256": "dec26d8d2fdcb6e32fd60e9f019559d15e2c6eab3733f710568426025189328e",
+      "expected": "unrelated",
+      "rationale": "One formats a date, the other formats an amount of money. They only share the order vocabulary."
+    },
+    {
+      "id": "parseUserId~parseUserAgent",
+      "left": "src/text.ts#parseUserId",
+      "right": "src/labels.ts#parseUserAgent",
+      "leftSha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13",
+      "rightSha256": "41089e4be9cf11e63c46ef72684ed6c6a8b76f588f0dbc40ece013a600fa45d1",
+      "expected": "unrelated",
+      "rationale": "One parses a numeric identifier, the other extracts a browser name. They only share the user and parse vocabulary."
+    },
+    {
+      "id": "parseUserId~isBlankText",
+      "left": "src/text.ts#parseUserId",
+      "right": "src/text.ts#isBlankText",
+      "leftSha256": "33590c130b11d6faba9b427497ef633eddeeec81cbdd09f49bfc21fd9b250f13",
+      "rightSha256": "ae8b5109cdd2f14a11cd803ae0263675cd5687cd7d35796d09b65d11ad0b640d",
+      "expected": "unrelated",
+      "rationale": "One parses a number, the other tests for blank text. They only share trimming."
+    }
+  ]
+}

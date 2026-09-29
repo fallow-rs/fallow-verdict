@@ -28,6 +28,19 @@
 - Let a kind set its own dismissal confirmation and `failOn` default. Security keeps `policy.confirmDismissals` and the top-level `failOn`.
 - `check` names the target files in its Fallow run (`exhaustiveIn`), so a kind that selects candidates lists every candidate in these files. A kind can state that its output is not conclusive for these files; `check` then gives `ambiguous`, never `resolved`. The reason of an `ambiguous` result now tells which case applies.
 - Let a kind name `dismissed` in its reports. Review mode says "No likely problem". The JSON value stays `dismissed`.
+- Add the `similar-code` kind (preview). `--kind similar-code` judges `fallow similar-code` pairs with four questions, maps the answers to the Fallow verdict axes with confidence floors and the contract order, and joins the verdicts with `fallow similar-code review --require-verdict-for-each-candidate`. Truncated inspect evidence gives `needs-human-review`. fallow-verdict never runs `fallow similar-code setup`. See `docs/similar-code.md`.
+- Add the `similarCode.policy` config section with the floors of the `similar-code` kind.
+- A `similar-code` survivor needs a second call that agrees, as a dismissal does. Otherwise the pair gets `needs-human-review` with the new rule `survivor-unconfirmed`. Add `similarCode.confirmSurvivors` (default `true`). The cost reservation and the dry-run bound cover the second call.
+- Cache `fallow similar-code inspect` output in `.fallow-verdict/kinds/similar-code/inspect/`, so `judge` and `report` reuse it. A new scan clears the cache, and `check` never writes to it.
+- Let a kind state that Fallow did not finish a scan (`scan.complete`). Then `scan` resolves no stored findings. Similar-code uses it and `scan.conclusive` for an incomplete discovery, so neither `scan` nor `check` resolves a pair after it. Security and review do not change.
+- Let a kind ask for a second call that agrees before a survivor stands (`confirmSurvivors`), next to its dismissal confirmation. Security and review do not change.
+- Similar-code reports name `dismissed` "Not worth merging". The JSON value stays `dismissed`.
+- Similar-code: export one verdict for each review key. Candidates that share a key (a verbatim copy of a function) get one verdict, which abstains when their verdicts differ. The Fallow join then runs without `--require-verdict-for-each-candidate`, and the report states why and how many candidates share a key.
+- Similar-code: the inspect cache and the evidence fingerprint also cover the caller, callee and test files that inspect names, the CODEOWNERS files and the Git commit.
+- Similar-code does not fail a run by default (`similarCode.failOn: "off"`). `--fail-on` overrides it.
+- `check` and `close` build packets for a fresh Fallow run read-only, so a kind cache is never written from them.
+- Let a kind add notes to the report (`export.notes`).
+- Let a kind word the upper bound for confirmation calls in the plan and in `check --dry-run`. Security keeps "Dismissal confirmation calls can add up to". Similar-code says "Confirmation calls (dismissals and merge recommendations) can add up to". A kind that confirms nothing shows no line.
 
 ## 0.1.0 (2026-09-23)
 

@@ -51,8 +51,24 @@ export type KindPresentation = {
     /** Count text in the summary line, for example "without a likely problem". */
     count: string;
   };
+  /**
+   * Text before the upper bound for confirmation calls in a plan or a dry run. Absent:
+   * "Dismissal confirmation calls can add up to". A kind that confirms nothing shows no line.
+   */
+  confirmationBound?: string;
   describe: (record: FindingRecord, decision: StoredDecision) => FindingText;
 };
+
+const DEFAULT_CONFIRMATION_BOUND = "Dismissal confirmation calls can add up to";
+
+/** The line for the upper bound of confirmation calls, or null when the bound is zero. */
+export const confirmationBoundLine = (
+  presentation: KindPresentation,
+  usd: number,
+): string | null =>
+  usd > 0
+    ? `${presentation.confirmationBound ?? DEFAULT_CONFIRMATION_BOUND} ${formatUsd(usd)}.`
+    : null;
 
 const DEFAULT_DISMISSED: NonNullable<KindPresentation["dismissed"]> = {
   heading: "Dismissed",

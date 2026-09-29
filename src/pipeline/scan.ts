@@ -140,7 +140,11 @@ export const scanWith = async <Output, Candidate, Built extends BuiltEvidence>(
   const output = await adapter.scan.run(loaded, options);
   if (!output.ok) return output;
 
-  const scoped = options.changedSince !== undefined || (options.paths?.length ?? 0) > 0;
+  // A scoped or incomplete scan sees only part of the project, so it resolves nothing.
+  const scoped =
+    options.changedSince !== undefined ||
+    (options.paths?.length ?? 0) > 0 ||
+    adapter.scan.complete?.(output.data) === false;
   await store.writeJson(store.candidatesPath, output.data);
   return syncRecordsWith(adapter, store, output.data, scoped, loaded);
 };

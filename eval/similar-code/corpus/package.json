@@ -1,0 +1,6 @@
+{
+  "name": "fallow-verdict-similar-code-corpus",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts"
+}

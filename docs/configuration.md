@@ -37,6 +37,16 @@ export default defineConfig({
     confirmDismissals: false, // review dismissals are single calls by default
     failOn: "off", // review mode is advisory
   },
+  similarCode: {
+    policy: {
+      candidateWorthyFloor: 0.8,
+      behaviorallyEquivalentFloor: 0.9,
+      refactorSafeFloor: 0.95,
+      outcomeMinConfidence: 0.7,
+    },
+    confirmSurvivors: true, // a similar-code survivor needs a second call that agrees
+    failOn: "off", // a safe merge is a chance, not a CI failure
+  },
 });
 ```
 
@@ -65,6 +75,16 @@ The `review` section configures [review mode](review.md). The top-level `failOn`
 apply to security; review mode has its own `failOn` and `confirmDismissals`.
 
 JSON Schemas for the config, finding records, and labels are published in `schemas/`.
+
+## Similar-code policy
+
+`similarCode.policy` holds the floors of the `similar-code` kind. An axis is `true` at or above
+its floor, `false` at or below 1 minus the floor, and `null` between the two. Each floor is at
+least 0.5. Below `outcomeMinConfidence`, the outcome is `needs-human-review`. The `policy`
+section above applies only to security, except `confirmDismissals`, which applies to every kind.
+`similarCode.confirmSurvivors` (default `true`) also sends a second call for a survivor, because a
+survivor gates a code change. `similarCode.failOn` (default `"off"`) is the `failOn` level of the
+kind; `--fail-on` overrides it. See [similar-code.md](similar-code.md).
 
 ## Question profiles
 

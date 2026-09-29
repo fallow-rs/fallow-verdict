@@ -21,6 +21,7 @@ import { scanWith } from "../pipeline/scan.ts";
 import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
+  confirmationBoundLine,
   dismissedWords,
   renderHuman,
   renderMarkdown,
@@ -79,9 +80,10 @@ const onJudgeProgress =
   (options: CliOptions, presentation: KindPresentation) =>
   (event: JudgeProgress): void => {
     if (event.type === "plan") {
+      const bound = confirmationBoundLine(presentation, event.maxConfirmationUsd);
       progress(
         options,
-        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${event.maxConfirmationUsd > 0 ? `\nDismissal confirmation calls can add up to ${formatUsd(event.maxConfirmationUsd)}.` : ""}${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
+        `Assessment plan: ${event.toJudge} to assess, ${event.upToDate} up to date.\nEstimated request cost: ${formatUsd(event.estimatedUsd)} (about ${event.estimatedTokens} input tokens).${bound === null ? "" : `\n${bound}`}${options.dryRun ? "\nDry run: no requests will be sent to Jev." : ""}`,
       );
     } else if (event.type === "judged") {
       const decision = event.record.decision;
@@ -141,22 +143,31 @@ const exitCodeFor = (report: Report, failOn: LoadedConfig["config"]["failOn"]): 
   return failing > 0 ? EXIT.findings : EXIT.ok;
 };
 
+/** The stored Fallow output. */
+const storedOutput = async <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  store: Store,
+): Promise<Result<Output, VerdictError>> => {
+  const raw = await store.readJson(store.candidatesPath);
+  if (!raw.ok) return raw;
+  return adapter.scan.parse(raw.data);
+};
+
 /** Finding ids of the stored candidate set, taken from the adapter, never from an engine response. */
+const idsOf = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  output: Output,
+): Set<string> =>
+  new Set(
+    adapter.scan.candidates(output).map((candidate) => adapter.identity(candidate).finding_id),
+  );
+
 const candidateIds = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
   store: Store,
 ): Promise<Result<Set<string>, VerdictError>> => {
-  const raw = await store.readJson(store.candidatesPath);
-  if (!raw.ok) return raw;
-  const output = adapter.scan.parse(raw.data);
-  if (!output.ok) return output;
-  return ok(
-    new Set(
-      adapter.scan
-        .candidates(output.data)
-        .map((candidate) => adapter.identity(candidate).finding_id),
-    ),
-  );
+  const output = await storedOutput(adapter, store);
+  return output.ok ? ok(idsOf(adapter, output.data)) : output;
 };
 
 const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
@@ -171,11 +182,11 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   const { records, corrupt } = await store.readRecords();
   for (const name of corrupt) progress(options, `Warning: could not read saved result ${name}.`);
 
-  const candidates = await candidateIds(adapter, store);
-  if (!candidates.ok) return candidates;
-  const ids = candidates.data;
+  const output = await storedOutput(adapter, store);
+  if (!output.ok) return output;
+  const ids = idsOf(adapter, output.data);
 
-  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids));
+  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids, output.data));
   if (options.validate && adapter.export.validate !== null) {
     const validated = await adapter.export.validate(loaded, store);
     if (!validated.ok) return validated;
@@ -185,14 +196,18 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
     records.filter((record) => ids.has(record.finding_id)),
     adapter.priority,
   );
-  await writeFile(store.reportPath, renderMarkdown(report, adapter.report));
+  const notes = adapter.export.notes?.(output.data) ?? [];
+  // Without notes, the text stays exactly as rendered.
+  const withNotes = (text: string): string =>
+    notes.length === 0 ? text : `${[text.trimEnd(), "", ...notes].join("\n")}\n`;
+  await writeFile(store.reportPath, withNotes(renderMarkdown(report, adapter.report)));
   return ok({
     exitCode: exitCodeFor(
       report,
       options.failOn ?? adapter.failOn?.(loaded) ?? loaded.config.failOn,
     ),
     json: report,
-    human: renderHuman(report, adapter.report, options.showDismissed),
+    human: withNotes(renderHuman(report, adapter.report, options.showDismissed)),
   });
 };
 
