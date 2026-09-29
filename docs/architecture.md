@@ -17,14 +17,38 @@ An adapter (`src/kinds/adapter.ts`) holds everything that is specific to one kin
 | Part        | Responsibility                                                         |
 | ----------- | ---------------------------------------------------------------------- |
 | `scan`      | Run the Fallow command, validate its schema version, return candidates |
-| `identity`  | Give each candidate a stable, unique id and its record fields          |
-| `packet`    | Build the evidence packet and its fingerprint                          |
+| `identity`  | Give each candidate a stable, unique id, its locations and severity    |
+| `priority`  | Order candidates for the budget and the report                         |
+| `packet`    | Build the evidence packet, its fingerprint and its evidence summary    |
 | `questions` | The question catalog, its version and its content hash                 |
 | `policy`    | A pure function from answers to a decision, with a named rule          |
+| `report`    | The words and evidence lines of the terminal and Markdown reports      |
+| `supports`  | The options that the kind supports: `--question-profile` and `eval`    |
 | `export`    | Write the verdict contract and run the Fallow join command, if any     |
 
 The shared pipeline owns state, staleness, budgets, retries, locking and reports. It never reads
-kind-specific fields. The security adapter (`src/kinds/security.ts`) connects the existing
+kind-specific fields.
+
+Each kind owns these parts of its records and reports:
+
+- **Locations.** A candidate has one or more locations. The first location fills `path`, `line`
+  and `col`. A kind with more than one location, such as a similar-code pair, also stores the full
+  list in `locations`. A security record has one location and no `locations` field.
+- **Severity.** `severity` is the Fallow severity. It is null for a kind without one. The budget
+  order and the report order come from the adapter `priority`, not from the severity. Security
+  puts high severity first.
+- **Evidence summary.** The pipeline reads only `evidence.truncated`. The kind owns the other
+  fields. Security stores `windows`, `hasSource` and `hasTrace`.
+- **Security contract.** A security record, which includes a record without `kind`, must have a
+  severity and the full security evidence summary. Otherwise it is corrupt. The record JSON schema
+  states this rule in an `allOf` with `if` and `then`.
+- **Verdict.** `survivor`, `dismissed` and `needs-human-review` are the shared vocabulary. A kind
+  maps its own outcome onto them and can store its own data in `decision.kindData`.
+- **Report text.** The report layout is shared. The title, the name of a survivor and the lines
+  for each finding come from the adapter `report` part.
+
+An option that the selected kind does not support, such as `--question-profile` or `eval`, is a
+usage error with exit code 2. The security adapter (`src/kinds/security.ts`) connects the existing
 modules under `src/fallow`, `src/packet`, `src/questions`, `src/policy` and `src/verdicts`.
 The registry (`src/kinds/registry.ts`) maps each name in `ANALYSIS_KINDS` to one adapter.
 
@@ -74,10 +98,11 @@ rejects unknown or duplicate ids and malformed verdicts.
 .fallow-verdict/
   candidates.json        last `fallow security` output
   findings/<hash>.json   one record per finding_id
-  runs/<runId>.json      one record per judge run: outcome, tokens, cost
+  runs/<runId>.json      one record per judge run: kind, outcome, tokens, cost
   verdicts.json          fallow-security-verdicts/v1, derived
   report.md              derived
   .lock/                 held while a mutating command runs
+  kinds/<kind>/          the same layout for each kind other than security
 ```
 
 A finding record holds its analysis kind, the current decision, the evidence fingerprint it was made on, the
@@ -86,10 +111,21 @@ and rename, so a crash leaves the previous record intact. Unreadable records fai
 current candidates.
 
 Security state stays at the root of the state directory, so existing state needs no migration.
-A later kind gets its own directory, `.fallow-verdict/kinds/<kind>/`, with the same layout. Each
-kind then has its own candidates, verdict contract, report and lock. The pipeline also reads only
-the records of its own kind, so a record of another kind can never be resolved or judged by
-mistake.
+Every other kind has its own directory, `.fallow-verdict/kinds/<kind>/`, with the same layout.
+`openStore(dataDir, kind)` opens the state of one kind, and each kind has its own candidates,
+records, runs, verdict contract, report and lock.
+
+The lock is per kind. The kinds share no files, so a run of one kind cannot change the state of
+another kind. Thus runs of different kinds do not wait for each other. The security lock at the
+root does not cover `kinds/`, because security never writes there.
+
+A record file name is a hash of the finding id only, so two kinds must never share a directory.
+Three guards keep them apart:
+
+- A store writes only records of its own kind. Any other record is a programming error.
+- A store reads a record of another kind as corrupt, so judgment and reporting stop.
+- The scan, judge, report and status paths refuse a store of a different kind than the adapter,
+  with the `state_corrupt` error code.
 
 ## Staleness
 
@@ -112,7 +148,9 @@ Fallow candidate output and exported `fallow-security-verdicts/v1` contract are 
 
 Version 0.1.0 reads `fallow-verdict-record/v1` records from the source preview.
 Missing optional fields receive defaults. A record without a `kind` field loads as a
-`security` record. Older evidence or engine settings can
+`security` record, and a run record without a `kind` field loads as a `security` run. Security
+records keep their layout: one location in `path`, `line` and `col`, a severity, and the same
+evidence summary. Older evidence or engine settings can
 make a stored decision stale, so the next assessment may require a Jev call.
 Existing history is retained when those decisions are invalidated.
 

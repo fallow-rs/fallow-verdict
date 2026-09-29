@@ -6,6 +6,7 @@ import { syncRecords } from "../src/pipeline/scan.ts";
 import { questionHash, questionsForProfile } from "../src/questions/category.ts";
 import { QUESTIONS } from "../src/questions/catalog.ts";
 import { buildReport, renderHuman, renderMarkdown } from "../src/report/render.ts";
+import { securityPresentation, securityPriority } from "../src/report/security.ts";
 import { openStore } from "../src/state/store.ts";
 import {
   makeFinding,
@@ -36,7 +37,7 @@ describe("question profiles", () => {
   it("rejudges changed question content and rejects stale question hashes before budget stops", async () => {
     const root = await makeProject();
     const loaded = makeLoaded(root);
-    const store = openStore(loaded.dataDir);
+    const store = openStore(loaded.dataDir, "security");
     const output = makeOutput([makeFinding({ category: "ssrf" })]);
     await store.writeJson(store.candidatesPath, output);
     await syncRecords(store, output, false);
@@ -60,7 +61,7 @@ describe("question profiles", () => {
 it("shows reasons for decisions and incomplete findings in human and Markdown reports", async () => {
   const root = await makeProject();
   const loaded = makeLoaded(root);
-  const store = openStore(loaded.dataDir);
+  const store = openStore(loaded.dataDir, "security");
   const output = makeOutput([makeFinding()]);
   await store.writeJson(store.candidatesPath, output);
   await syncRecords(store, output, false);
@@ -72,20 +73,29 @@ it("shows reasons for decisions and incomplete findings in human and Markdown re
   );
   const record = (await store.readRecords()).records[0];
   if (record === undefined || record.decision === null) throw new Error("Missing decision");
-  const report = buildReport([
-    record,
-    { ...record, finding_id: "pending", path: "src/pending.ts", status: "pending", decision: null },
-    {
-      ...record,
-      finding_id: "error",
-      path: "src/error.ts",
-      status: "error",
-      decision: null,
-      error: { code: "engine_timeout", message: "provider | timed out" },
-    },
-  ]);
-  const human = renderHuman(report, true);
-  const markdown = renderMarkdown(report);
+  const report = buildReport(
+    [
+      record,
+      {
+        ...record,
+        finding_id: "pending",
+        path: "src/pending.ts",
+        status: "pending",
+        decision: null,
+      },
+      {
+        ...record,
+        finding_id: "error",
+        path: "src/error.ts",
+        status: "error",
+        decision: null,
+        error: { code: "engine_timeout", message: "provider | timed out" },
+      },
+    ],
+    securityPriority,
+  );
+  const human = renderHuman(report, securityPresentation, true);
+  const markdown = renderMarkdown(report, securityPresentation);
   expect(human).toContain("Jev considers the protection in the supplied code effective");
   expect(human).toContain("Model estimate of exploitability:");
   expect(markdown).toContain(record.decision.reason);
@@ -97,24 +107,31 @@ it("shows reasons for decisions and incomplete findings in human and Markdown re
 
   const saved = structuredClone(report);
   const before = structuredClone(saved);
-  renderHuman(saved, false);
-  renderMarkdown(saved);
+  renderHuman(saved, securityPresentation, false);
+  renderMarkdown(saved, securityPresentation);
   expect(saved).toEqual(before);
 
-  const unusual = buildReport([
-    {
-      ...record,
-      path: "src/[sample]<script>.ts",
-      decision: {
-        ...record.decision,
-        probabilities: {},
-        rule: "future-rule",
-        reason: "Review <script>\n# injected heading",
+  const unusual = buildReport(
+    [
+      {
+        ...record,
+        path: "src/[sample]<script>.ts",
+        decision: {
+          ...record.decision,
+          probabilities: {},
+          rule: "future-rule",
+          reason: "Review <script>\n# injected heading",
+        },
       },
-    },
-  ]);
-  expect(renderHuman(unusual, true)).toContain("exploitability: unavailable");
-  expect(renderMarkdown(unusual)).toContain("src/\\[sample\\]\\<script\\>.ts");
-  expect(renderMarkdown(unusual)).not.toContain("\n# injected heading");
-  expect(renderHuman(buildReport([]), false)).toContain("No active candidates");
+    ],
+    securityPriority,
+  );
+  expect(renderHuman(unusual, securityPresentation, true)).toContain("exploitability: unavailable");
+  expect(renderMarkdown(unusual, securityPresentation)).toContain(
+    "src/\\[sample\\]\\<script\\>.ts",
+  );
+  expect(renderMarkdown(unusual, securityPresentation)).not.toContain("\n# injected heading");
+  expect(renderHuman(buildReport([], securityPriority), securityPresentation, false)).toContain(
+    "No active candidates",
+  );
 });

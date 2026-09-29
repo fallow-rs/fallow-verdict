@@ -56,7 +56,7 @@ const response = (): Result<EvaluateResponse, never> =>
 it("persists completed evidence before starting a request that unexpectedly rejects", async () => {
   const prepared = await setup();
   const file = path.join(prepared.root, "comparison.json");
-  const store = openStore(prepared.root);
+  const store = openStore(prepared.root, "security");
   let calls = 0;
   const engine: DecisionEngine = {
     id: "interrupted",
@@ -146,7 +146,7 @@ await compareQuestions({
     process.send('in-flight');
     return new Promise(() => {});
   } },
-  onProgress: (report) => openStore(options.root).writeJson(${JSON.stringify(output)}, report),
+  onProgress: (report) => openStore(options.root, "security").writeJson(${JSON.stringify(output)}, report),
 });
 `,
     );

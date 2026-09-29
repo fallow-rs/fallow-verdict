@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildReport, renderHuman, renderMarkdown } from "../src/report/render.ts";
+import { securityPresentation, securityPriority } from "../src/report/security.ts";
 import type { FindingRecord, StoredDecision } from "../src/state/schema.ts";
 
 const reviewRecord = (overrides: Partial<StoredDecision> = {}): FindingRecord => ({
@@ -38,8 +39,16 @@ const reviewRecord = (overrides: Partial<StoredDecision> = {}): FindingRecord =>
 });
 
 describe.each([
-  ["human", (record: FindingRecord): string => renderHuman(buildReport([record]), true)],
-  ["Markdown", (record: FindingRecord): string => renderMarkdown(buildReport([record]))],
+  [
+    "human",
+    (record: FindingRecord): string =>
+      renderHuman(buildReport([record], securityPriority), securityPresentation, true),
+  ],
+  [
+    "Markdown",
+    (record: FindingRecord): string =>
+      renderMarkdown(buildReport([record], securityPriority), securityPresentation),
+  ],
 ] as const)("%s review output", (_format, render) => {
   it("keeps the model estimate visible when policy requires review", () => {
     const record = reviewRecord();
@@ -74,7 +83,11 @@ describe.each([
 
 it("escapes an unknown policy explanation in Markdown", () => {
   const output = renderMarkdown(
-    buildReport([reviewRecord({ rule: "future-rule", reason: "Check <script>\n# heading" })]),
+    buildReport(
+      [reviewRecord({ rule: "future-rule", reason: "Check <script>\n# heading" })],
+      securityPriority,
+    ),
+    securityPresentation,
   );
 
   expect(output).toContain("Review required: Check \\<script\\> \\# heading");

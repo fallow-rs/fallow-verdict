@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -100,7 +100,7 @@ it("runs the built CLI with real fallow, resumes, rejects stale verdicts and exp
       code: 2,
       data: { summary: { pending: 1 } },
     });
-    const store = openStore(path.join(root, ".fallow-verdict"));
+    const store = openStore(path.join(root, ".fallow-verdict"), "security");
     const changed = (await store.readRecords()).records.find(
       (record) => record.path === "src/lookup.ts",
     );
@@ -132,4 +132,54 @@ it("runs the built CLI with real fallow, resumes, rejects stale verdicts and exp
     );
     await rm(root, { recursive: true, force: true });
   }
+}, 30_000);
+
+/** State files with run-specific values removed, so two runs can be compared. */
+const normalizedState = async (dataDir: string): Promise<Record<string, unknown>> => {
+  const state: Record<string, unknown> = {};
+  const entries = await readdir(dataDir, { recursive: true, withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    const file = path.join(entry.parentPath, entry.name);
+    state[path.relative(dataDir, file)] = JSON.parse(await readFile(file, "utf8"), (key, value) =>
+      key === "elapsed_ms" ||
+      key === "analysis_run_id" ||
+      key === "firstSeenAt" ||
+      key === "lastSeenAt"
+        ? null
+        : value,
+    ) as unknown;
+  }
+  return state;
+};
+
+it("gives the same output and state for run --dry-run with and without --kind security", async () => {
+  const results = [];
+  for (const args of [
+    ["run", "--dry-run"],
+    ["run", "--kind", "security", "--dry-run"],
+  ]) {
+    const root = await mkdtemp(path.join(tmpdir(), "verdict-e2e-kind-"));
+    try {
+      await cp(path.join(repo, "eval/corpus/src"), path.join(root, "src"), { recursive: true });
+      await cp(path.join(repo, "eval/corpus/package.json"), path.join(root, "package.json"));
+      await writeFile(
+        path.join(root, "fallow-verdict.config.json"),
+        JSON.stringify({ fallow: { binary: path.join(repo, "node_modules/.bin/fallow") } }),
+      );
+      const result = await runCli(root, args);
+      const { runId: _runId, ...output } = result.data as { runId: string };
+      results.push({
+        code: result.code,
+        output,
+        state: await normalizedState(path.join(root, ".fallow-verdict")),
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }
+  const [plain, explicit] = results;
+  expect(plain?.code).toBe(0);
+  expect(Object.keys(plain?.state ?? {})).toContain("candidates.json");
+  expect(explicit).toEqual(plain);
 }, 30_000);

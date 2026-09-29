@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { DEFAULT_KIND, KIND_NAME_PATTERN, type KindName } from "../kinds/names.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { recordSchema, type FindingRecord, type RunRecord } from "./schema.ts";
@@ -9,6 +10,9 @@ import { recordSchema, type FindingRecord, type RunRecord } from "./schema.ts";
 const LOCK_STALE_MS = 60 * 60 * 1000;
 
 export type Store = {
+  /** The one analysis kind whose state this store holds. */
+  kind: KindName;
+  /** Directory of this kind's state: the state root for security, `kinds/<kind>/` otherwise. */
   dataDir: string;
   candidatesPath: string;
   verdictsPath: string;
@@ -20,6 +24,17 @@ export type Store = {
   readJson: (file: string) => Promise<Result<unknown, VerdictError>>;
   lock: () => Promise<Result<() => Promise<void>, VerdictError>>;
 };
+
+/** Guards the pipeline entry points: an adapter reads and writes only the state of its own kind. */
+export const checkStoreKind = (store: Store, kind: KindName): Result<void, VerdictError> =>
+  store.kind === kind
+    ? ok(undefined)
+    : err(
+        verdictError(
+          "state_corrupt",
+          `The ${kind} analysis cannot use the ${store.kind} state in ${store.dataDir}.`,
+        ),
+      );
 
 /** Temp file plus rename: a crash mid-write leaves the old record, never a torn one. */
 const writeAtomic = async (file: string, content: string): Promise<void> => {
@@ -63,7 +78,22 @@ const readJson = async (file: string): Promise<Result<unknown, VerdictError>> =>
 export const newRunId = (): string =>
   `${new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14)}-${randomBytes(4).toString("hex")}`;
 
-export const openStore = (dataDir: string): Store => {
+/**
+ * Security state stays at the root, so state from before kinds existed needs no migration.
+ * Every other kind gets its own directory with the same layout.
+ */
+export const kindDataDir = (root: string, kind: KindName): string => {
+  if (!KIND_NAME_PATTERN.test(kind)) throw new Error(`Invalid analysis kind name \`${kind}\`.`);
+  return kind === DEFAULT_KIND ? root : path.join(root, "kinds", kind);
+};
+
+/**
+ * Opens the state of one kind. Each kind has its own candidates, records, runs, contracts and
+ * lock, because the kinds share no files: a run of one kind cannot change the state of another,
+ * so runs of different kinds do not need to wait for each other.
+ */
+export const openStore = (root: string, kind: KindName): Store => {
+  const dataDir = kindDataDir(root, kind);
   const findingsDir = path.join(dataDir, "findings");
   const runsDir = path.join(dataDir, "runs");
   const lockDir = path.join(dataDir, ".lock");
@@ -123,6 +153,7 @@ export const openStore = (dataDir: string): Store => {
   };
 
   return {
+    kind,
     dataDir,
     candidatesPath: path.join(dataDir, "candidates.json"),
     verdictsPath: path.join(dataDir, "verdicts.json"),
@@ -130,8 +161,12 @@ export const openStore = (dataDir: string): Store => {
     writeJson,
     readJson,
     lock,
-    writeRecord: (record) =>
-      writeJson(path.join(findingsDir, recordFileName(record.finding_id)), record),
+    writeRecord: async (record) => {
+      // The file name has no kind in it, so a record of another kind must never enter this directory.
+      if (record.kind !== kind)
+        throw new Error(`A ${record.kind} record cannot be written to the ${kind} state.`);
+      await writeJson(path.join(findingsDir, recordFileName(record.finding_id)), record);
+    },
     writeRun: (run) => writeJson(path.join(runsDir, `${run.runId}.json`), run),
     readRecords: async () => {
       const records: FindingRecord[] = [];
@@ -141,7 +176,8 @@ export const openStore = (dataDir: string): Store => {
         const raw = await readJson(path.join(findingsDir, name));
         const parsed = raw.ok ? recordSchema.safeParse(raw.data) : null;
         // One unreadable record must not take the whole store down with it.
-        if (parsed?.success) records.push(parsed.data);
+        // A record of another kind in this directory is corrupt state, never data to act on.
+        if (parsed?.success && parsed.data.kind === kind) records.push(parsed.data);
         else corrupt.push(name);
       }
       return { records, corrupt };

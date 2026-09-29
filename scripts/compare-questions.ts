@@ -11,6 +11,7 @@ import { compareQuestions, digest, type ComparisonReport } from "../src/eval/com
 import { prepareCorpus } from "../src/eval/corpus.ts";
 import { runSecurityScan } from "../src/fallow/run.ts";
 import { questionsFor } from "../src/questions/category.ts";
+import { DEFAULT_KIND } from "../src/kinds/names.ts";
 import { openStore } from "../src/state/store.ts";
 
 const { values } = parseArgs({
@@ -102,7 +103,10 @@ const metadata = {
 const destination = values.output === undefined ? null : path.resolve(values.output);
 const save = async (snapshot: ComparisonReport): Promise<void> => {
   if (destination === null) return;
-  await openStore(path.dirname(destination)).writeJson(destination, { ...snapshot, ...metadata });
+  await openStore(path.dirname(destination), DEFAULT_KIND).writeJson(destination, {
+    ...snapshot,
+    ...metadata,
+  });
 };
 if (!values["dry-run"] && values.output !== undefined) {
   process.stderr.write(

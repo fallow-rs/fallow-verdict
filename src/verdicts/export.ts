@@ -4,10 +4,13 @@ import {
   type FallowVerdict,
   type FallowVerdictsFile,
 } from "../fallow/types.ts";
-import type { FindingRecord } from "../state/schema.ts";
+import { securityEvidenceSchema, type FindingRecord } from "../state/schema.ts";
 
 const toVerdict = (record: FindingRecord): FallowVerdict | null => {
-  const { decision, evidence } = record;
+  const { decision } = record;
+  const parsed = securityEvidenceSchema.safeParse(record.evidence);
+  // Missing or foreign evidence counts as not checked.
+  const evidence = parsed.success ? parsed.data : null;
   if (record.status !== "judged" || decision === null) return null;
   return {
     schema_version: VERDICT_SCHEMA,

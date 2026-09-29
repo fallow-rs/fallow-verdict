@@ -9,9 +9,7 @@
     "kind": {
       "default": "security",
       "type": "string",
-      "enum": [
-        "security"
-      ]
+      "pattern": "^[a-z][a-z0-9-]*$"
     },
     "finding_id": {
       "type": "string",
@@ -36,6 +34,38 @@
         }
       ]
     },
+    "locations": {
+      "minItems": 2,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "number"
+          },
+          "col": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "line",
+          "col"
+        ]
+      }
+    },
     "category": {
       "type": [
         "string",
@@ -43,11 +73,18 @@
       ]
     },
     "severity": {
-      "type": "string",
-      "enum": [
-        "high",
-        "medium",
-        "low"
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "status": {
@@ -258,6 +295,13 @@
             },
             "reason": {
               "type": "string"
+            },
+            "kindData": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
             }
           },
           "required": [
@@ -283,23 +327,12 @@
           "properties": {
             "truncated": {
               "type": "boolean"
-            },
-            "windows": {
-              "type": "number"
-            },
-            "hasSource": {
-              "type": "boolean"
-            },
-            "hasTrace": {
-              "type": "boolean"
             }
           },
           "required": [
-            "truncated",
-            "windows",
-            "hasSource",
-            "hasTrace"
-          ]
+            "truncated"
+          ],
+          "additionalProperties": {}
         },
         {
           "type": "null"
@@ -417,5 +450,72 @@
     "usage",
     "error",
     "history"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          {
+            "not": {
+              "required": [
+                "kind"
+              ]
+            }
+          },
+          {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "security"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "truncated": {
+                    "type": "boolean"
+                  },
+                  "windows": {
+                    "type": "number"
+                  },
+                  "hasSource": {
+                    "type": "boolean"
+                  },
+                  "hasTrace": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "truncated",
+                  "windows",
+                  "hasSource",
+                  "hasTrace"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
   ]
 }

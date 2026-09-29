@@ -9,7 +9,7 @@ export type CommandName = (typeof COMMANDS)[number];
 
 export type CliOptions = {
   command: CommandName;
-  kind: AnalysisKind;
+  analysisKind: AnalysisKind;
   positionals: string[];
   config?: string | undefined;
   cwd: string;
@@ -158,8 +158,8 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
   const maxDuration = positiveNumber("max-duration", values["max-duration"]);
   if (!maxDuration.ok) return maxDuration;
 
-  const kind = parseKind(values.kind ?? DEFAULT_KIND);
-  if (!kind.ok) return kind;
+  const analysisKind = parseKind(values.kind ?? DEFAULT_KIND);
+  if (!analysisKind.ok) return analysisKind;
 
   const questionProfile = values["question-profile"];
   if (
@@ -173,7 +173,7 @@ export const parseCli = (argv: readonly string[]): Result<ParsedCli, VerdictErro
     kind: "command",
     options: {
       command: command as CommandName,
-      kind: kind.data,
+      analysisKind: analysisKind.data,
       positionals: rest,
       config: values.config,
       cwd: values.cwd ?? process.cwd(),

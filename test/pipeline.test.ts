@@ -7,6 +7,7 @@ import { evaluate, LABELS_SCHEMA } from "../src/eval/metrics.ts";
 import { judge } from "../src/pipeline/judge.ts";
 import { syncRecords } from "../src/pipeline/scan.ts";
 import { buildReport } from "../src/report/render.ts";
+import { securityPriority } from "../src/report/security.ts";
 import { openStore } from "../src/state/store.ts";
 import { verdictError } from "../src/util/errors.ts";
 import { err } from "../src/util/result.ts";
@@ -28,7 +29,7 @@ const judgeOptions = { rejudge: false, dryRun: false };
 const setup = async (findings = [makeFinding()]) => {
   const root = await makeProject();
   const loaded = makeLoaded(root);
-  const store = openStore(loaded.dataDir);
+  const store = openStore(loaded.dataDir, "security");
   const output = makeOutput(findings);
   await store.writeJson(store.candidatesPath, output);
   await syncRecords(store, output, false);
@@ -102,7 +103,9 @@ describe("judge", () => {
       },
     );
     expect(result).toMatchObject({ ok: true, data: { outcome: "budget-exhausted", judged: 1 } });
-    expect(buildReport((await store.readRecords()).records).summary.pending).toBe(2);
+    expect(buildReport((await store.readRecords()).records, securityPriority).summary.pending).toBe(
+      2,
+    );
   });
 
   it("marks a candidate errored when the engine fails, so the next run retries it", async () => {
@@ -125,15 +128,19 @@ describe("judge", () => {
 describe("syncRecords", () => {
   it("resolves candidates fallow stopped reporting and reopens them when they return", async () => {
     const { store } = await setup();
-    expect(await syncRecords(store, makeOutput([]), false)).toMatchObject({ resolved: 1 });
+    expect(await syncRecords(store, makeOutput([]), false)).toMatchObject({
+      data: { resolved: 1 },
+    });
     expect(await syncRecords(store, makeOutput([makeFinding()]), false)).toMatchObject({
-      reopened: 1,
+      data: { reopened: 1 },
     });
   });
 
   it("does not resolve anything from a scoped scan", async () => {
     const { store } = await setup();
-    expect(await syncRecords(store, makeOutput([]), true)).toMatchObject({ resolved: 0 });
+    expect(await syncRecords(store, makeOutput([]), true)).toMatchObject({
+      data: { resolved: 0 },
+    });
   });
 });
 

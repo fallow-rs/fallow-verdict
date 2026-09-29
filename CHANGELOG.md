@@ -8,6 +8,10 @@
 - Add staged npm releases with OIDC, artifact verification, and checks before creating release tags.
 - Add `--kind <name>` to select the Fallow analysis. `security` is the only kind and the default, so behavior does not change.
 - Store the analysis kind on each finding record. Records without it load as `security` records.
+- Store the analysis kind on each run record. Run records without it load as `security` runs.
+- Keep the state of each kind other than `security` in `.fallow-verdict/kinds/<kind>/`, with its own lock. Security state stays at the root, so existing state needs no migration.
+- Allow more than one location per finding record (`locations`), a null `severity` and kind-specific evidence summary fields in the record schema for kinds other than `security`. Security records do not change, and they still need a severity and the full evidence summary.
+- Reject `--question-profile` and `eval` with exit code 2 for a kind that does not support them.
 
 ## 0.1.0 (2026-09-23)
 
