@@ -23,6 +23,7 @@
     "bin",
     "dist",
     "schemas",
+    "skills",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
