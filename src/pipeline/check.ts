@@ -19,7 +19,7 @@ import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { FATAL_CODES, judgeOne } from "./judge.ts";
+import { confirmsDismissals, FATAL_CODES, judgeOne } from "./judge.ts";
 import { newRecord } from "./scan.ts";
 
 /** A candidate reduced to what relocation compares. */
@@ -133,8 +133,19 @@ type Target<Candidate> = {
 
 type Plan<Candidate> =
   | { type: "resolved"; stored: Candidate }
-  | { type: "ambiguous"; stored: Candidate; ids: string[] }
+  | { type: "ambiguous"; stored: Candidate; ids: string[]; why: AmbiguousReason }
   | { type: "current"; stored: Candidate | null; fresh: Candidate };
+
+/** Why a stored candidate is ambiguous: see `AMBIGUOUS_REASONS`. */
+type AmbiguousReason = "same-key" | "possible-match" | "inconclusive";
+
+const AMBIGUOUS_REASONS: Readonly<Record<AmbiguousReason, string>> = {
+  "same-key":
+    "More than one current finding can be this finding after the edit. A person must decide.",
+  "possible-match":
+    "Fallow no longer reports this finding in its old form, but another current finding with the same rule or in the same file can be it after the edit. A person must decide.",
+  inconclusive: "The Fallow output does not prove that this finding is gone. A person must decide.",
+};
 
 /** Written into `judgeOne` history entries, which `check` never stores. */
 const CHECK_RUN_ID = "check";
@@ -219,6 +230,8 @@ const plan = <Output, Candidate, Built extends BuiltEvidence>(
   storedAll: readonly Candidate[],
   freshAll: readonly Candidate[],
   inScope: (candidate: Candidate) => boolean,
+  /** The fresh output proves which candidates are absent in the target files. */
+  conclusive: boolean,
 ): Plan<Candidate>[] => {
   const keyed = keyedWith(adapter);
   const storedKeyed = storedAll.map(keyed);
@@ -232,14 +245,18 @@ const plan = <Output, Candidate, Built extends BuiltEvidence>(
     if (found.type === "gone") {
       const ids = possibleMatches(own, storedKeyed, freshKeyed);
       plans.push(
-        ids.length === 0 ? { type: "resolved", stored } : { type: "ambiguous", stored, ids },
+        ids.length > 0
+          ? { type: "ambiguous", stored, ids, why: "possible-match" }
+          : conclusive
+            ? { type: "resolved", stored }
+            : { type: "ambiguous", stored, ids, why: "inconclusive" },
       );
     } else if (found.type === "ambiguous")
-      plans.push({ type: "ambiguous", stored, ids: found.ids });
+      plans.push({ type: "ambiguous", stored, ids: found.ids, why: "same-key" });
     else {
       const current = byId.get(found.id);
       if (current === undefined || claimed.has(found.id))
-        plans.push({ type: "ambiguous", stored, ids: [found.id] });
+        plans.push({ type: "ambiguous", stored, ids: [found.id], why: "same-key" });
       else {
         claimed.add(found.id);
         plans.push({ type: "current", stored, fresh: current });
@@ -349,14 +366,25 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
   // One run for the whole project: a scoped run cannot see a renamed file or a moved helper.
   // For security a scoped run also analyzes the whole project, so this costs nothing more.
   // A failed run returns an error, never `resolved`.
-  const fresh = await adapter.scan.run(loaded, { signal: options.signal });
+  const fresh = await adapter.scan.run(loaded, {
+    signal: options.signal,
+    exhaustiveIn: target.data.paths,
+  });
   if (!fresh.ok) return fresh;
+  const conclusive = adapter.scan.conclusive?.(fresh.data, target.data.paths) ?? true;
 
   const inScope = (candidate: Candidate): boolean =>
     adapter
       .identity(candidate)
       .locations.some((location) => target.data.paths.includes(location.path));
-  const plans = plan(adapter, target.data, stored, adapter.scan.candidates(fresh.data), inScope);
+  const plans = plan(
+    adapter,
+    target.data,
+    stored,
+    adapter.scan.candidates(fresh.data),
+    inScope,
+    conclusive,
+  );
   const { records } = await store.readRecords();
   const recordFor = new Map(records.map((record) => [record.finding_id, record]));
 
@@ -396,8 +424,7 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
         status: "ambiguous",
         finding_id: null,
         matches: step.ids,
-        reason:
-          "More than one current finding can be this finding after the edit. A person must decide.",
+        reason: AMBIGUOUS_REASONS[step.why],
       });
       continue;
     }
@@ -412,8 +439,7 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
     estimate.input_tokens += tokens;
     estimate.usd += tokensToUsd(tokens);
     // Each dismissal needs one more call of the same size, so this is an upper bound.
-    if (loaded.config.policy.confirmDismissals)
-      estimate.max_confirmation_usd += tokensToUsd(tokens);
+    if (confirmsDismissals(adapter, loaded)) estimate.max_confirmation_usd += tokensToUsd(tokens);
     if (options.dryRun) {
       results.push({ ...matched, status: "not-assessed", reason: "Dry run: not assessed." });
       continue;

@@ -71,7 +71,8 @@ Options
   --limit <n>                Assess at most n candidates
   --max-cost-usd <usd>       Limit estimated request cost
   --max-duration <seconds>   Limit assessment time
-  --fail-on <level>          off | survivor | needs-human-review (default: survivor)
+  --fail-on <level>          off | survivor | needs-human-review
+                             (default: survivor; review mode: off)
                              survivor means likely vulnerability in the report
   --show-dismissed           Include dismissed candidates in the terminal report
   --no-validate              Skip validation by fallow security survivors

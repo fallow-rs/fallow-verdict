@@ -8,7 +8,7 @@ import { verdictError, type VerdictError } from "../util/errors.ts";
 import { SUPPORTED_SECURITY_SCHEMA_VERSIONS, type SecurityOutput } from "./types.ts";
 
 const MAX_OUTPUT_BYTES = 64 * 1024 * 1024;
-const DEFAULT_TIMEOUT_MS = 300_000;
+export const DEFAULT_TIMEOUT_MS = 300_000;
 /** `fallow security` exits 1 on advisory findings and 8 on a gate failure; both still carry JSON. */
 const EXIT_CODES_WITH_OUTPUT: ReadonlySet<number> = new Set([0, 1, 8]);
 
@@ -43,7 +43,7 @@ export const resolveFallowBinary = (root: string, explicit?: string): string => 
   }
 };
 
-const capture = (
+export const capture = (
   binary: string,
   args: readonly string[],
   cwd: string,
@@ -115,7 +115,7 @@ const capture = (
     });
   });
 
-const parseJson = (text: string): Result<unknown, VerdictError> => {
+export const parseJson = (text: string): Result<unknown, VerdictError> => {
   try {
     return ok(JSON.parse(text) as unknown);
   } catch {

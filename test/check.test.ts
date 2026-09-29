@@ -578,7 +578,7 @@ describe("check never resolves a finding that can still exist", () => {
     });
   });
 
-  it("runs Fallow once for the whole project and passes the signal", async () => {
+  it("runs Fallow once for the whole project, with the signal and the target files", async () => {
     const state = await scanned([ssrf("src/a.ts", 2)]);
     const scopes: ScanScope[] = [];
     const controller = new AbortController();
@@ -596,7 +596,7 @@ describe("check never resolves a finding that can still exist", () => {
       ...options(state, "security:tainted-sink:src/a.ts:2:2", engineFor(VULNERABLE)),
       signal: controller.signal,
     });
-    expect(scopes).toEqual([{ signal: controller.signal }]);
+    expect(scopes).toEqual([{ signal: controller.signal, exhaustiveIn: ["src/a.ts"] }]);
   });
 
   it("returns an error, never resolved, when the Fallow run fails", async () => {

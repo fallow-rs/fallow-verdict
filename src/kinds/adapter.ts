@@ -1,4 +1,5 @@
 import type { LoadedConfig } from "../config/load.ts";
+import type { FailOn } from "../config/schema.ts";
 import type { Answer, Question } from "../engine/types.ts";
 import type { KindPresentation } from "../report/render.ts";
 import type { FindingRecord, Location, StoredDecision } from "../state/schema.ts";
@@ -12,6 +13,12 @@ export type ScanScope = {
   paths?: readonly string[] | undefined;
   /** Stops the Fallow run, for example on an interruption. */
   signal?: AbortSignal | undefined;
+  /**
+   * List every candidate that exists in these files, ignoring the selection and the cap of the
+   * kind. Only `check` sets it, to its target files. A kind that always lists every candidate
+   * can ignore it.
+   */
+  exhaustiveIn?: readonly string[] | undefined;
 };
 
 /** The fields of a finding record that come from the candidate itself. */
@@ -56,6 +63,11 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
     /** Validate stored output from `candidates.json`. */
     parse: (value: unknown) => Result<Output, VerdictError>;
     candidates: (output: Output) => readonly Candidate[];
+    /**
+     * True when the output proves which candidates are absent in these files. `check` gives
+     * `resolved` only for conclusive output. Absent: true.
+     */
+    conclusive?: (output: Output, paths: readonly string[]) => boolean;
   };
   /** Give each candidate a stable, unique id and the record fields it owns. */
   identity: (candidate: Candidate) => CandidateIdentity;
@@ -77,6 +89,13 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   };
   /** A pure function from answers to a decision, with a named rule. */
   policy: (answers: Record<string, Answer>, built: Built, loaded: LoadedConfig) => StoredDecision;
+  /**
+   * Whether a dismissal needs a second call that agrees. Absent: `policy.confirmDismissals`.
+   * A kind sets this only when a dismissal of its kind hides nothing that Fallow reports.
+   */
+  confirmDismissals?: (loaded: LoadedConfig) => boolean;
+  /** The `failOn` level when `--fail-on` is absent. Absent: the top-level `failOn`. */
+  failOn?: (loaded: LoadedConfig) => FailOn;
   /** Kind-specific words and evidence lines for the terminal and Markdown reports. */
   report: KindPresentation;
   /** Options that only some kinds support. An unsupported option is a usage error. */

@@ -23,6 +23,11 @@
 - Add the `fallow-verdict-check/v1` JSON schema with Fallow-style `actions`.
 - Add `close <id> --reason "<text>"` to record a judgment by a person. A closed finding stays closed until its evidence fingerprint changes. `report` shows closed findings in a separate section, and they do not count toward `--fail-on`. `judge` and `run` do not send a closed finding to Jev while its evidence is the same. The verdict export for Fallow gives it the verdict `dismissed`, with the reason of the person. `close` refuses a finding whose code changed after the last scan. `scan`, `judge` and `run` remove a closure whose evidence changed.
 - Add the optional `closed` field to finding records, and the optional `by` and `reason` fields to history entries.
+- Add review mode (`--kind review`, advisory). It selects the functions that `fallow health` reports as complexity hotspots, plus every function in the files of `--changed-since` or the given paths, highest risk first and capped by `review.maxUnits` (default 50). Jev answers `has_bug`, `where`, `severity`, `does_what_it_claims` and one question per project rule in one request per function. See [review mode](docs/review.md).
+- Add the `review` config section: `maxUnits`, `bugFloor`, `claimFloor`, `ruleFloor`, `rules` (`name`, `where`, `except`, `ensure`, `floor`), `confirmDismissals` (default `false`) and `failOn` (default `off`).
+- Let a kind set its own dismissal confirmation and `failOn` default. Security keeps `policy.confirmDismissals` and the top-level `failOn`.
+- `check` names the target files in its Fallow run (`exhaustiveIn`), so a kind that selects candidates lists every candidate in these files. A kind can state that its output is not conclusive for these files; `check` then gives `ambiguous`, never `resolved`. The reason of an `ambiguous` result now tells which case applies.
+- Let a kind name `dismissed` in its reports. Review mode says "No likely problem". The JSON value stays `dismissed`.
 
 ## 0.1.0 (2026-09-23)
 

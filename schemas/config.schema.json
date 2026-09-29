@@ -146,6 +146,110 @@
       },
       "additionalProperties": false
     },
+    "review": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "maxUnits": {
+          "default": 50,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "bugFloor": {
+          "default": 0.5,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "claimFloor": {
+          "default": 0.5,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ruleFloor": {
+          "default": 0.5,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rules": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "where": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                ]
+              },
+              "except": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                ]
+              },
+              "ensure": {
+                "type": "string",
+                "minLength": 1
+              },
+              "floor": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "name",
+              "where",
+              "ensure"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "confirmDismissals": {
+          "default": false,
+          "type": "boolean"
+        },
+        "failOn": {
+          "default": "off",
+          "type": "string",
+          "enum": [
+            "off",
+            "survivor",
+            "needs-human-review"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "failOn": {
       "default": "survivor",
       "type": "string",

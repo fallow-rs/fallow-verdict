@@ -21,6 +21,7 @@ import { scanWith } from "../pipeline/scan.ts";
 import { renderCheckHuman } from "../report/check.ts";
 import {
   buildReport,
+  dismissedWords,
   renderHuman,
   renderMarkdown,
   type KindPresentation,
@@ -88,7 +89,7 @@ const onJudgeProgress =
         decision?.verdict === "survivor"
           ? presentation.survivor.label
           : decision?.verdict === "dismissed"
-            ? "Dismissed"
+            ? dismissedWords(presentation).label
             : decision?.verdict === "needs-human-review"
               ? "Needs review"
               : "Assessment unavailable";
@@ -186,7 +187,10 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   await writeFile(store.reportPath, renderMarkdown(report, adapter.report));
   return ok({
-    exitCode: exitCodeFor(report, options.failOn ?? loaded.config.failOn),
+    exitCode: exitCodeFor(
+      report,
+      options.failOn ?? adapter.failOn?.(loaded) ?? loaded.config.failOn,
+    ),
     json: report,
     human: renderHuman(report, adapter.report, options.showDismissed),
   });
