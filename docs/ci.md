@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   verdicts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
         with:

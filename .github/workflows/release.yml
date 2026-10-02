@@ -24,7 +24,7 @@ env:
 
 jobs:
   context:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -59,7 +59,7 @@ jobs:
 
   prepare:
     needs: validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -95,7 +95,7 @@ jobs:
   stage:
     if: ${{ !inputs.dry_run }}
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     environment: release
     permissions:
@@ -149,7 +149,7 @@ jobs:
 
   public-package:
     needs: [prepare, stage]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 40
     permissions:
       contents: read
