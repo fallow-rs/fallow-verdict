@@ -1,6 +1,6 @@
 {
   "name": "fallow-verdict",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Review Fallow security findings with Jev and explanations for each verdict.",
   "keywords": [
     "fallow",
