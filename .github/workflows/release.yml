@@ -122,7 +122,7 @@ jobs:
         run: |
           set -euo pipefail
           version="${RELEASE_TAG#v}"
-          file="tarballs/fallow-verdict-$version.tgz"
+          file="./tarballs/fallow-verdict-$version.tgz"
           printf '%s  %s\n' "$EXPECTED_SHA256" "$file" | sha256sum --check --strict
           status=$(curl --silent --show-error --retry 3 --max-time 30 --output public.json --write-out '%{http_code}' "https://registry.npmjs.org/fallow-verdict/$version")
           if [ "$status" = 200 ]; then

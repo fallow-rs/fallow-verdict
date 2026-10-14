@@ -1,4 +1,5 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -13,6 +14,29 @@ import {
 } from "../scripts/release-lib.ts";
 
 const directories: string[] = [];
+
+it("stages the downloaded tarball as a local file rather than a GitHub repository", async (): Promise<void> => {
+  const npmCli = process.env.npm_execpath;
+  if (!npmCli) throw new Error("Run release tests through npm to use its package-spec parser.");
+  const parseSpec = createRequire(npmCli)("npm-package-arg") as (
+    spec: string,
+    directory: string,
+  ) => { type: string; fetchSpec: string };
+  const workflow = await readFile(
+    new URL("../.github/workflows/release.yml", import.meta.url),
+    "utf8",
+  );
+  const template = workflow.match(/^\s+file="([^"]+)"$/mu)?.[1];
+  if (!template) throw new Error("Staging tarball path is missing.");
+  const spec = template.replace("$version", "0.2.0");
+  const directory = path.resolve("release-runner");
+  expect(parseSpec("tarballs/fallow-verdict-0.2.0.tgz", directory).type).toBe("git");
+  expect(parseSpec(spec, directory)).toMatchObject({
+    type: "file",
+    fetchSpec: path.join(directory, "tarballs", "fallow-verdict-0.2.0.tgz"),
+  });
+});
+
 const bytes = Buffer.from("release bytes");
 const release = parseRelease({
   name: "fallow-verdict",
