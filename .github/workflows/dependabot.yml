@@ -7,7 +7,9 @@ name: Dependabot
 # https://github.com/fallow-rs/.github/blob/main/dependabot/README.md
 
 on:
-  workflow_run:
+  # The reusable workflow acts only on same-repository dependabot/** branches,
+  # and the job condition below passes no secret to another source.
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: [ci]
     types: [completed]
     branches: ['dependabot/**']
