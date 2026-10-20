@@ -12,9 +12,9 @@ on:
   workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: [ci]
     types: [completed]
-    branches: ['dependabot/**']
+    branches: ["dependabot/**"]
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: "17 */3 * * *"
   workflow_dispatch:
 
 permissions: {}
