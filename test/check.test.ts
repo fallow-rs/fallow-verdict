@@ -552,21 +552,21 @@ const ssrf = (
   });
 };
 
-describe("check never resolves a finding that can still exist", () => {
-  const ambiguousFor = async (before: SecurityFinding[], after: SecurityFinding[]) => {
-    const state = await scanned(before);
-    const target = before[0]?.finding_id ?? "";
-    const engine = engineFor(VULNERABLE);
-    const result = await checkWith(
-      withFreshScan(after),
-      state.loaded,
-      state.store,
-      options(state, target, engine),
-    );
-    expect(engine.engine.calls).toBe(0);
-    return result.ok ? result.data.report : null;
-  };
+const ambiguousFor = async (before: SecurityFinding[], after: SecurityFinding[]) => {
+  const state = await scanned(before);
+  const target = before[0]?.finding_id ?? "";
+  const engine = engineFor(VULNERABLE);
+  const result = await checkWith(
+    withFreshScan(after),
+    state.loaded,
+    state.store,
+    options(state, target, engine),
+  );
+  expect(engine.engine.calls).toBe(0);
+  return result.ok ? result.data.report : null;
+};
 
+describe("check never resolves a finding that can still exist", () => {
   it("needs a person after an extract-helper move to another file", async () => {
     // `const u = req.query.u; fetch(u)` in src/a.ts becomes a helper call into src/b.ts.
     const after = ssrf("src/b.ts", 3);
@@ -643,21 +643,21 @@ describe("check never resolves a finding that can still exist", () => {
   });
 });
 
-describe("check fatal engine errors", () => {
-  const twoFindings = (): SecurityFinding[] => [
-    makeFinding({ finding_id: OLD_ID }),
-    makeFinding({
-      finding_id: "security:tainted-sink:src/routes/user.ts:6:3",
-      line: 6,
-      col: 3,
-      evidence: "res.json receives a non-literal argument",
-      candidate: {
-        ...makeFinding().candidate,
-        sink: { ...makeFinding().candidate.sink, line: 6, col: 3, callee: "res.json" },
-      },
-    }),
-  ];
+const twoFindings = (): SecurityFinding[] => [
+  makeFinding({ finding_id: OLD_ID }),
+  makeFinding({
+    finding_id: "security:tainted-sink:src/routes/user.ts:6:3",
+    line: 6,
+    col: 3,
+    evidence: "res.json receives a non-literal argument",
+    candidate: {
+      ...makeFinding().candidate,
+      sink: { ...makeFinding().candidate.sink, line: 6, col: 3, callee: "res.json" },
+    },
+  }),
+];
 
+describe("check fatal engine errors", () => {
   it("stops after a rejected key and exits 2", async () => {
     const state = await scanned();
     let calls = 0;

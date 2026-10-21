@@ -408,24 +408,25 @@ const policyAnswers = (bug: number, rule: number): Record<string, Answer> => ({
   severity: { type: "score", score: 2, probabilities: [0, 0, 1, 0], confidence: 1 },
 });
 
+const built = async (): Promise<Awaited<ReturnType<typeof buildReviewPacket>>> => {
+  const root = await makeProject(PROJECT);
+  const [unit] = await identify(
+    root,
+    selectUnits(
+      [],
+      [
+        {
+          reason: "path",
+          functions: [fn({ path: "src/calc.ts", name: "add", line: 4, line_count: 4 })],
+        },
+      ],
+    ),
+  );
+  if (unit === undefined) throw new Error("Missing unit");
+  return buildReviewPacket(unit, root, 28_000);
+};
+
 describe("review policy", () => {
-  const built = async (): Promise<Awaited<ReturnType<typeof buildReviewPacket>>> => {
-    const root = await makeProject(PROJECT);
-    const [unit] = await identify(
-      root,
-      selectUnits(
-        [],
-        [
-          {
-            reason: "path",
-            functions: [fn({ path: "src/calc.ts", name: "add", line: 4, line_count: 4 })],
-          },
-        ],
-      ),
-    );
-    if (unit === undefined) throw new Error("Missing unit");
-    return buildReviewPacket(unit, root, 28_000);
-  };
   const config = makeLoaded("/", {
     review: { rules: [{ name: "no-fs", where: "src/**", ensure: "No file reads.", floor: 0.8 }] },
   }).config.review;

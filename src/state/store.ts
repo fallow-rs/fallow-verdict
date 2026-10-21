@@ -75,6 +75,9 @@ const readJson = async (file: string): Promise<Result<unknown, VerdictError>> =>
   }
 };
 
+const writeJson = (file: string, value: unknown): Promise<void> =>
+  writeAtomic(file, `${JSON.stringify(value, null, 2)}\n`);
+
 export const newRunId = (): string =>
   `${new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14)}-${randomBytes(4).toString("hex")}`;
 
@@ -99,9 +102,6 @@ export const openStore = (root: string, kind: KindName): Store => {
   const lockDir = path.join(dataDir, ".lock");
   const ownerFile = path.join(lockDir, "owner.json");
   const recoveryDir = path.join(dataDir, ".lock-recovery");
-
-  const writeJson = (file: string, value: unknown): Promise<void> =>
-    writeAtomic(file, `${JSON.stringify(value, null, 2)}\n`);
 
   const lockIsStale = async (): Promise<boolean> => {
     try {
