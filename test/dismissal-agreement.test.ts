@@ -244,21 +244,21 @@ describe("confirmed confidence", () => {
   });
 });
 
-describe("unconfirmed stored dismissals", () => {
-  const judgedWithoutConfirmation = async () => {
-    const context = await setup();
-    await judge(
-      makeLoaded(context.root, {
-        engine: { concurrency: 1 },
-        policy: { confirmDismissals: false },
-      }),
-      context.store,
-      mockEngine(() => SAFE_MITIGATED),
-      judgeOptions,
-    );
-    return context;
-  };
+const judgedWithoutConfirmation = async () => {
+  const context = await setup();
+  await judge(
+    makeLoaded(context.root, {
+      engine: { concurrency: 1 },
+      policy: { confirmDismissals: false },
+    }),
+    context.store,
+    mockEngine(() => SAFE_MITIGATED),
+    judgeOptions,
+  );
+  return context;
+};
 
+describe("unconfirmed stored dismissals", () => {
   it("asks again in judge for a dismissal that was never confirmed", async () => {
     const { loaded, store } = await judgedWithoutConfirmation();
     const engine = mockEngine(() => SAFE_MITIGATED);

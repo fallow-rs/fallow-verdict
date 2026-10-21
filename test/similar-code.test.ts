@@ -1014,22 +1014,21 @@ const configured = (config: Record<string, unknown> = {}): LoadedConfig => ({
   configPath: null,
 });
 
+const confirmedFor = (kind: "security" | "review" | "similar-code", config = {}): string[] =>
+  kindFor(kind).use((adapter) => [...confirmedVerdicts(adapter, configured(config))].toSorted());
+
 describe("confirmed verdicts for each kind", () => {
   it("confirms similar-code dismissals and survivors, security dismissals, and nothing for review", () => {
-    const verdicts = (kind: "security" | "review" | "similar-code", config = {}): string[] =>
-      kindFor(kind).use((adapter) =>
-        [...confirmedVerdicts(adapter, configured(config))].toSorted(),
-      );
-    expect(verdicts("security")).toEqual(["dismissed"]);
-    expect(verdicts("review")).toEqual([]);
-    expect(verdicts("similar-code")).toEqual(["dismissed", "survivor"]);
-    expect(verdicts("similar-code", { policy: { confirmDismissals: false } })).toEqual([
+    expect(confirmedFor("security")).toEqual(["dismissed"]);
+    expect(confirmedFor("review")).toEqual([]);
+    expect(confirmedFor("similar-code")).toEqual(["dismissed", "survivor"]);
+    expect(confirmedFor("similar-code", { policy: { confirmDismissals: false } })).toEqual([
       "survivor",
     ]);
-    expect(verdicts("similar-code", { similarCode: { confirmSurvivors: false } })).toEqual([
+    expect(confirmedFor("similar-code", { similarCode: { confirmSurvivors: false } })).toEqual([
       "dismissed",
     ]);
-    expect(verdicts("review", { review: { confirmDismissals: true } })).toEqual(["dismissed"]);
+    expect(confirmedFor("review", { review: { confirmDismissals: true } })).toEqual(["dismissed"]);
   });
 });
 
@@ -1066,15 +1065,15 @@ describe("confirmation bound wording", INSPECT_TIMEOUT, () => {
   });
 });
 
-describe("shared review keys", INSPECT_TIMEOUT, () => {
-  const sharedDiscovery = async (): Promise<SimilarCodeOutput> => {
-    const parsed = parseSimilarCodeOutput(
-      await readJson(path.join(repo, "test/fixtures/similar-code/shared-key-discovery.json")),
-    );
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    return parsed.data;
-  };
+const sharedDiscovery = async (): Promise<SimilarCodeOutput> => {
+  const parsed = parseSimilarCodeOutput(
+    await readJson(path.join(repo, "test/fixtures/similar-code/shared-key-discovery.json")),
+  );
+  if (!parsed.ok) throw new Error(parsed.error.message);
+  return parsed.data;
+};
 
+describe("shared review keys", INSPECT_TIMEOUT, () => {
   it("exports one verdict for each review key and passes the Fallow join with a note", async () => {
     const output = await sharedDiscovery();
     const shared = sharedReviewKeys(output);
