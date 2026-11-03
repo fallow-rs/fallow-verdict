@@ -25,7 +25,7 @@ npm trust github fallow-verdict --repo fallow-rs/fallow-verdict \
 npm trust list fallow-verdict --json
 ```
 
-Use npm 11.19.0, the version pinned in the workflow. Maintainer login and 2FA belong on your
+Use npm 11.20.0, the version that the workflow checks. Maintainer login and 2FA belong on your
 machine. If you use 1Password, read credentials with `op` into the login process; never copy
 values into a command, repository file, workflow secret, or log.
 

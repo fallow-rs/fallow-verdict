@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
       - name: Check release source and tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -72,7 +72,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
           cache: npm
       - run: npm ci
       - name: Pack once and verify those bytes
@@ -105,11 +105,11 @@ jobs:
       # No checkout or project dependency installation in this job.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
           registry-url: https://registry.npmjs.org
-      - name: Install pinned publishing tool without lifecycle scripts
-        # Pinned npm is the publishing tool itself; project dependencies never enter this job.
-        run: npm install --global --ignore-scripts npm@11.19.0 # zizmor: ignore[adhoc-packages]
+      - name: Check the bundled publishing tool
+        # Node 26.13.0 bundles npm 11.20.0. This job installs no package.
+        run: test "$(npm --version)" = 11.20.0
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: npm-release
@@ -159,7 +159,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.20.0"
+          node-version: "26.13.0"
           cache: npm
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
