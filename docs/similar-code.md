@@ -51,7 +51,7 @@ available for this kind.
    a shared verdict.
 4. `report` writes the Fallow verdict document to `verdicts.json` with one verdict for each
    candidate. Then it runs `fallow similar-code review --candidates <snapshot> --verdicts
-verdicts.json --require-verdict-for-each-candidate`. An error from Fallow stops the report
+   verdicts.json --require-verdict-for-each-candidate`. An error from Fallow stops the report
    with exit code 2. Use `--no-validate` to skip the join.
 
 A Fallow upgrade without a new scan keeps the old discovery snapshot. Until the next `scan`,

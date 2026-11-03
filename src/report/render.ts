@@ -62,10 +62,7 @@ export type KindPresentation = {
 const DEFAULT_CONFIRMATION_BOUND = "Dismissal confirmation calls can add up to";
 
 /** The line for the upper bound of confirmation calls, or null when the bound is zero. */
-export const confirmationBoundLine = (
-  presentation: KindPresentation,
-  usd: number,
-): string | null =>
+export const confirmationBoundLine = (presentation: KindPresentation, usd: number): string | null =>
   usd > 0
     ? `${presentation.confirmationBound ?? DEFAULT_CONFIRMATION_BOUND} ${formatUsd(usd)}.`
     : null;
