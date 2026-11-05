@@ -25,6 +25,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run fmt:check
+      - name: Comments describe the code as it is now
+        run: |
+          node --test scripts/check-comment-quality.test.mjs
+          node scripts/check-comment-quality.mjs --all
       - run: npm test
       - run: npm run build
       - name: Evaluation inputs match their frozen labels and questions
