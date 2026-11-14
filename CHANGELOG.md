@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Accept `fallow health` output with `schema_version` 13. Before, `--kind review` stopped with "schema_version 13 is not supported" on a current fallow release.
+
 ## 0.2.0 (2026-10-14)
 
 ### Added
