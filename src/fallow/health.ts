@@ -14,7 +14,7 @@ import {
 } from "./run.ts";
 
 /** `fallow health` schema versions this release was verified against. */
-export const SUPPORTED_HEALTH_SCHEMA_VERSIONS: readonly string[] = ["11", "12"];
+export const SUPPORTED_HEALTH_SCHEMA_VERSIONS: readonly string[] = ["11", "12", "13"];
 
 /** `fallow health` exits 1 when it reports a finding; the JSON is complete in both cases. */
 const EXIT_CODES_WITH_OUTPUT: ReadonlySet<number> = new Set([0, 1]);
