@@ -102,6 +102,11 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
   /** A pure function from answers to a decision, with a named rule. */
   policy: (answers: Record<string, Answer>, built: Built, loaded: LoadedConfig) => StoredDecision;
   /**
+   * False when the policy decides from the evidence alone, for example from a Fallow proof.
+   * Then the pipeline makes no engine call and passes an empty answer set. Absent: true.
+   */
+  needsEngine?: (built: Built, loaded: LoadedConfig) => boolean;
+  /**
    * Whether a dismissal needs a second call that agrees. Absent: `policy.confirmDismissals`.
    * A kind sets this only when a dismissal of its kind hides nothing that Fallow reports.
    */
@@ -132,6 +137,8 @@ export type AnalysisAdapter<Output, Candidate, Built extends BuiltEvidence> = {
     ) => unknown;
     /** Lines that the report adds after its summary, for example about the export. */
     notes?: ((output: Output) => readonly string[]) | undefined;
+    /** The file that `verdicts` goes to. Absent: `verdicts.json` in the state of the kind. */
+    file?: ((loaded: LoadedConfig) => string) | undefined;
     validate:
       | ((loaded: LoadedConfig, store: Store) => Promise<Result<unknown, VerdictError>>)
       | null;

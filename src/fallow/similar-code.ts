@@ -11,6 +11,7 @@ import type {
 } from "fallow/types";
 
 import { verdictError, type VerdictError } from "../util/errors.ts";
+import { isInside } from "../util/files.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { capture, parseJson, resolveFallowBinary, type FallowInvocation } from "./run.ts";
 
@@ -125,14 +126,6 @@ const isFile = async (file: string): Promise<boolean> => {
   }
 };
 
-const inside = (root: string, scope: string, file: string): boolean => {
-  const relative = path.relative(path.resolve(root, scope), path.resolve(root, file));
-  return (
-    relative === "" ||
-    (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`))
-  );
-};
-
 /**
  * Runs discovery. A file scope goes to Fallow as `--file`, so Fallow ranks those functions
  * first. A directory scope runs for the project and keeps the pairs with a side in the scope.
@@ -178,8 +171,8 @@ export const runSimilarCodeScan = async (
     candidates: output.data.candidates.filter((candidate) =>
       paths.some(
         (scope) =>
-          inside(options.root, scope, candidate.left.path) ||
-          inside(options.root, scope, candidate.right.path),
+          isInside(options.root, scope, candidate.left.path) ||
+          isInside(options.root, scope, candidate.right.path),
       ),
     ),
   });

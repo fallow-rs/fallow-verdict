@@ -1,11 +1,21 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "import", "unicorn", "promise", "vitest"],
-  "categories": { "correctness": "error", "suspicious": "error", "perf": "warn" },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
   "rules": {
     "typescript/no-explicit-any": "error",
     "import/no-default-export": "off",
     "no-await-in-loop": "off"
   },
-  "ignorePatterns": ["dist", "node_modules"]
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "eval/mutation/corpus",
+    "eval/mutation/holdout-corpus",
+    "eval/mutation/kills"
+  ]
 }

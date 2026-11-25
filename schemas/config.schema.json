@@ -301,6 +301,35 @@
       },
       "additionalProperties": false
     },
+    "mutation": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "replay": {
+          "default": false,
+          "type": "boolean"
+        },
+        "survivorMinBehaviorChange": {
+          "default": 0.7,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dismissMaxBehaviorChange": {
+          "default": 0.02,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.02
+        },
+        "dismissMinReasonStrength": {
+          "default": 0.9,
+          "type": "number",
+          "minimum": 0.9,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "failOn": {
       "default": "survivor",
       "type": "string",

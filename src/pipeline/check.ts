@@ -19,8 +19,8 @@ import type { FindingRecord } from "../state/schema.ts";
 import { checkStoreKind, type Store } from "../state/store.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { err, ok, type Result } from "../util/result.ts";
-import { estimateTokens, tokensToUsd } from "../util/tokens.ts";
-import { confirmedVerdicts, FATAL_CODES, judgeOne } from "./judge.ts";
+import { tokensToUsd } from "../util/tokens.ts";
+import { callTokens, confirmedVerdicts, FATAL_CODES, judgeOne, needsEngine } from "./judge.ts";
 import { newRecord } from "./scan.ts";
 
 /** A candidate reduced to what relocation compares. */
@@ -148,6 +148,15 @@ const AMBIGUOUS_REASONS: Readonly<Record<AmbiguousReason, string>> = {
   "possible-match":
     "Fallow no longer reports this finding in its old form, but another current finding with the same rule or in the same file can be it after the edit. A person must decide.",
   inconclusive: "The Fallow output does not prove that this finding is gone. A person must decide.",
+};
+
+/** Stands in for the engine when the policy needs no call. `judgeOne` never calls it then. */
+const UNUSED_ENGINE: DecisionEngine = {
+  id: "none",
+  evaluate: () =>
+    Promise.resolve(
+      err(verdictError("engine_unavailable", "No engine call is needed for this finding.")),
+    ),
 };
 
 /** Written into `judgeOne` history entries, which `check` never stores. */
@@ -434,11 +443,11 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       results.push({ ...matched, status: "closed", reason: closure.reason });
       continue;
     }
-    const tokens = built.stateTokens + estimateTokens(adapter.questions.for(built, loaded));
+    const tokens = callTokens(adapter, built, loaded);
     estimate.input_tokens += tokens;
     estimate.usd += tokensToUsd(tokens);
     // Each confirmed verdict needs one more call of the same size, so this is an upper bound.
-    if (confirmedVerdicts(adapter, loaded).size > 0)
+    if (confirmedVerdicts(adapter, loaded).size > 0 && tokens > 0)
       estimate.max_confirmation_usd += tokensToUsd(tokens);
     if (options.dryRun) {
       results.push({ ...matched, status: "not-assessed", reason: "Dry run: not assessed." });
@@ -448,22 +457,25 @@ export const checkWith = async <Output, Candidate, Built extends BuiltEvidence>(
       results.push(failed(matched, fatal));
       continue;
     }
-    engine ??= options.engine();
-    const judged = engine.ok
+    // A decision from the evidence alone needs no engine, so it needs no API key either.
+    const chosen = needsEngine(adapter, built, loaded)
+      ? (engine ??= options.engine())
+      : ok(UNUSED_ENGINE);
+    const judged = chosen.ok
       ? await judgeOne(
           adapter,
           { record: newRecord(adapter.kind, identity, new Date().toISOString()), built },
-          engine.data,
+          chosen.data,
           loaded,
           CHECK_RUN_ID,
           options.signal,
           // `check` has no cost cap, so a dismissal always gets its second call.
           () => options.signal?.aborted !== true,
         )
-      : engine;
+      : chosen;
     if (!judged.ok) {
       if (judged.error.code === "interrupted") return judged;
-      if (!engine.ok || FATAL_CODES.has(judged.error.code)) fatal = judged.error;
+      if (!chosen.ok || FATAL_CODES.has(judged.error.code)) fatal = judged.error;
       results.push(failed(matched, judged.error));
       continue;
     }

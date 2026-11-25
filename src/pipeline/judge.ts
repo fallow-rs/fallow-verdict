@@ -96,11 +96,25 @@ export const confirmedVerdicts = <Output, Candidate, Built extends BuiltEvidence
     ...((adapter.confirmSurvivors?.(loaded) ?? false) ? (["survivor"] as const) : []),
   ]);
 
-const questionTokens = <Output, Candidate, Built extends BuiltEvidence>(
+/** Whether the engine must answer for this evidence. See `AnalysisAdapter.needsEngine`. */
+export const needsEngine = <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
-  job: Job<Built>,
+  built: Built,
   loaded: LoadedConfig,
-): number => estimateTokens(adapter.questions.for(job.built, loaded));
+): boolean => adapter.needsEngine?.(built, loaded) ?? true;
+
+/** The input tokens of one engine call for this evidence. Zero when the policy needs no call. */
+export const callTokens = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  built: Built,
+  loaded: LoadedConfig,
+): number =>
+  needsEngine(adapter, built, loaded)
+    ? built.stateTokens + estimateTokens(adapter.questions.for(built, loaded))
+    : 0;
+
+/** Model id in the history of a decision that the policy made without an engine call. */
+const NO_ENGINE_MODEL = "none";
 
 /**
  * Maps the stored answers to a decision. A verdict that needs confirmation (a dismissal with
@@ -179,6 +193,42 @@ const planJobs = async <Output, Candidate, Built extends BuiltEvidence>(
   return { jobs, current };
 };
 
+/** The record of a decision that the policy made from the evidence alone, with no engine call. */
+const decidedRecord = <Output, Candidate, Built extends BuiltEvidence>(
+  adapter: Adapter<Output, Candidate, Built>,
+  job: Job<Built>,
+  loaded: LoadedConfig,
+  runId: string,
+): FindingRecord => {
+  const decision = adapter.policy({}, job.built, loaded);
+  return {
+    ...job.record,
+    status: "judged",
+    fingerprint: job.built.fingerprint,
+    questionSet: adapter.questions.version,
+    questionHash: adapter.questions.hash(job.built, loaded),
+    engine: engineIdentity(loaded.config.engine),
+    answers: {},
+    confirmationAnswers: undefined,
+    decision,
+    evidence: adapter.packet.summary(job.built),
+    usage: { inputTokens: 0, costUsd: 0, latencyMs: 0 },
+    error: null,
+    history: [
+      ...job.record.history,
+      {
+        at: new Date().toISOString(),
+        runId,
+        verdict: decision.verdict,
+        rule: decision.rule,
+        confidence: decision.confidence,
+        fingerprint: job.built.fingerprint,
+        model: NO_ENGINE_MODEL,
+      },
+    ],
+  };
+};
+
 /** Judges one candidate and returns the new record. It writes no state. `check` uses it too. */
 export const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   adapter: Adapter<Output, Candidate, Built>,
@@ -190,6 +240,8 @@ export const judgeOne = async <Output, Candidate, Built extends BuiltEvidence>(
   /** False when the time limit or an interruption forbids a confirmation call. */
   mayConfirm: () => boolean,
 ): Promise<Result<Judged, VerdictError>> => {
+  if (!needsEngine(adapter, job.built, loaded))
+    return ok({ record: decidedRecord(adapter, job, loaded, runId), fatal: null });
   if (job.built.stateTokens > loaded.config.packet.maxStateTokens) {
     return err(
       verdictError(
@@ -388,7 +440,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   );
   const jobs = options.limit === undefined ? plan.jobs : plan.jobs.slice(0, options.limit);
   const estimatedTokens = jobs.reduce(
-    (sum, job) => sum + job.built.stateTokens + questionTokens(adapter, job, loaded),
+    (sum, job) => sum + callTokens(adapter, job.built, loaded),
     0,
   );
   const estimatedUsd = tokensToUsd(estimatedTokens);
@@ -453,7 +505,7 @@ export const judgeWith = async <Output, Candidate, Built extends BuiltEvidence>(
   /** Estimated spend of requests in flight, so concurrent workers cannot jointly pass the cap. */
   let reservedUsd = 0;
   const estimateUsd = (job: Job<Built>): number =>
-    tokensToUsd(job.built.stateTokens + questionTokens(adapter, job, loaded));
+    tokensToUsd(callTokens(adapter, job.built, loaded));
   // A dismissal needs a confirmation call, so a job reserves both calls before the first one.
   const callsPerJob = confirmedVerdicts(adapter, loaded).size > 0 ? 2 : 1;
   const reserveUsd = (job: Job<Built>): number => estimateUsd(job) * callsPerJob;

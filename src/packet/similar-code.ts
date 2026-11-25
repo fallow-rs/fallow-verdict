@@ -1,6 +1,4 @@
-import { execFile } from "node:child_process";
-import { createHash, randomBytes } from "node:crypto";
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -11,6 +9,8 @@ import {
 } from "../fallow/similar-code.ts";
 import type { FallowInvocation } from "../fallow/run.ts";
 import type { BuiltEvidence } from "../kinds/adapter.ts";
+import { gitHead, writeAtomic } from "../util/files.ts";
+import { canonicalJson, sha256 } from "../util/hash.ts";
 import { estimateTokens } from "../util/tokens.ts";
 
 export const PAIR_PACKET_VERSION = "similar-code-pair/v1";
@@ -68,15 +68,6 @@ const side = (location: SimilarCodeCandidate["left"]): PairSide => ({
   end_line: location.end_line,
 });
 
-const canonicalJson = (value: unknown): string =>
-  JSON.stringify(value, (_key, inner: unknown) =>
-    typeof inner === "object" && inner !== null && !Array.isArray(inner)
-      ? Object.fromEntries(Object.entries(inner).toSorted(([a], [b]) => a.localeCompare(b)))
-      : inner,
-  );
-
-const digest = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
-
 /** Every reason that the inspect evidence is incomplete. */
 export const omissionsOf = (inspect: SimilarCodeInspectOutput): string[] => {
   const omissions: string[] = [];
@@ -130,7 +121,7 @@ export const pairFromInspect = (
   const packet = toPacket(candidate, inspect, failure);
   const fingerprinted = Object.keys(context).length === 0 ? packet : { packet, context };
   return {
-    fingerprint: digest(canonicalJson(fingerprinted)).slice(0, 32),
+    fingerprint: sha256(canonicalJson(fingerprinted)).slice(0, 32),
     stateTokens: estimateTokens(packet),
     packet,
     truncated: packet.omissions.length > 0,
@@ -162,7 +153,7 @@ const outputDigests = new WeakMap<object, string>();
 const outputDigest = (output: SimilarCodeOutput): string => {
   const known = outputDigests.get(output);
   if (known !== undefined) return known;
-  const value = digest(canonicalJson(output));
+  const value = sha256(canonicalJson(output));
   outputDigests.set(output, value);
   return value;
 };
@@ -175,7 +166,7 @@ const snapshotDigest = async (file: string): Promise<string | null> => {
     const info = await stat(file);
     const known = snapshotDigests.get(file);
     if (known?.mtimeMs === info.mtimeMs && known.size === info.size) return known.digest;
-    const value = digest(canonicalJson(JSON.parse(await readFile(file, "utf8")) as unknown));
+    const value = sha256(canonicalJson(JSON.parse(await readFile(file, "utf8")) as unknown));
     snapshotDigests.set(file, { mtimeMs: info.mtimeMs, size: info.size, digest: value });
     return value;
   } catch {
@@ -204,16 +195,6 @@ const readEntry = async (file: string, key: string): Promise<CacheEntry | null> 
   }
 };
 
-const writeAtomic = async (file: string, content: string): Promise<void> => {
-  const temp = `${file}.tmp-${process.pid}-${randomBytes(4).toString("hex")}`;
-  try {
-    await writeFile(temp, content, { mode: 0o600 });
-    await rename(temp, file);
-  } finally {
-    await rm(temp, { force: true });
-  }
-};
-
 /**
  * Writes one entry. A new scan changes the snapshot, so the first write after it removes the
  * entries of the old snapshot. A packet for another discovery, for example the fresh run of
@@ -238,7 +219,7 @@ const writeEntry = async (
 
 const sourceDigest = async (root: string, file: string): Promise<string> => {
   try {
-    return digest(await readFile(path.join(root, file)));
+    return sha256(await readFile(path.join(root, file)));
   } catch {
     return "missing";
   }
@@ -254,21 +235,6 @@ const CODEOWNERS_PATHS = [
 
 /** Pseudo path for the Git commit that churn counts come from. */
 const GIT_HEAD = ":git-head";
-
-const gitHeads = new Map<string, Promise<string>>();
-
-/** The commit is read once for each root in one process: a run does not commit. */
-const gitHead = (root: string): Promise<string> => {
-  const known = gitHeads.get(root);
-  if (known !== undefined) return known;
-  const head = new Promise<string>((resolve) => {
-    execFile("git", ["rev-parse", "HEAD"], { cwd: root, timeout: 10_000 }, (error, stdout) =>
-      resolve(error === null ? stdout.trim() : "none"),
-    );
-  });
-  gitHeads.set(root, head);
-  return head;
-};
 
 /**
  * The context that inspect output depends on beyond the two endpoint files: the files of the
@@ -313,7 +279,7 @@ export const buildPairPacket = async (
   cache: InspectCache,
   readOnly = false,
 ): Promise<BuiltPair> => {
-  const key = digest(
+  const key = sha256(
     canonicalJson([
       output.generation,
       candidate.candidate_id,

@@ -187,7 +187,10 @@ const runReport = async <Output, Candidate, Built extends BuiltEvidence>(
   if (!output.ok) return output;
   const ids = idsOf(adapter, output.data);
 
-  await store.writeJson(store.verdictsPath, adapter.export.verdicts(records, ids, output.data));
+  await store.writeJson(
+    adapter.export.file?.(loaded) ?? store.verdictsPath,
+    adapter.export.verdicts(records, ids, output.data),
+  );
   if (options.validate && adapter.export.validate !== null) {
     const validated = await adapter.export.validate(loaded, store);
     if (!validated.ok) return validated;
