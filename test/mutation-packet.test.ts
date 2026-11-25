@@ -57,48 +57,69 @@ describe("mutation packet", () => {
     expect(packet.omissions).toEqual([]);
   });
 
-  it("adds the same-file declarations of the names that the change reads", async () => {
-    const source = Buffer.from(
+  it.each([
+    [
+      "a top-level name, not the names that the function binds itself",
       [
         "const LIMIT = 3;",
         "const local = 9;",
         "const count = 0;",
-        "type Unused = number;",
         "export const over = (count: number): boolean => {",
         "  const local = 1;",
         "  return count + local > LIMIT;",
         "};",
-        "",
-      ].join("\n"),
-    );
-    const inspect = (await readFixture("inspect/0ab0249adef9e6e3.json")) as MutationInspectOutput;
-    const built = mutantFromInspect({
-      task: { ...(await taskOf("0ab0249adef9e6e3")), line: 7, function: "over" },
-      inspect: {
-        ...inspect,
-        line: 7,
-        function: "over",
-        function_line: 5,
-        current_sha256: createHash("sha256").update(source).digest("hex"),
-        code: {
-          original: "count + local > LIMIT",
-          replacement: "true",
-          original_lines: "",
-          mutated_lines: "",
+      ],
+      4,
+      6,
+      "count + local > LIMIT",
+      ["1| const LIMIT = 3;"],
+    ],
+    [
+      "a name in the body of a one-line function",
+      ["const DEFAULTS = 1;", "export const f = (x?: number) => x ?? DEFAULTS;"],
+      2,
+      2,
+      "x ?? DEFAULTS",
+      ["1| const DEFAULTS = 1;"],
+    ],
+    [
+      "the iterated name of a for-of loop",
+      [
+        "const LIST = [1];",
+        "export const g = (): void => {",
+        "  for (const k of LIST) use(k);",
+        "};",
+      ],
+      2,
+      3,
+      "LIST",
+      ["1| const LIST = [1];"],
+    ],
+  ])(
+    "adds the same-file declaration of %s",
+    async (_name, lines, functionLine, line, span, expected) => {
+      const source = Buffer.from(`${lines.join("\n")}\n`);
+      const inspect = (await readFixture("inspect/0ab0249adef9e6e3.json")) as MutationInspectOutput;
+      const built = mutantFromInspect({
+        task: { ...(await taskOf("0ab0249adef9e6e3")), line, function: "f" },
+        inspect: {
+          ...inspect,
+          line,
+          function: "f",
+          function_line: functionLine,
+          current_sha256: createHash("sha256").update(source).digest("hex"),
+          code: { original: span, replacement: "true", original_lines: "", mutated_lines: "" },
         },
-      },
-      failure: null,
-      replay: null,
-      replayFailure: null,
-      source,
-      tests: { excerpts: [], omitted: 0, digests: {} },
-    });
-    expect(built.packet.function_source).toMatchObject({ start_line: 5, end_line: 8 });
-    // The function declares its own `local` and `count`, so the outer ones are not added.
-    expect(built.packet.declarations.map((entry) => entry.text.trim())).toEqual([
-      "1| const LIMIT = 3;",
-    ]);
-  });
+        failure: null,
+        replay: null,
+        replayFailure: null,
+        source,
+        tests: { excerpts: [], omitted: 0, digests: {} },
+      });
+      expect(built.packet.function_source?.start_line).toBe(functionLine);
+      expect(built.packet.declarations.map((entry) => entry.text.trim())).toEqual(expected);
+    },
+  );
 
   it("gives a stale packet without code when Fallow reports the file as changed", async () => {
     const project = await stubProject();
@@ -119,6 +140,29 @@ describe("mutation packet", () => {
     const built = await build(project, task);
     expect(built.evidence.stale).toBe(true);
     expect(built.packet.function_source).toBeNull();
+  });
+
+  it("gives a stale packet when the saved report no longer lists the mutant as survived", async () => {
+    const project = await stubProject();
+    const inspect = (await readFixture("inspect/0ab0249adef9e6e3.json")) as Record<string, unknown>;
+    await project.setInspect("0ab0249adef9e6e3", { ...inspect, report_status: "killed" });
+    const built = await build(project, await taskOf("0ab0249adef9e6e3"));
+    expect(built.evidence.stale).toBe(true);
+    expect(built.packet.omissions).toEqual(["stale (report status killed)"]);
+    expect(built.packet.tests.covering).toEqual([]);
+  });
+
+  it("caches a replay failure with a Fallow code, so a rebuild does not replay again", async () => {
+    const project = await stubProject();
+    await project.setInspect("c9cdd0a284339dca", REPLAY_UNSUPPORTED, true);
+    const task = await taskOf("c9cdd0a284339dca");
+    const first = await build(project, task, true);
+    const second = await build(project, task, true);
+    expect(second.fingerprint).toBe(first.fingerprint);
+    expect(second.packet.omissions).toEqual([
+      "replay unavailable (FALLOW_MUTATION_REPLAY_UNSUPPORTED)",
+    ]);
+    expect(await replayCalls(project)).toBe(1);
   });
 
   it("gives a stale packet when inspect fails", async () => {

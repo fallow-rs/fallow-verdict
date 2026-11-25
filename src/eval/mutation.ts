@@ -83,14 +83,17 @@ export type MutationEvalReport = {
 
 const share = (part: number, whole: number): number | null => (whole === 0 ? null : part / whole);
 
-type Judged = { label: MutationLabel; decision: StoredDecision };
+/** The part of a decision that the metrics read. */
+type Verdict = Pick<StoredDecision, "verdict">;
+
+type Judged = { label: MutationLabel; decision: Verdict };
 
 const idsOf = (entries: readonly Judged[]): string[] => entries.map((entry) => entry.label.id);
 
 /** Scores decisions against the labels. `decisions` maps a mutant id to its decision. */
 export const evaluateMutation = (
   labels: readonly MutationLabel[],
-  decisions: ReadonlyMap<string, StoredDecision>,
+  decisions: ReadonlyMap<string, Verdict>,
 ): MutationEvalReport => {
   const judged: Judged[] = labels.flatMap((label) => {
     const decision = decisions.get(label.id);

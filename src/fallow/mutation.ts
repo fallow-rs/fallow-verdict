@@ -6,7 +6,7 @@ import type {
 } from "fallow/types";
 
 import { verdictError, type VerdictError } from "../util/errors.ts";
-import { isInside } from "../util/files.ts";
+import { isInside, readContainedBytes } from "../util/files.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { capture, parseJson, resolveFallowBinary, type FallowInvocation } from "./run.ts";
 
@@ -96,9 +96,76 @@ export const parseMutationTasks = (value: unknown): Result<MutationTasksOutput, 
 export const mutationCandidates = (output: MutationTasksOutput): MutationTask[] =>
   output.tasks.filter((task) => task.status === "survived");
 
-/** Only a complete report proves that a mutant without a task is no longer open. */
-export const isCompleteReport = (output: MutationTasksOutput): boolean =>
-  output.report_completion === "complete";
+/** The scope of the run that saved the report: its scope kind and the files that it mutated. */
+export type MutationRunScope = { kind: string; files: string[] };
+
+/**
+ * The tasks of the saved report, and the scope of the run. The scope is null when the saved
+ * report cannot be read or does not hold each task, so it proves nothing.
+ */
+export type MutationScanOutput = MutationTasksOutput & { run_scope: MutationRunScope | null };
+
+/** Where Fallow saves the report of the last run, with the default cache directory. */
+const SAVED_REPORT = ".fallow/mutation/last-report.json";
+
+const SUPPORTED_MUTATION_REPORT_SCHEMA_VERSIONS: readonly string[] = ["2"];
+
+const isScope = (value: unknown): value is MutationRunScope =>
+  isRecord(value) &&
+  typeof value["kind"] === "string" &&
+  Array.isArray(value["files"]) &&
+  value["files"].every((file) => typeof file === "string");
+
+/**
+ * Reads the scope from the saved report. `fallow mutation tasks` gives no scope, and a run on
+ * one path replaces the report, so a missing task proves nothing for a file outside the run. A
+ * report of another run, for example in a moved cache directory, lacks a task id and is refused.
+ */
+export const readRunScope = async (
+  root: string,
+  tasks: MutationTasksOutput,
+): Promise<MutationRunScope | null> => {
+  const content = await readContainedBytes(root, SAVED_REPORT);
+  if (content === null) return null;
+  const parsed = parseJson(content.toString("utf8"));
+  if (!parsed.ok || !isRecord(parsed.data)) return null;
+  const report = parsed.data;
+  if (!SUPPORTED_MUTATION_REPORT_SCHEMA_VERSIONS.includes(String(report["schema_version"])))
+    return null;
+  const scope = report["scope"];
+  if (!isRecord(scope) || typeof scope["kind"] !== "string") return null;
+  if (!Array.isArray(report["files"]) || !Array.isArray(report["mutants"])) return null;
+  const ids = new Set(
+    report["mutants"].flatMap((mutant) =>
+      isRecord(mutant) && typeof mutant["mutant_id"] === "string" ? [mutant["mutant_id"]] : [],
+    ),
+  );
+  if (!tasks.tasks.every((task) => ids.has(task.mutant_id))) return null;
+  return {
+    kind: scope["kind"],
+    files: report["files"].flatMap((file) =>
+      isRecord(file) && typeof file["path"] === "string" ? [file["path"]] : [],
+    ),
+  };
+};
+
+/** Validate stored scan output: the tasks document and the run scope. */
+export const parseMutationScan = (value: unknown): Result<MutationScanOutput, VerdictError> => {
+  const tasks = parseMutationTasks(value);
+  if (!tasks.ok) return tasks;
+  const scope = isRecord(value) ? value["run_scope"] : null;
+  return ok({ ...tasks.data, run_scope: isScope(scope) ? scope : null });
+};
+
+/** Only a complete report of a run on every file proves that a mutant without a task is gone. */
+export const isCompleteRun = (output: MutationScanOutput): boolean =>
+  output.report_completion === "complete" && output.run_scope?.kind === "all";
+
+/** A complete report proves absence only in the files that its run mutated. */
+export const provesAbsence = (output: MutationScanOutput, paths: readonly string[]): boolean => {
+  const files = output.run_scope?.files ?? [];
+  return output.report_completion === "complete" && paths.every((file) => files.includes(file));
+};
 
 /** Validate one inspect packet for the requested mutant. */
 export const parseMutationInspect = (

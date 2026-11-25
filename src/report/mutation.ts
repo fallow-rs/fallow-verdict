@@ -2,8 +2,19 @@ import type { MutationWitness } from "../policy/mutation.ts";
 import type { FindingRecord, StoredDecision } from "../state/schema.ts";
 import type { KindPresentation } from "./render.ts";
 
-/** Each mutant has the same priority, so the report sorts each group by confidence. */
-export const mutationPriority = (_record: FindingRecord): number => 0;
+/** Verdict order of the report: test gaps first, then the survived mutants for a person. */
+const VERDICT_RANK: Readonly<Record<string, number>> = {
+  survivor: 0,
+  "needs-human-review": 1,
+  dismissed: 2,
+};
+
+/**
+ * Test gaps first, then review, then proposals; inside a group the report sorts by confidence.
+ * Before a judgment every record has the same rank, so a budget cap keeps the Fallow order.
+ */
+export const mutationPriority = (record: FindingRecord): number =>
+  VERDICT_RANK[record.decision?.verdict ?? ""] ?? 0;
 
 const REVIEW_REASONS: Readonly<Partial<Record<string, string>>> = {
   "evidence-stale":

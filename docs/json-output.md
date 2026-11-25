@@ -10,6 +10,24 @@ progress messages on standard error. The JSON Schemas are in `schemas/`.
 | `check`                   | The check report, `fallow-verdict-check/v1`         | [`check.schema.json`](../schemas/check.schema.json)   |
 | Any command, on an error  | `{ "error": true, code, message, hint, exit_code }` | None                                                  |
 
+## Mutation kind
+
+The report of `--kind mutation` has one finding for each survivor. `finding_id` is the Fallow
+`mutant_id` and `category` is the operator. `decision.kindData` holds:
+
+| Field            | Meaning                                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| `equivalence`    | The `equivalence` answer, or `null` when the policy decided without an engine call                       |
+| `test_direction` | The `test_direction` answer, or `null`. It is also in `decision.fixDirection`.                           |
+| `witness`        | For the rule `replay-witness`: `source` (`replay` or `run`), `input`, `original`, `mutant`. Else `null`. |
+
+`decision.probabilities.behavior_changes` is the estimate that sorts the test gaps. A record of a
+decision without an engine call has an empty `answers` object, zero usage and the history model
+`none`.
+
+`report` also writes `.fallow-verdict/mutation-verdicts.proposed.json` in Fallow's verdict document
+schema (`schema_version: "1"`). See [mutation.md](mutation.md#the-proposal-file).
+
 ## Actions
 
 The outputs of `report`, `status`, `run`, `judge` and `check` have an `actions` array. It lists

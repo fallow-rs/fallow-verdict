@@ -221,8 +221,8 @@
       "function": "page",
       "original_lines": "  if (items.length >= 0 && offset >= items.length) return [];",
       "mutated_lines": "  if (false) return [];",
-      "expected": "equivalent",
-      "argument": "The condition is true only when `offset >= items.length`. Then `items.slice(offset, offset + size)` also gives a new empty array, so the early return changes no result."
+      "expected": "real",
+      "kill_test": "eval/mutation/kills/corpus.test.ts"
     },
     {
       "id": "bc1a6d4aeb2bf5d4",
@@ -234,8 +234,8 @@
       "function": "page",
       "original_lines": "  if (items.length >= 0 && offset >= items.length) return [];",
       "mutated_lines": "  if (items.length == 0 && offset >= items.length) return [];",
-      "expected": "equivalent",
-      "argument": "With `items.length == 0`, the early return happens only for an empty list. For a non-empty list with `offset >= items.length`, `slice` also gives an empty array. A length is never negative, so no input shows a difference."
+      "expected": "real",
+      "kill_test": "eval/mutation/kills/corpus.test.ts"
     },
     {
       "id": "de922067fa207ef7",
@@ -247,8 +247,8 @@
       "function": "page",
       "original_lines": "  if (items.length >= 0 && offset >= items.length) return [];",
       "mutated_lines": "  if (items.length > 0 && offset >= items.length) return [];",
-      "expected": "equivalent",
-      "argument": "With `items.length > 0`, an empty list reaches `slice`, which gives an empty array, the same as the early return."
+      "expected": "real",
+      "kill_test": "eval/mutation/kills/corpus.test.ts"
     },
     {
       "id": "20df8418de29f866",
@@ -260,8 +260,8 @@
       "function": "page",
       "original_lines": "  if (items.length >= 0 && offset >= items.length) return [];",
       "mutated_lines": "  if (items.length >= 0 && offset > items.length) return [];",
-      "expected": "equivalent",
-      "argument": "When `offset` equals the length, `slice(offset, offset + size)` gives an empty array, the same as the early return."
+      "expected": "real",
+      "kill_test": "eval/mutation/kills/corpus.test.ts"
     },
     {
       "id": "de0fbd2ea4270040",
@@ -273,8 +273,8 @@
       "function": "page",
       "original_lines": "  if (items.length >= 0 && offset >= items.length) return [];",
       "mutated_lines": "  if (items.length >= 0 && offset == items.length) return [];",
-      "expected": "equivalent",
-      "argument": "When `offset` is larger than the length, `slice` gives an empty array, the same as the early return."
+      "expected": "real",
+      "kill_test": "eval/mutation/kills/corpus.test.ts"
     },
     {
       "id": "c9cdd0a284339dca",
@@ -300,7 +300,7 @@
       "original_lines": "  if (values.length === 0) return undefined;",
       "mutated_lines": "  if (false) return undefined;",
       "expected": "equivalent",
-      "argument": "For an empty list, `values[0]` is undefined and the loop does not run, so the function returns undefined without the early return too."
+      "argument": "For an empty list, `values[0]` is undefined and the loop does not run, so the function returns undefined without the early return too. This holds for an array with the default iterator and no inherited index property."
     },
     {
       "id": "d8d14c2ade9279b6",

@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,6 +28,8 @@ export type StubProject = {
   argsLog: string;
   /** Replace the `tasks` document that the stub prints. */
   setTasks: (value: unknown) => Promise<void>;
+  /** Replace the saved run report that Fallow keeps in its cache, or remove it with null. */
+  setReport: (value: unknown) => Promise<void>;
   /** Replace the inspect document of one mutant. `replay` sets the `--replay` document. */
   setInspect: (id: string, value: unknown, replay?: boolean) => Promise<void>;
   calls: () => Promise<string[][]>;
@@ -43,6 +45,9 @@ export const stubProject = async (config: Record<string, unknown> = {}): Promise
   const data = path.join(root, ".stub");
   await cp(FIXTURES, data, { recursive: true });
   const argsLog = path.join(root, ".args.log");
+  const reportFile = path.join(root, ".fallow/mutation/last-report.json");
+  await mkdir(path.dirname(reportFile), { recursive: true });
+  await cp(path.join(FIXTURES, "last-report.json"), reportFile);
   const binary = path.join(root, ".fallow-stub.mjs");
   await writeFile(
     binary,
@@ -82,6 +87,10 @@ export const stubProject = async (config: Record<string, unknown> = {}): Promise
     root,
     loaded,
     argsLog,
+    setReport: (value) =>
+      value === null
+        ? rm(reportFile, { force: true })
+        : writeFile(reportFile, JSON.stringify(value)),
     setTasks: (value) => writeFile(path.join(data, "tasks.json"), JSON.stringify(value)),
     setInspect: (id, value, replay = false) =>
       writeFile(

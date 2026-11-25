@@ -116,11 +116,14 @@ const escapeRegex = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g
  * then a different binding, so the packet must not show it.
  */
 const bindsLocally = (window: readonly string[], name: string): boolean => {
-  const word = new RegExp(`\\b${escapeRegex(name)}\\b`);
+  const escaped = escapeRegex(name);
+  const word = new RegExp(`\\b${escaped}\\b`);
+  // The parameters: the first line up to the arrow or the body brace.
+  const head = (window[0] ?? "").split(/=>|\{/)[0] ?? "";
   const local = new RegExp(
-    `\\b(?:(?:const|let|var)\\s+[^=;]*|function\\s+|class\\s+|catch\\s*\\([^)]*)\\b${escapeRegex(name)}\\b`,
+    `\\b(?:(?:const|let|var)\\s+(?:(?!\\b(?:of|in)\\b)[^=;])*|function\\s+|class\\s+|catch\\s*\\([^)]*)\\b${escaped}\\b`,
   );
-  return word.test(window[0] ?? "") || window.some((text) => local.test(text));
+  return word.test(head) || window.some((text) => local.test(text));
 };
 
 /** Same-file declarations of the identifiers in the changed span, outside the function. */
@@ -269,6 +272,9 @@ const staleReason = (sources: MutantSources): string | null => {
   const { inspect, source } = sources;
   if (inspect === null) return `inspect failed (${sources.failure ?? "unknown"})`;
   if (inspect.status === "stale") return `stale (${inspect.stale_reason ?? "unknown"})`;
+  // A recheck after the scan can kill the mutant without a change to its file.
+  if (inspect.report_status != null && inspect.report_status !== "survived")
+    return `stale (report status ${inspect.report_status})`;
   if (source === null) return "source unreadable";
   return sha256(source) === inspect.current_sha256 ? null : "stale (source-changed)";
 };
@@ -352,12 +358,17 @@ export const mutantFromInspect = (sources: MutantSources): BuiltMutant => {
   };
 };
 
-type ReplayEntry = { key: string; replay: MutationReplayOutput };
+type ReplayResult = Pick<MutantSources, "replay" | "replayFailure">;
 
-const readReplay = async (file: string, key: string): Promise<MutationReplayOutput | null> => {
+/** A cached replay: the replay output, or the Fallow error code of a replay that failed. */
+type ReplayEntry = { key: string } & ReplayResult;
+
+const readReplay = async (file: string, key: string): Promise<ReplayResult | null> => {
   try {
     const entry = JSON.parse(await readFile(file, "utf8")) as Partial<ReplayEntry>;
-    return entry.key === key && entry.replay !== undefined ? entry.replay : null;
+    if (entry.key !== key || entry.replay === undefined || entry.replayFailure === undefined)
+      return null;
+    return { replay: entry.replay, replayFailure: entry.replayFailure };
   } catch {
     return null;
   }
@@ -372,8 +383,6 @@ export type MutantBuildOptions = {
   readOnly: boolean;
 };
 
-type ReplayResult = Pick<MutantSources, "replay" | "replayFailure">;
-
 /** The replay of a fresh mutant, from the cache or from a new `--replay` run. */
 const replayFor = async (
   task: MutationTask,
@@ -387,18 +396,22 @@ const replayFor = async (
   );
   const file = path.join(options.cacheDir, `${key.slice(0, 32)}.json`);
   const cached = await readReplay(file, key);
-  if (cached !== null) return { replay: cached, replayFailure: null };
+  if (cached !== null) return cached;
   const replayed = await runMutationInspect({
     ...invocation,
     mutantId: task.mutant_id,
     replay: true,
   });
-  if (!replayed.ok)
-    return { replay: null, replayFailure: replayed.fallowCode ?? replayed.error.code };
-  const replay = replayed.data.replay ?? null;
-  if (replay === null) return { replay: null, replayFailure: "no replay output" };
-  if (!options.readOnly) await writeAtomic(file, JSON.stringify({ key, replay }));
-  return { replay, replayFailure: null };
+  const result: ReplayResult = replayed.ok
+    ? replayed.data.replay == null
+      ? { replay: null, replayFailure: "no replay output" }
+      : { replay: replayed.data.replay, replayFailure: null }
+    : { replay: null, replayFailure: replayed.fallowCode ?? replayed.error.code };
+  // A Fallow error code is a stable answer for this key, for example a runner without replay
+  // support. A failure without one, such as a timeout, is tried again on the next build.
+  const stable = replayed.ok || replayed.fallowCode !== null;
+  if (stable && !options.readOnly) await writeAtomic(file, JSON.stringify({ key, ...result }));
+  return result;
 };
 
 /**

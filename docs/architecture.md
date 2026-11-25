@@ -8,8 +8,8 @@ fallow security ──> scan ──> packet ──> engine ──> policy ──
 ## Analysis kinds
 
 The pipeline is generic over an analysis kind. Each kind is one Fallow analysis. The kinds are
-`security`, the default, `review` (see [review mode](review.md)) and `similar-code` (see
-[similar-code pairs](similar-code.md)). The `--kind <name>` flag selects the kind for
+`security`, the default, `review` (see [review mode](review.md)), `similar-code` (see
+[similar-code pairs](similar-code.md)) and `mutation` (see [mutation survivors](mutation.md)). The `--kind <name>` flag selects the kind for
 `scan`, `judge`, `run`, `report`, `status`, `eval`, `check` and `close`. An unknown kind is a usage error with exit
 code 2, and the message lists the known kinds.
 
@@ -84,6 +84,31 @@ When it returns false, `scan` resolves no records. It differs from `conclusive`:
 answers for the target files of one `check`, `complete` answers for a whole scan, and a kind with
 a capped selection (review) can be complete while it is not conclusive for a file it left out.
 Without the function, a scan is complete.
+
+### The mutation kind
+
+`src/kinds/mutation.ts` connects the modules for `fallow mutation` survivors. See
+[mutation.md](mutation.md) for the user view.
+
+| Part          | Mutation behavior                                                                   |
+| ------------- | ----------------------------------------------------------------------------------- |
+| `scan`        | `fallow mutation tasks --format json --quiet`, stored unchanged; schema version `1` |
+| `complete`    | True only for `report_completion: "complete"`; `conclusive` gives the same value    |
+| `identity`    | `mutant_id`; one location; the operator as category; no severity                    |
+| `match`       | Main key: `mutant_id`. Rule: the file and the function                              |
+| `priority`    | Equal for each mutant, so the report sorts by confidence                            |
+| `packet`      | `fallow mutation inspect` (schema version `2`), the function window, test excerpts  |
+| `needsEngine` | False for stale or cut evidence and for a Fallow witness                            |
+| `questions`   | `behavior_changes`, `equivalence`, `test_direction`, `tampering`                    |
+| `confirm*`    | Dismissals always; survivors never                                                  |
+| `export`      | A proposal file in Fallow's verdict document schema `1`; no Fallow call             |
+
+Modules: `src/fallow/mutation.ts`, `src/packet/mutation.ts`, `src/packet/function-window.ts`
+(the end of the enclosing function), `src/questions/mutation.ts`, `src/policy/mutation.ts`,
+`src/report/mutation.ts`, `src/verdicts/mutation.ts` and `src/eval/mutation.ts`.
+
+`needsEngine` is an optional adapter part. When it returns false, `judge` and `check` map an
+empty answer set through the policy, make no engine call, and add no cost to the estimate.
 
 ### The similar-code kind
 

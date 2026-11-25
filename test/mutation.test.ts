@@ -209,6 +209,40 @@ describe("mutation kind", () => {
     expect(withReplay).toBeLessThan(withoutReplay);
   });
 
+  it("resolves a stored mutant on a new scan only after a run of every file", async () => {
+    const { project, store } = await setup();
+    const tasks = (await readFixture("tasks.json")) as { tasks: { mutant_id: string }[] };
+    const saved = (await readFixture("last-report.json")) as Record<string, unknown>;
+    await project.setTasks({
+      ...tasks,
+      tasks: tasks.tasks.filter((task) => task.mutant_id !== GAP_ID),
+    });
+    await project.setReport({ ...saved, scope: { kind: "paths" } });
+    const scoped = await scanWith(mutationAdapter, project.loaded, store, {});
+    expect(scoped).toMatchObject({ ok: true, data: { resolved: 0 } });
+    await project.setReport(saved);
+    const all = await scanWith(mutationAdapter, project.loaded, store, {});
+    expect(all).toMatchObject({ ok: true, data: { resolved: 1 } });
+  });
+
+  it("lists the test gaps first in the JSON report", async () => {
+    const { project, store } = await setup();
+    const engine = fakeEngine({
+      [EQUIVALENT_ID]: { behavior: 0.01, equivalence: "same-value", strength: 0.99 },
+      [GAP_ID]: { behavior: 0.75, equivalence: "not-equivalent", strength: 0.9 },
+    });
+    await judgeWith(mutationAdapter, project.loaded, store, engine, JUDGE);
+    const json = (await report(project)).json as {
+      findings: { finding_id: string; decision: { verdict: string } }[];
+    };
+    const verdicts = json.findings.map((finding) => finding.decision.verdict);
+    expect(verdicts[0]).toBe("survivor");
+    expect(verdicts.indexOf("dismissed")).toBeGreaterThan(verdicts.lastIndexOf("survivor"));
+    expect(verdicts.indexOf("dismissed")).toBeGreaterThan(
+      verdicts.lastIndexOf("needs-human-review"),
+    );
+  });
+
   it("refuses --changed-since, because the scope belongs to the fallow mutation run", async () => {
     const project = await stubProject();
     const store = openStore(project.loaded.dataDir, KIND);
@@ -249,6 +283,30 @@ describe("mutation check", () => {
       outcome: "cleared",
       results: [{ status: "resolved", stored_id: GAP_ID }],
     });
+  });
+
+  it("resolves only in a file that the saved run mutated", async () => {
+    const { project } = await setup();
+    const tasks = (await readFixture("tasks.json")) as { tasks: { mutant_id: string }[] };
+    await project.setTasks({
+      ...tasks,
+      tasks: tasks.tasks.filter((task) => task.mutant_id !== GAP_ID),
+    });
+    const saved = (await readFixture("last-report.json")) as {
+      files: { path: string }[];
+    };
+    const without = saved.files.filter((file) => file.path !== "src/list.ts");
+    await project.setReport({ ...saved, scope: { kind: "paths" }, files: without });
+    const outside = await checkOf(project, GAP_ID);
+    expect(outside.ok && outside.data.report.results[0]?.status).toBe("ambiguous");
+
+    await project.setReport(null);
+    const missing = await checkOf(project, GAP_ID);
+    expect(missing.ok && missing.data.report.results[0]?.status).toBe("ambiguous");
+
+    await project.setReport(saved);
+    const inside = await checkOf(project, GAP_ID);
+    expect(inside.ok && inside.data.report.results[0]?.status).toBe("resolved");
   });
 
   it("gives a stale mutant to a person without an engine call", async () => {

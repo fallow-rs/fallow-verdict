@@ -10,6 +10,15 @@ describe("kill tests for labeled survivors", () => {
     const read = new Counter().read;
     expect(read()).toBeUndefined();
   });
+  it("a60af096b11f6968 bc1a6d4aeb2bf5d4 de922067fa207ef7 20df8418de29f866 de0fbd2ea4270040: an empty page is a plain array", () => {
+    class Tagged<T> extends Array<T> {}
+    for (const [items, offset] of [
+      [Tagged.from([1]), 5],
+      [Tagged.from([1]), 1],
+      [Tagged.from([]), 0],
+    ] as const)
+      expect(Object.getPrototypeOf(page(items, offset, 1))).toBe(Array.prototype);
+  });
   it("c9cdd0a284339dca: a page holds size items", () => {
     expect(page([1, 2, 3], 0, 2)).toEqual([1, 2]);
   });

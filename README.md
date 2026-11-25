@@ -168,6 +168,10 @@ Incomplete reports exit with `2`, even with `--fail-on off`. The `scan` and
 `--kind similar-code` assesses pairs from `fallow similar-code` instead of security findings.
 It is a preview. See [similar-code pairs](docs/similar-code.md).
 
+`--kind mutation` assesses the survived mutants of the last `fallow mutation` run. It sorts them
+into test gaps, proposed equivalents and survivors for a person, and writes the proposals to a
+file that a person reads. See [mutation survivors](docs/mutation.md).
+
 `check` is for an edit loop. It exits `0` when the findings are resolved, dismissed or
 closed, and `1` when a finding stands. See [check and close](docs/check.md).
 
@@ -178,12 +182,13 @@ instructions and a `references/` directory with details. Each skill uses Fallow 
 candidates and fallow-verdict to judge them. The skills change with the CLI, so they ship in
 this package.
 
-| Skill                            | What it does                                                   | Changes code      |
-| -------------------------------- | -------------------------------------------------------------- | ----------------- |
-| `fallow-verdict-similar-code`    | Merges function pairs that Jev marks safe, then runs the tests | Inside task scope |
-| `fallow-verdict-security-triage` | Reports likely vulnerabilities first, checks each fix          | Only on request   |
-| `fallow-verdict-review`          | Reviews the changed functions before a pull request            | No, reports only  |
-| `fallow-verdict-rules`           | Helps write review rules, and prefers a Fallow rule            | No, proposes only |
+| Skill                            | What it does                                                   | Changes code        |
+| -------------------------------- | -------------------------------------------------------------- | ------------------- |
+| `fallow-verdict-similar-code`    | Merges function pairs that Jev marks safe, then runs the tests | Inside task scope   |
+| `fallow-verdict-mutation`        | Writes tests for mutation test gaps, then rechecks the mutants | Test files in scope |
+| `fallow-verdict-security-triage` | Reports likely vulnerabilities first, checks each fix          | Only on request     |
+| `fallow-verdict-review`          | Reviews the changed functions before a pull request            | No, reports only    |
+| `fallow-verdict-rules`           | Helps write review rules, and prefers a Fallow rule            | No, proposes only   |
 
 Each skill runs `--dry-run` first and shows the cost, and passes `--fail-on off`. Config,
 suppressions, rules, thresholds and `close` always go to the user. No skill runs
@@ -224,6 +229,7 @@ visible in your own labeled examples.
 - [Check and close](docs/check.md): the edit loop and its JSON contract.
 - [Review mode](docs/review.md): advisory review of risky functions and project rules.
 - [Similar-code pairs](docs/similar-code.md): the `similar-code` kind, its policy and its Fallow join.
+- [Mutation survivors](docs/mutation.md): the `mutation` kind, its policy and the proposal file.
 - [Responsibilities](docs/responsibilities.md): what belongs in Fallow and in this package.
 - [Architecture](docs/architecture.md): evidence collection and stored records.
 - [Roadmap](docs/roadmap.md): planned work and release requirements.

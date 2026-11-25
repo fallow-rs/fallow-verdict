@@ -47,6 +47,12 @@ export default defineConfig({
     confirmSurvivors: true, // a similar-code survivor needs a second call that agrees
     failOn: "off", // a safe merge is a chance, not a CI failure
   },
+  mutation: {
+    replay: false, // a replay runs project code
+    survivorMinBehaviorChange: 0.7,
+    dismissMaxBehaviorChange: 0.02, // a higher value is refused
+    dismissMinReasonStrength: 0.9, // a lower value is refused
+  },
 });
 ```
 
@@ -86,6 +92,23 @@ section above applies only to security, except `confirmDismissals`, which applie
 `similarCode.confirmSurvivors` (default `true`) also sends a second call for a survivor, because a
 survivor gates a code change. `similarCode.failOn` (default `"off"`) is the `failOn` level of the
 kind; `--fail-on` overrides it. See [similar-code.md](similar-code.md).
+
+## Mutation
+
+`mutation` holds the settings of the `mutation` kind. See [mutation.md](mutation.md).
+
+| Key                         | Default | Meaning                                                                           |
+| --------------------------- | ------- | --------------------------------------------------------------------------------- |
+| `replay`                    | `false` | Run `fallow mutation inspect --replay` for each survivor. This runs project code. |
+| `survivorMinBehaviorChange` | `0.7`   | Minimum P(behavior_changes) for a test gap                                        |
+| `dismissMaxBehaviorChange`  | `0.02`  | Maximum P(behavior_changes) for a proposed equivalent. At most `0.02`.            |
+| `dismissMinReasonStrength`  | `0.9`   | Minimum confidence of the `equivalence` reason for a proposal. At least `0.9`.    |
+
+A proposed equivalent can raise the mutation score that a `--min-score` gate reads, so these
+thresholds are stricter than for the other kinds. A config can make proposals rarer, but the
+schema refuses a value that makes them easier than the default. A proposal always needs a second
+call that agrees, also when `policy.confirmDismissals` is `false`. The kind uses
+`policy.tamperingMax` and the top-level `failOn`.
 
 ## Question profiles
 

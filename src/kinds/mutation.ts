@@ -1,12 +1,14 @@
 import path from "node:path";
 
 import {
-  isCompleteReport,
+  isCompleteRun,
   mutationCandidates,
-  parseMutationTasks,
+  parseMutationScan,
+  provesAbsence,
+  readRunScope,
   runMutationTasks,
+  type MutationScanOutput,
   type MutationTask,
-  type MutationTasksOutput,
 } from "../fallow/mutation.ts";
 import { buildMutantPacket, type BuiltMutant } from "../packet/mutation.ts";
 import { decideMutation } from "../policy/mutation.ts";
@@ -18,9 +20,12 @@ import {
 import { mutationPresentation, mutationPriority } from "../report/mutation.ts";
 import { openStore } from "../state/store.ts";
 import { verdictError } from "../util/errors.ts";
-import { err } from "../util/result.ts";
+import { err, ok } from "../util/result.ts";
 import { PROPOSALS_FILE, toMutationProposals } from "../verdicts/mutation.ts";
-import type { AnalysisAdapter, MatchKeys } from "./adapter.ts";
+import type { LoadedConfig } from "../config/load.ts";
+import type { VerdictError } from "../util/errors.ts";
+import type { Result } from "../util/result.ts";
+import type { AnalysisAdapter, MatchKeys, ScanScope } from "./adapter.ts";
 
 const KIND = "mutation";
 
@@ -42,8 +47,24 @@ const changeOf = (built: BuiltMutant): string | null => {
   return change === null ? null : `${change.from} -> ${change.to}`;
 };
 
+/** The tasks of the saved report, with the scope of the run that saved it. */
+const scanMutation = async (
+  loaded: LoadedConfig,
+  scope: ScanScope,
+): Promise<Result<MutationScanOutput, VerdictError>> => {
+  const tasks = await runMutationTasks({
+    root: loaded.root,
+    binary: loaded.config.fallow.binary,
+    timeoutMs: loaded.config.fallow.timeoutMs,
+    paths: scope.paths,
+    signal: scope.signal,
+  });
+  if (!tasks.ok) return tasks;
+  return ok({ ...tasks.data, run_scope: await readRunScope(loaded.root, tasks.data) });
+};
+
 /** `fallow mutation` survivors, judged per mutant. Proposals go to a file; Fallow is not called with them. */
-export const mutationAdapter: AnalysisAdapter<MutationTasksOutput, MutationTask, BuiltMutant> = {
+export const mutationAdapter: AnalysisAdapter<MutationScanOutput, MutationTask, BuiltMutant> = {
   kind: KIND,
   scan: {
     run: (loaded, scope) => {
@@ -57,19 +78,13 @@ export const mutationAdapter: AnalysisAdapter<MutationTasksOutput, MutationTask,
             ),
           ),
         );
-      return runMutationTasks({
-        root: loaded.root,
-        binary: loaded.config.fallow.binary,
-        timeoutMs: loaded.config.fallow.timeoutMs,
-        paths: scope.paths,
-        signal: scope.signal,
-      });
+      return scanMutation(loaded, scope);
     },
-    parse: parseMutationTasks,
+    parse: parseMutationScan,
     candidates: mutationCandidates,
-    // A partial report can miss tasks, so it proves no absence.
-    complete: isCompleteReport,
-    conclusive: isCompleteReport,
+    // A partial report can miss tasks, and a run on some paths says nothing about other files.
+    complete: isCompleteRun,
+    conclusive: provesAbsence,
   },
   identity: (task) => ({
     finding_id: task.mutant_id,

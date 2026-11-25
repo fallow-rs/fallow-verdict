@@ -112,10 +112,7 @@ const metrics = (split: string, repeat: number) => {
   const decisions = new Map(
     observations
       .filter((entry) => entry.repeat === repeat)
-      .map((entry) => [
-        entry.id,
-        { verdict: entry.verdict, rule: entry.rule } as unknown as StoredDecision,
-      ]),
+      .map((entry) => [entry.id, { verdict: entry.verdict }]),
   );
   return { split, repeat, ...evaluateMutation(scoped, decisions) };
 };
