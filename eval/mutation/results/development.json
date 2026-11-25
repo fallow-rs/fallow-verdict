@@ -1,0 +1,2556 @@
+{
+  "schema_version": "fallow-verdict-mutation-eval/v1",
+  "startedAt": "2026-11-25T15:20:04.647Z",
+  "projects": ["defu", "corpus"],
+  "repeats": 2,
+  "costUsd": 0.004489128000000002,
+  "metrics": [
+    {
+      "split": "development",
+      "repeat": 0,
+      "labeled": 25,
+      "judged": 25,
+      "realProposed": [],
+      "equivalentsAsGap": ["e8572f24359cc126", "c84183b212848b8e"],
+      "equivalentShareProposed": 0,
+      "realShareAsGap": 0.7619047619047619,
+      "reviewRate": 0.28
+    },
+    {
+      "split": "development",
+      "repeat": 1,
+      "labeled": 25,
+      "judged": 25,
+      "realProposed": [],
+      "equivalentsAsGap": ["e8572f24359cc126", "c84183b212848b8e"],
+      "equivalentShareProposed": 0,
+      "realShareAsGap": 0.8571428571428571,
+      "reviewRate": 0.2
+    },
+    {
+      "split": "holdout",
+      "repeat": 0,
+      "labeled": 0,
+      "judged": 0,
+      "realProposed": [],
+      "equivalentsAsGap": [],
+      "equivalentShareProposed": null,
+      "realShareAsGap": null,
+      "reviewRate": null
+    },
+    {
+      "split": "holdout",
+      "repeat": 1,
+      "labeled": 0,
+      "judged": 0,
+      "realProposed": [],
+      "equivalentsAsGap": [],
+      "equivalentShareProposed": null,
+      "realShareAsGap": null,
+      "reviewRate": null
+    }
+  ],
+  "unstable": ["721e6e2a4b649daa", "623152674061ab30"],
+  "observations": [
+    {
+      "project": "defu",
+      "id": "e8572f24359cc126",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.76,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.27
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.76
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.21,
+            "value-never-occurs": 0.27,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.05,
+            "other": 0.06,
+            "not-equivalent": 0.39
+          },
+          "confidence": 0.27
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.83,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.13
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "fd1cb26bf311e647",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.16,
+        "equivalence:not-equivalent": 0.36
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.28,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.09,
+            "other": 0.06,
+            "not-equivalent": 0.47
+          },
+          "confidence": 0.36
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.04,
+            "missing-assertion": 0.82,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.13
+          },
+          "confidence": 0.77
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "0b925ddfed1f6f84",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.17,
+        "equivalence:not-equivalent": 0.51
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.05,
+            "value-never-occurs": 0.15,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.13,
+            "other": 0.06,
+            "not-equivalent": 0.59
+          },
+          "confidence": 0.51
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.64,
+            "error-path": 0.02,
+            "side-effect": 0.26,
+            "other": 0.06
+          },
+          "confidence": 0.55
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "721e6e2a4b649daa",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.66,
+        "tampering": 0.23,
+        "equivalence:not-equivalent": 0.24
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.66
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.07,
+            "value-never-occurs": 0.34,
+            "no-observable-effect": 0.08,
+            "unreachable-code": 0.03,
+            "other": 0.11,
+            "not-equivalent": 0.37
+          },
+          "confidence": 0.24
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.55,
+            "error-path": 0.01,
+            "side-effect": 0.38,
+            "other": 0.03
+          },
+          "confidence": 0.44
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.23
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "85b9902b4b9b181b",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.2,
+        "equivalence:not-equivalent": 0.41
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.33,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.06,
+            "other": 0.06,
+            "not-equivalent": 0.51
+          },
+          "confidence": 0.41
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.46,
+            "error-path": 0.03,
+            "side-effect": 0.46,
+            "other": 0.03
+          },
+          "confidence": 0.32
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.2
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "bd1ea7ebbfbe0d6b",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.78,
+        "tampering": 0.19,
+        "equivalence:value-never-occurs": 0.75
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.79,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.03,
+            "other": 0.03,
+            "not-equivalent": 0.1
+          },
+          "confidence": 0.75
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.2,
+            "missing-assertion": 0.41,
+            "error-path": 0.02,
+            "side-effect": 0.32,
+            "other": 0.05
+          },
+          "confidence": 0.26
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.19
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "e298c86b257f48cb",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.7,
+        "tampering": 0.18,
+        "equivalence:value-never-occurs": 0.21
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.7
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.1,
+            "value-never-occurs": 0.34,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.16,
+            "other": 0.06,
+            "not-equivalent": 0.3
+          },
+          "confidence": 0.21
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.53,
+            "error-path": 0.02,
+            "side-effect": 0.37,
+            "other": 0.05
+          },
+          "confidence": 0.41
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "623152674061ab30",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.69,
+        "tampering": 0.19,
+        "equivalence:value-never-occurs": 0.76
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.69
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.8,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.04,
+            "other": 0.03,
+            "not-equivalent": 0.09
+          },
+          "confidence": 0.76
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.27,
+            "missing-assertion": 0.42,
+            "error-path": 0.01,
+            "side-effect": 0.24,
+            "other": 0.06
+          },
+          "confidence": 0.27
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.19
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "20db0222efa86d15",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.83,
+        "tampering": 0.16,
+        "equivalence:not-equivalent": 0.4
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.83
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.14,
+            "value-never-occurs": 0.19,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.04,
+            "other": 0.08,
+            "not-equivalent": 0.5
+          },
+          "confidence": 0.4
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.77,
+            "error-path": 0,
+            "side-effect": 0.11,
+            "other": 0.06
+          },
+          "confidence": 0.71
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "3b19f549898deb12",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.4
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.03,
+            "value-never-occurs": 0.3,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.02,
+            "other": 0.12,
+            "not-equivalent": 0.5
+          },
+          "confidence": 0.4
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.76,
+            "error-path": 0.01,
+            "side-effect": 0.13,
+            "other": 0.08
+          },
+          "confidence": 0.7
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "65deeab050d17108",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.15,
+        "equivalence:not-equivalent": 0.36
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.11,
+            "value-never-occurs": 0.22,
+            "no-observable-effect": 0.08,
+            "unreachable-code": 0.03,
+            "other": 0.09,
+            "not-equivalent": 0.47
+          },
+          "confidence": 0.36
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.36,
+            "error-path": 0.03,
+            "side-effect": 0.59,
+            "other": 0.02
+          },
+          "confidence": 0.49
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "8ab0e06a35823bce",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.16,
+        "equivalence:value-never-occurs": 0.28
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.4,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.07,
+            "other": 0.05,
+            "not-equivalent": 0.39
+          },
+          "confidence": 0.28
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.3,
+            "error-path": 0.02,
+            "side-effect": 0.66,
+            "other": 0.02
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "e66b12a385a0c071",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.82,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.83
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.13,
+            "value-never-occurs": 0.86,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0,
+            "not-equivalent": 0.01
+          },
+          "confidence": 0.83
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.01,
+            "missing-assertion": 0.16,
+            "error-path": 0.75,
+            "side-effect": 0.02,
+            "other": 0.06
+          },
+          "confidence": 0.69
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "a60af096b11f6968",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.77,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.23
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.35,
+            "value-never-occurs": 0.05,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.16,
+            "other": 0.06,
+            "not-equivalent": 0.36
+          },
+          "confidence": 0.23
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.24,
+            "missing-assertion": 0.71,
+            "error-path": 0.01,
+            "side-effect": 0.01,
+            "other": 0.03
+          },
+          "confidence": 0.64
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "bc1a6d4aeb2bf5d4",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.37,
+        "tampering": 0.14,
+        "equivalence:same-value": 0.72
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.37
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.77,
+            "value-never-occurs": 0.12,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.03,
+            "other": 0.01,
+            "not-equivalent": 0.06
+          },
+          "confidence": 0.72
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.67,
+            "missing-assertion": 0.3,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.03
+          },
+          "confidence": 0.59
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "de922067fa207ef7",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.44,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.82
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.44
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.85,
+            "value-never-occurs": 0.11,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.82
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.83,
+            "missing-assertion": 0.16,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "20df8418de29f866",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.1,
+        "equivalence:not-equivalent": 0.44
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.24,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.02,
+            "other": 0.1,
+            "not-equivalent": 0.53
+          },
+          "confidence": 0.44
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.82,
+            "missing-assertion": 0.18,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.77
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "de0fbd2ea4270040",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.77,
+        "tampering": 0.1,
+        "equivalence:not-equivalent": 0.42
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.17,
+            "value-never-occurs": 0.1,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.03,
+            "other": 0.16,
+            "not-equivalent": 0.52
+          },
+          "confidence": 0.42
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.59,
+            "missing-assertion": 0.38,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.03
+          },
+          "confidence": 0.49
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "c9cdd0a284339dca",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.96,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.7
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.96
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.12,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.04,
+            "other": 0.07,
+            "not-equivalent": 0.75
+          },
+          "confidence": 0.7
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.88,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.06
+          },
+          "confidence": 0.85
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "c84183b212848b8e",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.7
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.06,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.09,
+            "other": 0.04,
+            "not-equivalent": 0.75
+          },
+          "confidence": 0.7
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.49,
+            "missing-assertion": 0.42,
+            "error-path": 0.06,
+            "side-effect": 0.01,
+            "other": 0.02
+          },
+          "confidence": 0.36
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "d8d14c2ade9279b6",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.11,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.38
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.11
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.48,
+            "value-never-occurs": 0.02,
+            "no-observable-effect": 0.1,
+            "unreachable-code": 0.01,
+            "other": 0.25,
+            "not-equivalent": 0.14
+          },
+          "confidence": 0.38
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.63,
+            "missing-assertion": 0.27,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.08
+          },
+          "confidence": 0.54
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "07ea65f7c318c30a",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.1,
+        "equivalence:value-never-occurs": 0.69
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.74,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.17
+          },
+          "confidence": 0.69
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.01,
+            "missing-assertion": 0.16,
+            "error-path": 0.82,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.77
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "97d5de870c990ecb",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.24,
+        "tampering": 0.09,
+        "equivalence:same-value": 0.86
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.24
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.88,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.02,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.86
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.5,
+            "missing-assertion": 0.29,
+            "error-path": 0.01,
+            "side-effect": 0,
+            "other": 0.2
+          },
+          "confidence": 0.37
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.09
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "0cb13f9350cad239",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.55,
+        "tampering": 0.09,
+        "equivalence:value-never-occurs": 0.77
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.55
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.18,
+            "value-never-occurs": 0.81,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0,
+            "not-equivalent": 0.01
+          },
+          "confidence": 0.77
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.11,
+            "missing-assertion": 0.17,
+            "error-path": 0.66,
+            "side-effect": 0,
+            "other": 0.06
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.09
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "0ab0249adef9e6e3",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.94,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.58
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.15,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.01,
+            "other": 0.1,
+            "not-equivalent": 0.65
+          },
+          "confidence": 0.58
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.87,
+            "missing-assertion": 0.13,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.84
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "e8572f24359cc126",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.8,
+        "tampering": 0.17,
+        "equivalence:not-equivalent": 0.33
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.15,
+            "value-never-occurs": 0.25,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.07,
+            "other": 0.07,
+            "not-equivalent": 0.44
+          },
+          "confidence": 0.33
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.84,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.12
+          },
+          "confidence": 0.8
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "fd1cb26bf311e647",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.36
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.07,
+            "value-never-occurs": 0.31,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.09,
+            "other": 0.04,
+            "not-equivalent": 0.47
+          },
+          "confidence": 0.36
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.83,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.13
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "0b925ddfed1f6f84",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.87,
+        "tampering": 0.16,
+        "equivalence:not-equivalent": 0.5
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.07,
+            "value-never-occurs": 0.13,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.12,
+            "other": 0.07,
+            "not-equivalent": 0.58
+          },
+          "confidence": 0.5
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.61,
+            "error-path": 0.02,
+            "side-effect": 0.29,
+            "other": 0.06
+          },
+          "confidence": 0.51
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "721e6e2a4b649daa",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.75,
+        "tampering": 0.22,
+        "equivalence:value-never-occurs": 0.36
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.47,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.03,
+            "other": 0.08,
+            "not-equivalent": 0.31
+          },
+          "confidence": 0.36
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.58,
+            "error-path": 0.02,
+            "side-effect": 0.32,
+            "other": 0.05
+          },
+          "confidence": 0.47
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.22
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "85b9902b4b9b181b",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.89,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.34
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.4,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.05,
+            "other": 0.06,
+            "not-equivalent": 0.45
+          },
+          "confidence": 0.34
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.56,
+            "error-path": 0.02,
+            "side-effect": 0.37,
+            "other": 0.03
+          },
+          "confidence": 0.45
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "bd1ea7ebbfbe0d6b",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.79,
+        "tampering": 0.2,
+        "equivalence:value-never-occurs": 0.75
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.79,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.03,
+            "other": 0.04,
+            "not-equivalent": 0.09
+          },
+          "confidence": 0.75
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.21,
+            "missing-assertion": 0.44,
+            "error-path": 0.01,
+            "side-effect": 0.29,
+            "other": 0.05
+          },
+          "confidence": 0.3
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.2
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "e298c86b257f48cb",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.73,
+        "tampering": 0.19,
+        "equivalence:not-equivalent": 0.18
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.15,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.25,
+            "other": 0.06,
+            "not-equivalent": 0.32
+          },
+          "confidence": 0.18
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.59,
+            "error-path": 0.01,
+            "side-effect": 0.33,
+            "other": 0.04
+          },
+          "confidence": 0.49
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.19
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "623152674061ab30",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.71,
+        "tampering": 0.21,
+        "equivalence:value-never-occurs": 0.74
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.71
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.78,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.05,
+            "other": 0.03,
+            "not-equivalent": 0.09
+          },
+          "confidence": 0.74
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.3,
+            "missing-assertion": 0.43,
+            "error-path": 0.01,
+            "side-effect": 0.21,
+            "other": 0.05
+          },
+          "confidence": 0.29
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.21
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "20db0222efa86d15",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.75,
+        "tampering": 0.17,
+        "equivalence:not-equivalent": 0.45
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.14,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.06,
+            "other": 0.09,
+            "not-equivalent": 0.54
+          },
+          "confidence": 0.45
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.77,
+            "error-path": 0,
+            "side-effect": 0.12,
+            "other": 0.05
+          },
+          "confidence": 0.71
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "3b19f549898deb12",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.35
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.3,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.02,
+            "other": 0.16,
+            "not-equivalent": 0.46
+          },
+          "confidence": 0.35
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.76,
+            "error-path": 0.01,
+            "side-effect": 0.14,
+            "other": 0.07
+          },
+          "confidence": 0.7
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "65deeab050d17108",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.15,
+        "equivalence:not-equivalent": 0.52
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.06,
+            "unreachable-code": 0.03,
+            "other": 0.05,
+            "not-equivalent": 0.6
+          },
+          "confidence": 0.52
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.32,
+            "error-path": 0.02,
+            "side-effect": 0.64,
+            "other": 0.02
+          },
+          "confidence": 0.55
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "defu",
+      "id": "8ab0e06a35823bce",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.9,
+        "tampering": 0.15,
+        "equivalence:value-never-occurs": 0.29
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.41,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.06,
+            "other": 0.05,
+            "not-equivalent": 0.38
+          },
+          "confidence": 0.29
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.27,
+            "error-path": 0.01,
+            "side-effect": 0.7,
+            "other": 0.02
+          },
+          "confidence": 0.62
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "e66b12a385a0c071",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.79,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.84
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.79
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.87,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0,
+            "not-equivalent": 0.01
+          },
+          "confidence": 0.84
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.16,
+            "error-path": 0.76,
+            "side-effect": 0.01,
+            "other": 0.05
+          },
+          "confidence": 0.7
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "a60af096b11f6968",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.77,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.4
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.21,
+            "value-never-occurs": 0.05,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.12,
+            "other": 0.08,
+            "not-equivalent": 0.5
+          },
+          "confidence": 0.4
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.31,
+            "missing-assertion": 0.65,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.03
+          },
+          "confidence": 0.56
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "bc1a6d4aeb2bf5d4",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.31,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.78
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.31
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.82,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.03,
+            "other": 0.01,
+            "not-equivalent": 0.06
+          },
+          "confidence": 0.78
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.64,
+            "missing-assertion": 0.33,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.03
+          },
+          "confidence": 0.55
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "de922067fa207ef7",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.44,
+        "tampering": 0.13,
+        "equivalence:same-value": 0.74
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.44
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.78,
+            "value-never-occurs": 0.12,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.03,
+            "other": 0.01,
+            "not-equivalent": 0.05
+          },
+          "confidence": 0.74
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.8,
+            "missing-assertion": 0.19,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.75
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "20df8418de29f866",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.46
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.09,
+            "value-never-occurs": 0.23,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.02,
+            "other": 0.09,
+            "not-equivalent": 0.55
+          },
+          "confidence": 0.46
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.82,
+            "missing-assertion": 0.18,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.77
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "de0fbd2ea4270040",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.81,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.53
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.15,
+            "value-never-occurs": 0.09,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.03,
+            "other": 0.1,
+            "not-equivalent": 0.61
+          },
+          "confidence": 0.53
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.65,
+            "missing-assertion": 0.32,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.03
+          },
+          "confidence": 0.56
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "c9cdd0a284339dca",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.96,
+        "tampering": 0.1,
+        "equivalence:not-equivalent": 0.6
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.96
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.15,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.08,
+            "other": 0.08,
+            "not-equivalent": 0.67
+          },
+          "confidence": 0.6
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.88,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.06
+          },
+          "confidence": 0.85
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "c84183b212848b8e",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.14,
+        "equivalence:not-equivalent": 0.66
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.04,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.12,
+            "other": 0.06,
+            "not-equivalent": 0.72
+          },
+          "confidence": 0.66
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.43,
+            "missing-assertion": 0.47,
+            "error-path": 0.07,
+            "side-effect": 0.01,
+            "other": 0.02
+          },
+          "confidence": 0.34
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "d8d14c2ade9279b6",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.12,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.21
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.12
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.34,
+            "value-never-occurs": 0.01,
+            "no-observable-effect": 0.11,
+            "unreachable-code": 0.01,
+            "other": 0.34,
+            "not-equivalent": 0.19
+          },
+          "confidence": 0.21
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.63,
+            "missing-assertion": 0.29,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.06
+          },
+          "confidence": 0.54
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "07ea65f7c318c30a",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.89,
+        "tampering": 0.1,
+        "equivalence:value-never-occurs": 0.68
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.05,
+            "value-never-occurs": 0.73,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.19
+          },
+          "confidence": 0.68
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.01,
+            "missing-assertion": 0.15,
+            "error-path": 0.83,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "97d5de870c990ecb",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.25,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.83
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.25
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.86,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.02,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.83
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.55,
+            "missing-assertion": 0.29,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.16
+          },
+          "confidence": 0.44
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "0cb13f9350cad239",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.59,
+        "tampering": 0.1,
+        "equivalence:value-never-occurs": 0.77
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.59
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.18,
+            "value-never-occurs": 0.81,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0,
+            "not-equivalent": 0.01
+          },
+          "confidence": 0.77
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.09,
+            "missing-assertion": 0.15,
+            "error-path": 0.71,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.64
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "corpus",
+      "id": "0ab0249adef9e6e3",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.94,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.52
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.94
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.19,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.01,
+            "other": 0.11,
+            "not-equivalent": 0.6
+          },
+          "confidence": 0.52
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.86,
+            "missing-assertion": 0.14,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.82
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    }
+  ]
+}

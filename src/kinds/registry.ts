@@ -1,5 +1,6 @@
 import type { AnalysisAdapter, BuiltEvidence } from "./adapter.ts";
 import type { AnalysisKind, KindName } from "./names.ts";
+import { mutationAdapter } from "./mutation.ts";
 import { reviewAdapter } from "./review.ts";
 import { securityAdapter } from "./security.ts";
 import { similarCodeAdapter } from "./similar-code.ts";
@@ -26,6 +27,7 @@ const REGISTRY: Readonly<Record<AnalysisKind, RegisteredKind>> = {
   security: register(securityAdapter),
   review: register(reviewAdapter),
   "similar-code": register(similarCodeAdapter),
+  mutation: register(mutationAdapter),
 };
 
 export const kindFor = (kind: AnalysisKind): RegisteredKind => REGISTRY[kind];

@@ -1,5 +1,6 @@
 import type { ReviewConfig } from "../config/schema.ts";
 import type { Answer } from "../engine/types.ts";
+import { noulOf } from "../policy/answers.ts";
 import type { StoredDecision } from "../state/schema.ts";
 import type { BuiltReview } from "./packet.ts";
 import { NO_LINE, ruleQuestionId, rulesFor, SEVERITY_LABELS } from "./questions.ts";
@@ -15,11 +16,6 @@ export const REVIEW_RULES = [
 ] as const;
 
 export type ReviewPolicyRule = (typeof REVIEW_RULES)[number];
-
-const noulOf = (answers: Record<string, Answer>, id: string): number | null => {
-  const answer = answers[id];
-  return answer?.type === "noul" && Number.isFinite(answer.probability) ? answer.probability : null;
-};
 
 const percent = (value: number): string => `${(value * 100).toFixed(0)}%`;
 

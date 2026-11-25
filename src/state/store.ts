@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { DEFAULT_KIND, KIND_NAME_PATTERN, type KindName } from "../kinds/names.ts";
+import { writeAtomic } from "../util/files.ts";
 import { err, ok, type Result } from "../util/result.ts";
 import { verdictError, type VerdictError } from "../util/errors.ts";
 import { recordSchema, type FindingRecord, type RunRecord } from "./schema.ts";
@@ -35,18 +36,6 @@ export const checkStoreKind = (store: Store, kind: KindName): Result<void, Verdi
           `The ${kind} analysis cannot use the ${store.kind} state in ${store.dataDir}.`,
         ),
       );
-
-/** Temp file plus rename: a crash mid-write leaves the old record, never a torn one. */
-const writeAtomic = async (file: string, content: string): Promise<void> => {
-  await mkdir(path.dirname(file), { recursive: true });
-  const temp = `${file}.tmp-${process.pid}-${randomBytes(4).toString("hex")}`;
-  try {
-    await writeFile(temp, content, { mode: 0o600 });
-    await rename(temp, file);
-  } finally {
-    await rm(temp, { force: true });
-  }
-};
 
 const recordFileName = (findingId: string): string =>
   `${createHash("sha256").update(findingId).digest("hex").slice(0, 24)}.json`;

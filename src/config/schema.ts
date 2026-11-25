@@ -100,6 +100,34 @@ export const similarCodePolicySchema = z
   })
   .strict();
 
+/** The default thresholds of the mutation kind. A config may make dismissals rarer, never easier. */
+const MUTATION_DISMISS_MAX_BEHAVIOR_CHANGE = 0.02;
+const MUTATION_DISMISS_MIN_REASON_STRENGTH = 0.9;
+
+/**
+ * Settings of the `mutation` kind. A wrong dismissal hides a test gap and raises the mutation
+ * score that a `--min-score` gate reads, so its thresholds are stricter than for other kinds.
+ */
+const mutationSchema = z
+  .object({
+    /**
+     * Run `fallow mutation inspect --replay` for each survivor before the engine call. A replay
+     * runs project code, so it is off by default.
+     */
+    replay: z.boolean().default(false),
+    /** Minimum P(behavior_changes) that makes a survivor a test gap. */
+    survivorMinBehaviorChange: probability.default(0.7),
+    /** Maximum P(behavior_changes) at which a survivor may be proposed as equivalent. */
+    dismissMaxBehaviorChange: probability
+      .max(MUTATION_DISMISS_MAX_BEHAVIOR_CHANGE)
+      .default(MUTATION_DISMISS_MAX_BEHAVIOR_CHANGE),
+    /** A proposal needs a named `equivalence` reason at least this strong. */
+    dismissMinReasonStrength: probability
+      .min(MUTATION_DISMISS_MIN_REASON_STRENGTH)
+      .default(MUTATION_DISMISS_MIN_REASON_STRENGTH),
+  })
+  .strict();
+
 export const configSchema = z
   .object({
     /** Project root that fallow analyzes. Relative to the config file. */
@@ -160,6 +188,8 @@ export const configSchema = z
       })
       .strict()
       .prefault({}),
+    /** Settings of the `mutation` kind. */
+    mutation: mutationSchema.prefault({}),
     /** Verdicts at or above this level make `run` and `report` exit 1. */
     failOn: z.enum(FAIL_ON).default("survivor"),
   })

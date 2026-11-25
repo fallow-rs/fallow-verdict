@@ -9,6 +9,12 @@ default, `engine.baseUrl` to override). The request body holds the question set 
   callee, boundary flags, trace locations, reachability flags, detected control locations
 - numbered source windows around the sink, the source, trace hops, and controls
 
+For `--kind mutation`, the packet holds the mutant from `fallow mutation inspect`, the source
+of its enclosing function, same-file declarations, and excerpts of the covering test files. It
+never holds a replay argument value, because Fallow can record those values from real calls. A
+replay witness decides without a request, and its input stays in the local report and record.
+`mutation.replay: true` runs project code on this machine; it sends nothing extra.
+
 Paths are project-relative. Files outside the project root are never read, including through
 symlinks. With `packet.blind`, category, CWE, and the evidence label are withheld.
 

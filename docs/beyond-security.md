@@ -1,6 +1,6 @@
 # Beyond security: a review layer for more Fallow analyses
 
-Status: proposal. Nothing in this document is implemented.
+Status: proposal. Phase 4 is implemented as `--kind mutation`; see [mutation.md](mutation.md).
 
 ## Goal
 

@@ -1,5 +1,4 @@
-import { readFile, realpath } from "node:fs/promises";
-import path from "node:path";
+import { readContainedBytes } from "../util/files.ts";
 
 export type WindowRole = "sink" | "source" | "trace" | "control";
 
@@ -43,14 +42,8 @@ export const numberLines = (lines: readonly string[], start: number): string =>
  * crafted or symlinked path from pulling files outside the project into a request.
  */
 export const readContained = async (root: string, relative: string): Promise<string[] | null> => {
-  try {
-    const realRoot = await realpath(root);
-    const resolved = await realpath(path.resolve(realRoot, relative));
-    if (resolved !== realRoot && !resolved.startsWith(realRoot + path.sep)) return null;
-    return (await readFile(resolved, "utf8")).split(/\r?\n/);
-  } catch {
-    return null;
-  }
+  const content = await readContainedBytes(root, relative);
+  return content === null ? null : content.toString("utf8").split(/\r?\n/);
 };
 
 export type WindowResult = { windows: SourceWindow[]; unreadable: string[] };

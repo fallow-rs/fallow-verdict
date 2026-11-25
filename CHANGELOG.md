@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Add `--kind mutation` to assess the survived mutants of `fallow mutation`. A Fallow replay witness and a stale packet decide without a Jev call. Proposed equivalents need two agreeing calls and go to `.fallow-verdict/mutation-verdicts.proposed.json`, never to the verdict document of the project.
+- Add the `mutation` config section. Its dismissal thresholds can only become stricter than the defaults.
+- Add the `fallow-verdict-mutation` skill and a labeled evaluation set of mutation survivors from public projects.
+
 ## 0.2.1 (2026-11-15)
 
 ### Fixed

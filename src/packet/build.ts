@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-
+import { canonicalJson, sha256 } from "../util/hash.ts";
 import type { SecurityFinding, SecurityOutput } from "../fallow/types.ts";
 import { estimateTokens } from "../util/tokens.ts";
 import { surfacesFor, uniqueEvidence, type SurfaceEvidence } from "./surfaces.ts";
@@ -102,15 +101,8 @@ const dropLeastImportant = (windows: SourceWindow[]): SourceWindow[] | null => {
   return null;
 };
 
-const canonicalJson = (value: unknown): string =>
-  JSON.stringify(value, (_key, inner: unknown) =>
-    typeof inner === "object" && inner !== null && !Array.isArray(inner)
-      ? Object.fromEntries(Object.entries(inner).toSorted(([a], [b]) => a.localeCompare(b)))
-      : inner,
-  );
-
 const fingerprintOf = (packet: VerifierPacket): string =>
-  createHash("sha256").update(canonicalJson(packet)).digest("hex").slice(0, 32);
+  sha256(canonicalJson(packet)).slice(0, 32);
 
 const skeleton = (
   finding: SecurityFinding,

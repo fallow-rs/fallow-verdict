@@ -85,8 +85,9 @@ describe("skills", () => {
     expect(pkg.files).toContain("skills");
   });
 
-  it("include the four planned skills", () => {
+  it("include the planned skills", () => {
     expect(skillNames.toSorted()).toEqual([
+      "fallow-verdict-mutation",
       "fallow-verdict-review",
       "fallow-verdict-rules",
       "fallow-verdict-security-triage",
