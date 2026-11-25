@@ -286,7 +286,7 @@ Evidence per mutant:
 - the declarations of the names that the changed expression reads, when Fallow can resolve them;
 - the covering test files, and the test bodies that call the function, up to the token budget;
 - the `equivalence_hint`, when present;
-- the replay verdict and its input, when replay is on (see the open decisions).
+- the replay verdict and its input, when replay is on (see Configuration).
 
 The identity is the `mutant_id`. It stays the same until the enclosing function changes, so a
 stored verdict becomes stale at the same moment as the Fallow id.
@@ -315,17 +315,42 @@ The `equivalence` options match the examples in the Fallow mutation documentatio
 
 Rules are checked in this order. The first match wins.
 
-| Rule                  | Condition                                                                                                                       | Verdict              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `evidence-stale`      | The inspect packet is `stale`, or a source window is truncated                                                                  | `needs-human-review` |
-| `replay-witness`      | The replay gives `witness`. Fallow proved a difference, so no engine call is made                                               | `survivor`           |
-| `tampering-suspected` | P(tampering) at or above `tamperingMax`                                                                                         | `needs-human-review` |
-| `real-gap`            | P(behavior_changes) at or above the survivor threshold                                                                          | `survivor`           |
-| `likely-equivalent`   | P(behavior_changes) at or below the dismissal threshold in two agreeing calls, `equivalence` is not `other` or `not-equivalent` | `dismissed`          |
-| `default`             | Every other case                                                                                                                | `needs-human-review` |
+| Rule                  | Condition                                                                                                                                                                                   | Verdict              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `evidence-stale`      | The inspect packet is `stale`, or a source window is truncated                                                                                                                              | `needs-human-review` |
+| `replay-witness`      | The replay gives `witness`. Fallow proved a difference, so no engine call is made                                                                                                           | `survivor`           |
+| `tampering-suspected` | P(tampering) at or above `tamperingMax`                                                                                                                                                     | `needs-human-review` |
+| `real-gap`            | P(behavior_changes) at or above `survivorMinBehaviorChange`                                                                                                                                 | `survivor`           |
+| `likely-equivalent`   | P(behavior_changes) at or below `dismissMaxBehaviorChange` in two agreeing calls, and an `equivalence` reason other than `other` or `not-equivalent` at or above `dismissMinReasonStrength` | `dismissed`          |
+| `default`             | Every other case                                                                                                                                                                            | `needs-human-review` |
 
 The order puts Fallow's proof first. A replay `witness` always wins over an engine estimate. A
 replay `no_witness_found` is not proof of equivalence. It goes into the packet as evidence only.
+
+### Configuration
+
+```json
+{
+  "mutation": {
+    "replay": false,
+    "survivorMinBehaviorChange": 0.7,
+    "dismissMaxBehaviorChange": 0.02,
+    "dismissMinReasonStrength": 0.9
+  }
+}
+```
+
+- `replay` is off by default. A replay runs project code: the module of the file and each module
+  that it imports. The other evidence steps only read files. With `replay: true`, fallow-verdict
+  runs `fallow mutation inspect --replay` for each candidate before the engine call. A runner
+  without replay support (`bun test`) gives no replay evidence, and the run continues.
+- The dismissal threshold is stricter than for the other kinds. A security dismissal of a
+  high-severity candidate needs P(exploitable) at or below 0.05. A similar-code `refactor_safe`
+  needs a probability of 0.95. A mutation dismissal needs P(behavior_changes) at or below 0.02,
+  and a reason strength of 0.9 instead of 0.8. The reason: a dismissal does not only hide a
+  finding, it also raises the mutation score that a `--min-score` gate reads.
+- A config can raise these values to make dismissals rarer. A value below the default is refused,
+  so a config cannot make dismissals easier than the default.
 
 ### Authority
 
@@ -396,7 +421,3 @@ show stable decisions.
 4. Package name. "verdict" fits judge mode. Review mode could be a `review` subcommand in the
    same package or a separate package.
 5. Dead code: a Fallow join command, or a report-only first version.
-6. Mutation survivors: replay on by default when the runner supports it, or opt-in. A replay runs
-   project code (the module of the file and its imports), so it is not a read-only step.
-7. Mutation survivors: the dismissal threshold. The same value as for similar-code, or stricter,
-   because a dismissal changes the mutation score.
