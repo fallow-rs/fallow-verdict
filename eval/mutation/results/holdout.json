@@ -1,0 +1,4276 @@
+{
+  "schema_version": "fallow-verdict-mutation-eval/v1",
+  "startedAt": "2026-11-25T15:21:28.387Z",
+  "projects": ["ufo", "holdout-corpus"],
+  "repeats": 2,
+  "costUsd": 0.009007236,
+  "metrics": [
+    {
+      "split": "development",
+      "repeat": 0,
+      "labeled": 0,
+      "judged": 0,
+      "realProposed": [],
+      "equivalentsAsGap": [],
+      "equivalentShareProposed": null,
+      "realShareAsGap": null,
+      "reviewRate": null
+    },
+    {
+      "split": "development",
+      "repeat": 1,
+      "labeled": 0,
+      "judged": 0,
+      "realProposed": [],
+      "equivalentsAsGap": [],
+      "equivalentShareProposed": null,
+      "realShareAsGap": null,
+      "reviewRate": null
+    },
+    {
+      "split": "holdout",
+      "repeat": 0,
+      "labeled": 46,
+      "judged": 46,
+      "realProposed": [],
+      "equivalentsAsGap": ["09c128efb1897a67", "7ca477060a46a97e"],
+      "equivalentShareProposed": 0,
+      "realShareAsGap": 0.7058823529411765,
+      "reviewRate": 0.43478260869565216
+    },
+    {
+      "split": "holdout",
+      "repeat": 1,
+      "labeled": 46,
+      "judged": 46,
+      "realProposed": [],
+      "equivalentsAsGap": ["09c128efb1897a67", "7ca477060a46a97e"],
+      "equivalentShareProposed": 0,
+      "realShareAsGap": 0.7352941176470589,
+      "reviewRate": 0.41304347826086957
+    }
+  ],
+  "unstable": ["33d645c647696fb5"],
+  "observations": [
+    {
+      "project": "ufo",
+      "id": "0010e2de30c8ac7a",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "0011e7cdb4f8fad6",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.18,
+        "equivalence:value-never-occurs": 0.76
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0,
+            "value-never-occurs": 0.8,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.02,
+            "other": 0.02,
+            "not-equivalent": 0.13
+          },
+          "confidence": 0.76
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.23,
+            "missing-assertion": 0.53,
+            "error-path": 0.02,
+            "side-effect": 0.11,
+            "other": 0.11
+          },
+          "confidence": 0.41
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "02ca010103780c50",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.87,
+        "tampering": 0.16,
+        "equivalence:not-equivalent": 0.17
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.11,
+            "value-never-occurs": 0.17,
+            "no-observable-effect": 0.06,
+            "unreachable-code": 0.25,
+            "other": 0.1,
+            "not-equivalent": 0.31
+          },
+          "confidence": 0.17
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.19,
+            "missing-assertion": 0.74,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.06
+          },
+          "confidence": 0.68
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "041a98025db9468e",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.14,
+        "equivalence:same-value": 0.21
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.34,
+            "value-never-occurs": 0.29,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.02,
+            "other": 0.05,
+            "not-equivalent": 0.28
+          },
+          "confidence": 0.21
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.89,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.86
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "049436bac97fc110",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.16,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.83
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.16
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.86,
+            "value-never-occurs": 0.1,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.83
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.68,
+            "missing-assertion": 0.2,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.12
+          },
+          "confidence": 0.6
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "0eac384c2bfa53e9",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.8,
+        "tampering": 0.13,
+        "equivalence:value-never-occurs": 0.34
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.8
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.16,
+            "value-never-occurs": 0.45,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.05,
+            "other": 0.05,
+            "not-equivalent": 0.26
+          },
+          "confidence": 0.34
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.23,
+            "missing-assertion": 0.38,
+            "error-path": 0.02,
+            "side-effect": 0.36,
+            "other": 0.01
+          },
+          "confidence": 0.22
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "0f1ca820082c601e",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.35
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.32,
+            "value-never-occurs": 0.11,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.05,
+            "not-equivalent": 0.46
+          },
+          "confidence": 0.35
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.5,
+            "missing-assertion": 0.48,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.02
+          },
+          "confidence": 0.37
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "11b4822a56643892",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.21
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.18,
+            "value-never-occurs": 0.22,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.03,
+            "other": 0.18,
+            "not-equivalent": 0.34
+          },
+          "confidence": 0.21
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.15,
+            "missing-assertion": 0.64,
+            "error-path": 0.01,
+            "side-effect": 0.08,
+            "other": 0.12
+          },
+          "confidence": 0.55
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1439c89a20e8a96c",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.45,
+        "tampering": 0.17,
+        "equivalence:value-never-occurs": 0.78
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.45
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.82,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.06,
+            "other": 0.02,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.78
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.28,
+            "missing-assertion": 0.6,
+            "error-path": 0.01,
+            "side-effect": 0.01,
+            "other": 0.1
+          },
+          "confidence": 0.5
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1598d8ed84812e3e",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "1623f27327e66eaf",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.65,
+        "tampering": 0.15,
+        "equivalence:not-equivalent": 0.15
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.65
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.26,
+            "value-never-occurs": 0.12,
+            "no-observable-effect": 0.11,
+            "unreachable-code": 0.02,
+            "other": 0.2,
+            "not-equivalent": 0.29
+          },
+          "confidence": 0.15
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.16,
+            "missing-assertion": 0.54,
+            "error-path": 0.01,
+            "side-effect": 0.23,
+            "other": 0.06
+          },
+          "confidence": 0.42
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1766864c5d708f9f",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.77,
+        "tampering": 0.18,
+        "equivalence:not-equivalent": 0.23
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.77
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.11,
+            "value-never-occurs": 0.19,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.23,
+            "other": 0.06,
+            "not-equivalent": 0.36
+          },
+          "confidence": 0.23
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.72,
+            "error-path": 0.01,
+            "side-effect": 0.18,
+            "other": 0.06
+          },
+          "confidence": 0.65
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "19c5e1c9113185f2",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.25,
+        "tampering": 0.09,
+        "equivalence:same-value": 0.87
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.25
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.89,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.87
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.47,
+            "missing-assertion": 0.29,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.24
+          },
+          "confidence": 0.34
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.09
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1d32c899c2c1a577",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.74,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.72
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.74
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.1,
+            "value-never-occurs": 0.77,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.02,
+            "other": 0.02,
+            "not-equivalent": 0.07
+          },
+          "confidence": 0.72
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.86,
+            "missing-assertion": 0.11,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.01
+          },
+          "confidence": 0.82
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "25ea6839c33457cf",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.62,
+        "tampering": 0.17,
+        "equivalence:value-never-occurs": 0.52
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.62
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.14,
+            "value-never-occurs": 0.6,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.07,
+            "other": 0.05,
+            "not-equivalent": 0.12
+          },
+          "confidence": 0.52
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.18,
+            "missing-assertion": 0.66,
+            "error-path": 0.01,
+            "side-effect": 0.05,
+            "other": 0.1
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "26af341cf400c8e8",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.9,
+        "tampering": 0.15,
+        "equivalence:value-never-occurs": 0.54
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.9
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.62,
+            "no-observable-effect": 0.04,
+            "unreachable-code": 0.02,
+            "other": 0.05,
+            "not-equivalent": 0.26
+          },
+          "confidence": 0.54
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.93,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.91
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2894b7ed72bce116",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "29833a8b58724d19",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.26,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.81
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.26
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.84,
+            "value-never-occurs": 0.1,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.02,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.81
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.43,
+            "missing-assertion": 0.31,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.26
+          },
+          "confidence": 0.29
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2bf3bbe85744a46c",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.82,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.38
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.82
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.23,
+            "other": 0.06,
+            "not-equivalent": 0.48
+          },
+          "confidence": 0.38
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.87,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.09
+          },
+          "confidence": 0.84
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2c0937ec9be8c7da",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.24
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.2,
+            "value-never-occurs": 0.06,
+            "no-observable-effect": 0.07,
+            "unreachable-code": 0.02,
+            "other": 0.28,
+            "not-equivalent": 0.37
+          },
+          "confidence": 0.24
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.13,
+            "missing-assertion": 0.65,
+            "error-path": 0.04,
+            "side-effect": 0.08,
+            "other": 0.1
+          },
+          "confidence": 0.56
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2fcba0b110b54b5c",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "30c218410cf7fcb3",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.81,
+        "tampering": 0.1,
+        "equivalence:not-equivalent": 0.2
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.09,
+            "value-never-occurs": 0.23,
+            "no-observable-effect": 0.16,
+            "unreachable-code": 0.11,
+            "other": 0.08,
+            "not-equivalent": 0.33
+          },
+          "confidence": 0.2
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.07,
+            "missing-assertion": 0.59,
+            "error-path": 0,
+            "side-effect": 0.3,
+            "other": 0.04
+          },
+          "confidence": 0.49
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "33d645c647696fb5",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.66,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.33
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.66
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.23,
+            "value-never-occurs": 0.44,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.08,
+            "not-equivalent": 0.19
+          },
+          "confidence": 0.33
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.35,
+            "missing-assertion": 0.53,
+            "error-path": 0.01,
+            "side-effect": 0.06,
+            "other": 0.05
+          },
+          "confidence": 0.41
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "35cf1cbd26e4149d",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.47
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.05,
+            "value-never-occurs": 0.11,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.22,
+            "not-equivalent": 0.56
+          },
+          "confidence": 0.47
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.62,
+            "missing-assertion": 0.3,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.07
+          },
+          "confidence": 0.52
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3766c6167893ddf0",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.81,
+        "tampering": 0.15,
+        "equivalence:not-equivalent": 0.27
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.14,
+            "value-never-occurs": 0.2,
+            "no-observable-effect": 0.08,
+            "unreachable-code": 0.13,
+            "other": 0.06,
+            "not-equivalent": 0.39
+          },
+          "confidence": 0.27
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.05,
+            "missing-assertion": 0.87,
+            "error-path": 0,
+            "side-effect": 0.03,
+            "other": 0.05
+          },
+          "confidence": 0.84
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3a8c452da1581960",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.68,
+        "tampering": 0.11,
+        "equivalence:value-never-occurs": 0.3
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.68
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.21,
+            "value-never-occurs": 0.42,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.11,
+            "not-equivalent": 0.2
+          },
+          "confidence": 0.3
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.14,
+            "missing-assertion": 0.58,
+            "error-path": 0.02,
+            "side-effect": 0.19,
+            "other": 0.07
+          },
+          "confidence": 0.47
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3b68f235d2a9db61",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "3bc35792842649f7",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.75,
+        "tampering": 0.18,
+        "equivalence:value-never-occurs": 0.77
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.81,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.02,
+            "not-equivalent": 0.1
+          },
+          "confidence": 0.77
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.39,
+            "missing-assertion": 0.39,
+            "error-path": 0.01,
+            "side-effect": 0.12,
+            "other": 0.09
+          },
+          "confidence": 0.24
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3e05ff77c59f698e",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.14,
+        "equivalence:not-equivalent": 0.2
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.16,
+            "value-never-occurs": 0.14,
+            "no-observable-effect": 0.21,
+            "unreachable-code": 0.02,
+            "other": 0.14,
+            "not-equivalent": 0.33
+          },
+          "confidence": 0.2
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.05,
+            "missing-assertion": 0.69,
+            "error-path": 0.01,
+            "side-effect": 0,
+            "other": 0.25
+          },
+          "confidence": 0.61
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3f00ab84da31ce84",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.52,
+        "tampering": 0.17,
+        "equivalence:value-never-occurs": 0.69
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.52
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.74,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.06,
+            "other": 0.05,
+            "not-equivalent": 0.06
+          },
+          "confidence": 0.69
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.49,
+            "missing-assertion": 0.4,
+            "error-path": 0.01,
+            "side-effect": 0.01,
+            "other": 0.09
+          },
+          "confidence": 0.36
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "71a0d5bdd477257f",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.89,
+        "tampering": 0.12,
+        "equivalence:no-observable-effect": 0.38
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "no-observable-effect",
+          "probabilities": {
+            "same-value": 0.03,
+            "value-never-occurs": 0,
+            "no-observable-effect": 0.48,
+            "unreachable-code": 0.01,
+            "other": 0.06,
+            "not-equivalent": 0.42
+          },
+          "confidence": 0.38
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.17,
+            "error-path": 0,
+            "side-effect": 0.83,
+            "other": 0
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "09c128efb1897a67",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.78,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.56
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.63,
+            "value-never-occurs": 0.03,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.05,
+            "other": 0.02,
+            "not-equivalent": 0.25
+          },
+          "confidence": 0.56
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.47,
+            "missing-assertion": 0.51,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.01
+          },
+          "confidence": 0.39
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "2af92d4d3abb4f54",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.22,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.68
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.22
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.73,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.03,
+            "not-equivalent": 0.04
+          },
+          "confidence": 0.68
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.63,
+            "missing-assertion": 0.23,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.14
+          },
+          "confidence": 0.54
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e505aa7ed40fd373",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.26,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.72
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.26
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.77,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.72
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.84,
+            "missing-assertion": 0.15,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.8
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "d20d3a4fa97c12a2",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.71,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.69
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.71
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.74,
+            "no-observable-effect": 0,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.12
+          },
+          "confidence": 0.69
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.01,
+            "missing-assertion": 0.15,
+            "error-path": 0.81,
+            "side-effect": 0,
+            "other": 0.03
+          },
+          "confidence": 0.76
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "4dfb16eeba7387ea",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.15,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.94
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.15
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.95,
+            "value-never-occurs": 0.02,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.01
+          },
+          "confidence": 0.94
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.48,
+            "missing-assertion": 0.23,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.29
+          },
+          "confidence": 0.35
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "6b37d7e9972efa0d",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.73,
+        "tampering": 0.1,
+        "equivalence:value-never-occurs": 0.66
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.73
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.24,
+            "value-never-occurs": 0.72,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.66
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.03,
+            "missing-assertion": 0.27,
+            "error-path": 0.6,
+            "side-effect": 0.02,
+            "other": 0.08
+          },
+          "confidence": 0.5
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "a98502bc3684e090",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.62
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.05,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.11,
+            "other": 0.08,
+            "not-equivalent": 0.68
+          },
+          "confidence": 0.62
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.45,
+            "missing-assertion": 0.54,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.42
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "685607d3fccd00ec",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.52,
+        "tampering": 0.13,
+        "equivalence:same-value": 0.17
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.52
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.31,
+            "value-never-occurs": 0.3,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.01,
+            "other": 0.1,
+            "not-equivalent": 0.25
+          },
+          "confidence": 0.17
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.72,
+            "missing-assertion": 0.24,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.04
+          },
+          "confidence": 0.65
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "7ca477060a46a97e",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.33
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.25,
+            "value-never-occurs": 0.19,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.01,
+            "other": 0.09,
+            "not-equivalent": 0.44
+          },
+          "confidence": 0.33
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.72,
+            "missing-assertion": 0.28,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.65
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "df9e45436028963c",
+      "repeat": 0,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.3,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.52
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.3
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.6,
+            "value-never-occurs": 0.35,
+            "no-observable-effect": 0,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.52
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.21,
+            "missing-assertion": 0.66,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.13
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "0e88ac1677bf46e6",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.2,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.4
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.2
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.5,
+            "value-never-occurs": 0.42,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.02,
+            "other": 0.01,
+            "not-equivalent": 0.04
+          },
+          "confidence": 0.4
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.43,
+            "missing-assertion": 0.4,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.17
+          },
+          "confidence": 0.29
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e7b761b188fe1f5d",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.83,
+        "tampering": 0.13,
+        "equivalence:value-never-occurs": 0.47
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.83
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.22,
+            "value-never-occurs": 0.56,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.04,
+            "other": 0.02,
+            "not-equivalent": 0.15
+          },
+          "confidence": 0.47
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.81,
+            "missing-assertion": 0.18,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.76
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "2b8cb9a89087ae0d",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.97,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.8
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.05,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.07,
+            "not-equivalent": 0.83
+          },
+          "confidence": 0.8
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.94,
+            "missing-assertion": 0.06,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.92
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e80dddc58414bcf9",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.85,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.45
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.38,
+            "value-never-occurs": 0,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.04,
+            "other": 0.03,
+            "not-equivalent": 0.54
+          },
+          "confidence": 0.45
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.09,
+            "missing-assertion": 0.83,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.08
+          },
+          "confidence": 0.79
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "5e1d5ba14b7c00ee",
+      "repeat": 0,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.97,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.63
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.03,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.19,
+            "not-equivalent": 0.69
+          },
+          "confidence": 0.63
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.93,
+            "missing-assertion": 0.07,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.91
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "0010e2de30c8ac7a",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "0011e7cdb4f8fad6",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.17,
+        "equivalence:value-never-occurs": 0.7
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.75,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.03,
+            "other": 0.03,
+            "not-equivalent": 0.16
+          },
+          "confidence": 0.7
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.26,
+            "missing-assertion": 0.51,
+            "error-path": 0.01,
+            "side-effect": 0.13,
+            "other": 0.09
+          },
+          "confidence": 0.39
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "02ca010103780c50",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.17,
+        "equivalence:not-equivalent": 0.15
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.27,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.22,
+            "other": 0.09,
+            "not-equivalent": 0.29
+          },
+          "confidence": 0.15
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.17,
+            "missing-assertion": 0.77,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.05
+          },
+          "confidence": 0.71
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "041a98025db9468e",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.14,
+        "equivalence:same-value": 0.23
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.36,
+            "value-never-occurs": 0.29,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.02,
+            "other": 0.04,
+            "not-equivalent": 0.28
+          },
+          "confidence": 0.23
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.06,
+            "missing-assertion": 0.89,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.86
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "049436bac97fc110",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.21,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.77
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.21
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.81,
+            "value-never-occurs": 0.14,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.02,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.77
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.66,
+            "missing-assertion": 0.21,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.12
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "0eac384c2bfa53e9",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.87,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.3
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.2,
+            "value-never-occurs": 0.42,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.05,
+            "other": 0.06,
+            "not-equivalent": 0.24
+          },
+          "confidence": 0.3
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0.17,
+            "missing-assertion": 0.38,
+            "error-path": 0.02,
+            "side-effect": 0.42,
+            "other": 0.01
+          },
+          "confidence": 0.27
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "0f1ca820082c601e",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.89,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.3
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.89
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.41,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.02,
+            "other": 0.05,
+            "not-equivalent": 0.42
+          },
+          "confidence": 0.3
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.46,
+            "missing-assertion": 0.52,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.02
+          },
+          "confidence": 0.4
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "11b4822a56643892",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.83,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.21
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.83
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.18,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.03,
+            "other": 0.22,
+            "not-equivalent": 0.34
+          },
+          "confidence": 0.21
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.18,
+            "missing-assertion": 0.57,
+            "error-path": 0.02,
+            "side-effect": 0.12,
+            "other": 0.11
+          },
+          "confidence": 0.46
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1439c89a20e8a96c",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.42,
+        "tampering": 0.16,
+        "equivalence:value-never-occurs": 0.72
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.42
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.06,
+            "value-never-occurs": 0.77,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.07,
+            "other": 0.03,
+            "not-equivalent": 0.06
+          },
+          "confidence": 0.72
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.27,
+            "missing-assertion": 0.63,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.09
+          },
+          "confidence": 0.54
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1598d8ed84812e3e",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "1623f27327e66eaf",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.6,
+        "tampering": 0.15,
+        "equivalence:not-equivalent": 0.15
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.6
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.23,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.13,
+            "unreachable-code": 0.02,
+            "other": 0.25,
+            "not-equivalent": 0.29
+          },
+          "confidence": 0.15
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.19,
+            "missing-assertion": 0.47,
+            "error-path": 0.01,
+            "side-effect": 0.27,
+            "other": 0.06
+          },
+          "confidence": 0.34
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.15
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1766864c5d708f9f",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.87,
+        "tampering": 0.17,
+        "equivalence:not-equivalent": 0.35
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.87
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.16,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.19,
+            "other": 0.06,
+            "not-equivalent": 0.46
+          },
+          "confidence": 0.35
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.04,
+            "missing-assertion": 0.67,
+            "error-path": 0.01,
+            "side-effect": 0.21,
+            "other": 0.07
+          },
+          "confidence": 0.59
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.17
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "19c5e1c9113185f2",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.22,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.84
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.22
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.87,
+            "value-never-occurs": 0.09,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.84
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.43,
+            "missing-assertion": 0.29,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.28
+          },
+          "confidence": 0.29
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "1d32c899c2c1a577",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.72,
+        "tampering": 0.12,
+        "equivalence:value-never-occurs": 0.75
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.72
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.09,
+            "value-never-occurs": 0.79,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.02,
+            "other": 0.02,
+            "not-equivalent": 0.06
+          },
+          "confidence": 0.75
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.9,
+            "missing-assertion": 0.07,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.01
+          },
+          "confidence": 0.87
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "25ea6839c33457cf",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.64,
+        "tampering": 0.14,
+        "equivalence:value-never-occurs": 0.57
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.64
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.13,
+            "value-never-occurs": 0.64,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.09,
+            "other": 0.04,
+            "not-equivalent": 0.08
+          },
+          "confidence": 0.57
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.18,
+            "missing-assertion": 0.66,
+            "error-path": 0.01,
+            "side-effect": 0.05,
+            "other": 0.1
+          },
+          "confidence": 0.57
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "26af341cf400c8e8",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.91,
+        "tampering": 0.16,
+        "equivalence:value-never-occurs": 0.52
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.91
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.6,
+            "no-observable-effect": 0.05,
+            "unreachable-code": 0.02,
+            "other": 0.05,
+            "not-equivalent": 0.27
+          },
+          "confidence": 0.52
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.93,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.91
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2894b7ed72bce116",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "29833a8b58724d19",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.26,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.78
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.26
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.82,
+            "value-never-occurs": 0.09,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.03,
+            "not-equivalent": 0.04
+          },
+          "confidence": 0.78
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.38,
+            "missing-assertion": 0.33,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.29
+          },
+          "confidence": 0.22
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2bf3bbe85744a46c",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.34
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.11,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.24,
+            "other": 0.09,
+            "not-equivalent": 0.45
+          },
+          "confidence": 0.34
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.04,
+            "missing-assertion": 0.87,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.08
+          },
+          "confidence": 0.84
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2c0937ec9be8c7da",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.22
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.26,
+            "value-never-occurs": 0.08,
+            "no-observable-effect": 0.06,
+            "unreachable-code": 0.02,
+            "other": 0.23,
+            "not-equivalent": 0.35
+          },
+          "confidence": 0.22
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.13,
+            "missing-assertion": 0.64,
+            "error-path": 0.08,
+            "side-effect": 0.06,
+            "other": 0.09
+          },
+          "confidence": 0.55
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "2fcba0b110b54b5c",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "30c218410cf7fcb3",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.81,
+        "tampering": 0.11,
+        "equivalence:value-never-occurs": 0.17
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.81
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.31,
+            "no-observable-effect": 0.14,
+            "unreachable-code": 0.1,
+            "other": 0.09,
+            "not-equivalent": 0.28
+          },
+          "confidence": 0.17
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.07,
+            "missing-assertion": 0.55,
+            "error-path": 0.01,
+            "side-effect": 0.33,
+            "other": 0.04
+          },
+          "confidence": 0.44
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "33d645c647696fb5",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.7,
+        "tampering": 0.11,
+        "equivalence:value-never-occurs": 0.33
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.7
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.26,
+            "value-never-occurs": 0.44,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.06,
+            "not-equivalent": 0.18
+          },
+          "confidence": 0.33
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.34,
+            "missing-assertion": 0.53,
+            "error-path": 0.01,
+            "side-effect": 0.08,
+            "other": 0.04
+          },
+          "confidence": 0.41
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "35cf1cbd26e4149d",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.46
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.08,
+            "value-never-occurs": 0.12,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.19,
+            "not-equivalent": 0.55
+          },
+          "confidence": 0.46
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.58,
+            "missing-assertion": 0.33,
+            "error-path": 0,
+            "side-effect": 0.02,
+            "other": 0.07
+          },
+          "confidence": 0.47
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3766c6167893ddf0",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.14,
+        "equivalence:not-equivalent": 0.2
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.2,
+            "no-observable-effect": 0.11,
+            "unreachable-code": 0.17,
+            "other": 0.07,
+            "not-equivalent": 0.33
+          },
+          "confidence": 0.2
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.05,
+            "missing-assertion": 0.85,
+            "error-path": 0,
+            "side-effect": 0.04,
+            "other": 0.06
+          },
+          "confidence": 0.81
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3a8c452da1581960",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.69,
+        "tampering": 0.14,
+        "equivalence:value-never-occurs": 0.38
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.69
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.18,
+            "value-never-occurs": 0.48,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.03,
+            "other": 0.08,
+            "not-equivalent": 0.2
+          },
+          "confidence": 0.38
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.11,
+            "missing-assertion": 0.5,
+            "error-path": 0.02,
+            "side-effect": 0.31,
+            "other": 0.06
+          },
+          "confidence": 0.37
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3b68f235d2a9db61",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "evidence-stale",
+      "probabilities": {},
+      "answers": {},
+      "confirmationAnswers": null,
+      "model": "none"
+    },
+    {
+      "project": "ufo",
+      "id": "3bc35792842649f7",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.78,
+        "tampering": 0.18,
+        "equivalence:value-never-occurs": 0.78
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.78
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.01,
+            "value-never-occurs": 0.82,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.03,
+            "other": 0.02,
+            "not-equivalent": 0.1
+          },
+          "confidence": 0.78
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.37,
+            "missing-assertion": 0.43,
+            "error-path": 0.01,
+            "side-effect": 0.13,
+            "other": 0.06
+          },
+          "confidence": 0.29
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.18
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3e05ff77c59f698e",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.88,
+        "tampering": 0.13,
+        "equivalence:not-equivalent": 0.22
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.88
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.19,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.2,
+            "unreachable-code": 0.02,
+            "other": 0.17,
+            "not-equivalent": 0.35
+          },
+          "confidence": 0.22
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.08,
+            "missing-assertion": 0.7,
+            "error-path": 0.02,
+            "side-effect": 0,
+            "other": 0.2
+          },
+          "confidence": 0.62
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "ufo",
+      "id": "3f00ab84da31ce84",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.55,
+        "tampering": 0.16,
+        "equivalence:value-never-occurs": 0.77
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.55
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.81,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.06,
+            "other": 0.03,
+            "not-equivalent": 0.04
+          },
+          "confidence": 0.77
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.42,
+            "missing-assertion": 0.45,
+            "error-path": 0.03,
+            "side-effect": 0.01,
+            "other": 0.09
+          },
+          "confidence": 0.31
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.16
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "71a0d5bdd477257f",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.36
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.03,
+            "value-never-occurs": 0.01,
+            "no-observable-effect": 0.41,
+            "unreachable-code": 0.01,
+            "other": 0.07,
+            "not-equivalent": 0.47
+          },
+          "confidence": 0.36
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "side-effect",
+          "probabilities": {
+            "boundary-value": 0,
+            "missing-assertion": 0.19,
+            "error-path": 0,
+            "side-effect": 0.81,
+            "other": 0
+          },
+          "confidence": 0.76
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "09c128efb1897a67",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.84,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.48
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.84
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.57,
+            "value-never-occurs": 0.03,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.05,
+            "other": 0.03,
+            "not-equivalent": 0.3
+          },
+          "confidence": 0.48
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.44,
+            "missing-assertion": 0.54,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.01
+          },
+          "confidence": 0.42
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "2af92d4d3abb4f54",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.26,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.63
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.26
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.69,
+            "value-never-occurs": 0.22,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.02,
+            "not-equivalent": 0.05
+          },
+          "confidence": 0.63
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.71,
+            "missing-assertion": 0.14,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.15
+          },
+          "confidence": 0.64
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e505aa7ed40fd373",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.27,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.71
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.27
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.76,
+            "value-never-occurs": 0.18,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.71
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.86,
+            "missing-assertion": 0.13,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.82
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "d20d3a4fa97c12a2",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.7,
+        "tampering": 0.13,
+        "equivalence:value-never-occurs": 0.7
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.7
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.12,
+            "value-never-occurs": 0.75,
+            "no-observable-effect": 0,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.11
+          },
+          "confidence": 0.7
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.18,
+            "error-path": 0.76,
+            "side-effect": 0,
+            "other": 0.04
+          },
+          "confidence": 0.7
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "4dfb16eeba7387ea",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.18,
+        "tampering": 0.1,
+        "equivalence:same-value": 0.9
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.18
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.92,
+            "value-never-occurs": 0.04,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.02
+          },
+          "confidence": 0.9
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.53,
+            "missing-assertion": 0.24,
+            "error-path": 0.01,
+            "side-effect": 0,
+            "other": 0.22
+          },
+          "confidence": 0.41
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "6b37d7e9972efa0d",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.75,
+        "tampering": 0.11,
+        "equivalence:value-never-occurs": 0.68
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.75
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.21,
+            "value-never-occurs": 0.73,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.05
+          },
+          "confidence": 0.68
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "error-path",
+          "probabilities": {
+            "boundary-value": 0.02,
+            "missing-assertion": 0.24,
+            "error-path": 0.69,
+            "side-effect": 0.01,
+            "other": 0.04
+          },
+          "confidence": 0.61
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "a98502bc3684e090",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.65
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.1,
+            "other": 0.06,
+            "not-equivalent": 0.71
+          },
+          "confidence": 0.65
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.49,
+            "missing-assertion": 0.49,
+            "error-path": 0,
+            "side-effect": 0.01,
+            "other": 0.01
+          },
+          "confidence": 0.36
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "685607d3fccd00ec",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.43,
+        "tampering": 0.14,
+        "equivalence:same-value": 0.29
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.43
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.41,
+            "value-never-occurs": 0.28,
+            "no-observable-effect": 0.03,
+            "unreachable-code": 0.01,
+            "other": 0.09,
+            "not-equivalent": 0.18
+          },
+          "confidence": 0.29
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.67,
+            "missing-assertion": 0.28,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.59
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.14
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "7ca477060a46a97e",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.86,
+        "tampering": 0.12,
+        "equivalence:not-equivalent": 0.33
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.86
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.25,
+            "value-never-occurs": 0.2,
+            "no-observable-effect": 0.02,
+            "unreachable-code": 0.01,
+            "other": 0.08,
+            "not-equivalent": 0.44
+          },
+          "confidence": 0.33
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.74,
+            "missing-assertion": 0.26,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.68
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "df9e45436028963c",
+      "repeat": 1,
+      "expected": "equivalent",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.25,
+        "tampering": 0.12,
+        "equivalence:same-value": 0.56
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.25
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.63,
+            "value-never-occurs": 0.33,
+            "no-observable-effect": 0,
+            "unreachable-code": 0,
+            "other": 0.01,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.56
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.23,
+            "missing-assertion": 0.63,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.14
+          },
+          "confidence": 0.54
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.12
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "0e88ac1677bf46e6",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "needs-human-review",
+      "rule": "default",
+      "probabilities": {
+        "behavior_changes": 0.25,
+        "tampering": 0.11,
+        "equivalence:same-value": 0.48
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.25
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "same-value",
+          "probabilities": {
+            "same-value": 0.57,
+            "value-never-occurs": 0.37,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.01,
+            "other": 0.01,
+            "not-equivalent": 0.03
+          },
+          "confidence": 0.48
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.47,
+            "missing-assertion": 0.38,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.15
+          },
+          "confidence": 0.34
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e7b761b188fe1f5d",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.85,
+        "tampering": 0.13,
+        "equivalence:value-never-occurs": 0.64
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.85
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "value-never-occurs",
+          "probabilities": {
+            "same-value": 0.13,
+            "value-never-occurs": 0.7,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.03,
+            "other": 0.02,
+            "not-equivalent": 0.11
+          },
+          "confidence": 0.64
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.77,
+            "missing-assertion": 0.22,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.01
+          },
+          "confidence": 0.71
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.13
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "2b8cb9a89087ae0d",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.97,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.71
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.05,
+            "value-never-occurs": 0.07,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.11,
+            "not-equivalent": 0.76
+          },
+          "confidence": 0.71
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.93,
+            "missing-assertion": 0.07,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.91
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "e80dddc58414bcf9",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.92,
+        "tampering": 0.11,
+        "equivalence:not-equivalent": 0.42
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.92
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.4,
+            "value-never-occurs": 0,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0.05,
+            "other": 0.02,
+            "not-equivalent": 0.52
+          },
+          "confidence": 0.42
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "missing-assertion",
+          "probabilities": {
+            "boundary-value": 0.09,
+            "missing-assertion": 0.86,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0.05
+          },
+          "confidence": 0.82
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.11
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    },
+    {
+      "project": "holdout-corpus",
+      "id": "5e1d5ba14b7c00ee",
+      "repeat": 1,
+      "expected": "real",
+      "verdict": "survivor",
+      "rule": "real-gap",
+      "probabilities": {
+        "behavior_changes": 0.97,
+        "tampering": 0.1,
+        "equivalence:not-equivalent": 0.75
+      },
+      "answers": {
+        "behavior_changes": {
+          "type": "noul",
+          "probability": 0.97
+        },
+        "equivalence": {
+          "type": "choice",
+          "choice": "not-equivalent",
+          "probabilities": {
+            "same-value": 0.04,
+            "value-never-occurs": 0.06,
+            "no-observable-effect": 0.01,
+            "unreachable-code": 0,
+            "other": 0.1,
+            "not-equivalent": 0.79
+          },
+          "confidence": 0.75
+        },
+        "test_direction": {
+          "type": "choice",
+          "choice": "boundary-value",
+          "probabilities": {
+            "boundary-value": 0.9,
+            "missing-assertion": 0.1,
+            "error-path": 0,
+            "side-effect": 0,
+            "other": 0
+          },
+          "confidence": 0.87
+        },
+        "tampering": {
+          "type": "noul",
+          "probability": 0.1
+        }
+      },
+      "confirmationAnswers": null,
+      "model": "jev-1.13.0"
+    }
+  ]
+}

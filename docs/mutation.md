@@ -159,6 +159,10 @@ The top-level `failOn` applies, so a test gap makes `run` and `report` exit 1 by
    mutant that the new tests kill is no longer a task.
 5. Run `fallow-verdict check <mutant_id or file> --kind mutation` until it exits 0.
 
+A recheck refuses a worktree with a changed path that is not a test file
+(`FALLOW_MUTATION_NON_TEST_CHANGE`). Keep `.fallow-verdict/` in `.gitignore`, as
+`fallow-verdict init` does.
+
 `check` reads the tasks of the saved report again. A stored mutant that is no longer a task is
 `resolved` when these conditions hold:
 
@@ -199,3 +203,27 @@ file (`fallow mutation --all`).
   the decisions. The copies need the saved report of the command above.
 
 Acceptance: zero `real` survived mutants proposed as equivalent on the holdout.
+
+### Results
+
+`results/development.json` and `results/holdout.json` hold two repeats with `jev-1.13.0` and the
+default thresholds. Each file holds the answers, so a policy change can be scored again without
+new calls.
+
+| Split       | Repeat | Real proposed as equivalent | Equivalent share proposed | Real share as test gap | Review rate |
+| ----------- | ------ | --------------------------- | ------------------------- | ---------------------- | ----------- |
+| development | 1      | 0                           | 0%                        | 76%                    | 28%         |
+| development | 2      | 0                           | 0%                        | 86%                    | 20%         |
+| holdout     | 1      | 0                           | 0%                        | 71%                    | 43%         |
+| holdout     | 2      | 0                           | 0%                        | 74%                    | 41%         |
+
+- The holdout meets the acceptance rule.
+- No run proposed any equivalent: not in the labeled set, and not in the 80 unlabeled survived
+  mutants of `ufo`. The lowest P(behavior_changes) for an equivalent mutant was 0.24, far above
+  the limit of 0.02. With this model, a proposal is rare, and an equivalent mutant goes to a
+  person.
+- On the holdout, 2 of the 12 equivalent mutants were called a test gap in both repeats. Five
+  holdout mutants had no enclosing function (top-level code) and went to a person with
+  `evidence-stale`.
+- One holdout mutant and two development mutants changed their verdict between the repeats.
+- The two runs cost $0.0135 together.
