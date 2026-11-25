@@ -71,6 +71,66 @@ describe("mutation policy", () => {
     expect(decision.verdict).toBe(verdict);
   });
 
+  it.each([
+    [
+      answers(0.93, "not-equivalent", 0.9),
+      "Test gap",
+      "behavior change 0.93, equivalence not-equivalent (0.90)",
+    ],
+    [
+      answers(0.01, "same-value", 0.95),
+      "Likely equivalent",
+      "behavior change 0.01, equivalence same-value (0.95)",
+    ],
+    [answers(0.4, "other", 0.5), "Needs review", "behavior change 0.40, equivalence other (0.50)"],
+    [answers(0.4, "other", 0.5, 0.75), "may contain text", "tampering 0.75"],
+  ])("explains the decision with the answers", (given, start, detail) => {
+    const { reason } = decideMutation(given, FRESH, POLICY);
+    expect(reason).toContain(start);
+    expect(reason).toContain(detail);
+  });
+
+  it("explains a witness and a missing answer", () => {
+    expect(decideMutation({}, WITNESS, POLICY).reason).toContain("replay found an input");
+    expect(decideMutation({}, FRESH, POLICY).reason).toContain("missing or invalid");
+  });
+
+  it("treats each threshold as inclusive and names the evidence problem", () => {
+    expect(decideMutation(answers(0.01, "same-value", 0.99, 0.5), FRESH, POLICY).rule).toBe(
+      "tampering-suspected",
+    );
+    expect(decideMutation(answers(0.01, "same-value", 0.99, 0.49), FRESH, POLICY).rule).toBe(
+      "likely-equivalent",
+    );
+    const proposed = decideMutation(answers(0.015, "same-value", 0.93), FRESH, POLICY);
+    expect(proposed.confidence).toBe(0.93);
+    expect(decideMutation(answers(0.01, "same-value", 0.995), FRESH, POLICY).confidence).toBe(0.99);
+    expect(decideMutation({}, { ...FRESH, stale: true }, POLICY).reason).toContain("file changed");
+    expect(decideMutation({}, { ...FRESH, truncated: true }, POLICY).reason).toContain(
+      "whole function",
+    );
+  });
+
+  it.each(["behavior_changes", "tampering", "equivalence"])(
+    "sends an answer set without %s to a person",
+    (missing) => {
+      const given = answers(0.01, "same-value", 0.99);
+      delete given[missing];
+      expect(decideMutation(given, FRESH, POLICY).rule).toBe("default");
+    },
+  );
+
+  it("refuses a choice answer without a finite confidence", () => {
+    const given = answers(0.01, "same-value", 0.99);
+    given["equivalence"] = {
+      type: "choice",
+      choice: "same-value",
+      probabilities: {},
+      confidence: Number.NaN,
+    };
+    expect(decideMutation(given, FRESH, POLICY).rule).toBe("default");
+  });
+
   it("decides a stale packet and a witness without answers", () => {
     expect(decideMutation({}, { ...FRESH, stale: true }, POLICY).rule).toBe("evidence-stale");
     const witness = decideMutation({}, WITNESS, POLICY);
