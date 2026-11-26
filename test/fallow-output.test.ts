@@ -33,7 +33,7 @@ it("rejects ambiguous finding identities even when their source columns differ",
   });
 });
 
-it.each([undefined, null, "", "   ", 3])("rejects missing or invalid identities", (id) => {
+it.each([undefined, null, "", "   ", 3])("rejects the finding id %j", (id) => {
   expect(
     parseSecurityOutput({
       ...makeOutput([]),
