@@ -3,7 +3,10 @@
 ```bash
 npm install
 npm run verify   # typecheck, lint, format check, tests, build
+npm run test:mutation -- src/policy/mutation.ts   # mutation test of the files that you changed
 ```
+
+A mutation run on every file takes too long. Give the files that you changed as paths.
 
 - TypeScript strict, arrow functions, named exports, no `any`.
 - Errors are values: return `Result`, do not throw across module boundaries.

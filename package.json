@@ -49,6 +49,7 @@
     "eval:live": "npm run build && node scripts/evaluate-corpus.ts",
     "eval:compare": "node scripts/compare-questions.ts",
     "eval:mutation": "npm run build && node scripts/evaluate-mutation.ts",
+    "test:mutation": "fallow mutation --setup-timeout 10m",
     "lint": "oxlint",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
